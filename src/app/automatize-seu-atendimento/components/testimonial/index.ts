@@ -1,0 +1,1 @@
+export { TestimonialComponent } from "./testimonial";

@@ -1,0 +1,1 @@
+export { TrustComponent } from "./trust";
