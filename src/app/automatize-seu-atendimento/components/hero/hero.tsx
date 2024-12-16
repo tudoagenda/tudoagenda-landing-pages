@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 
 export const HeroComponent = () => {
   return (
-    <main className="flex flex-col w-full bg-purple-900 md:p-20 p-6 items-center gap-14">
+    <main
+      id="teste-gratuitamente"
+      className="flex flex-col w-full bg-purple-900 md:p-20 p-6 items-center gap-14"
+    >
       <Image
         src={AgendabelaLogo}
         width={170}
@@ -16,8 +19,8 @@ export const HeroComponent = () => {
         <h1 className="md:text-5xl text-white text-4xl max-w-3xl font-bold">
           Automatize seu atendimento sem dores de cabeça.
         </h1>
-        <div className="flex flex-col text-purple-300 md:text-xl text-md font-lexend">
-          <p>Nós somos os experts em tecnologia. Você não precisa ser.</p>
+        <div className="flex flex-col text-purple-300 md:text-xl text-sm font-lexend">
+          <p>Nós somos experts em tecnologia. Você não precisa ser.</p>
           <p>
             Criamos o AgendaBela pra você automatizar seu atendimento e
             gerenciar melhor seu salão.

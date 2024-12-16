@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { StepComponent } from "../step";
+import Link from "next/link";
 
 export const AboutComponent = () => {
   return (
@@ -12,8 +13,8 @@ export const AboutComponent = () => {
         <StepComponent step="Step2" />
         <StepComponent step="Step3" />
       </section>
-      <Button variant="agendabela-accent" size="lg">
-        Teste Gratuitamente
+      <Button asChild variant="agendabela-accent" size="lg">
+        <Link href="#teste-gratuitamente">Teste Gratuitamente</Link>
       </Button>
     </article>
   );

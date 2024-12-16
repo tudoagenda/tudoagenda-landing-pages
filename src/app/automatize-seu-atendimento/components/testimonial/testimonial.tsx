@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const TestimonialComponent = () => {
   return (
@@ -13,8 +14,8 @@ export const TestimonialComponent = () => {
           MARIA JOANA, PROPRIETÁRIA DO SALÃO PARIS
         </p>
       </div>
-      <Button variant="agendabela-accent" size="lg">
-        Teste Gratuitamente
+      <Button asChild variant="agendabela-accent" size="lg">
+        <Link href="#teste-gratuitamente">Teste Gratuitamente</Link>
       </Button>
     </div>
   );
