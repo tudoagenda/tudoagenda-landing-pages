@@ -16,7 +16,7 @@ export default function Layout({
       <a
         href="https://www.producthunt.com/posts/tudo-agenda-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-tudo&#0045;agenda&#0045;2"
         target="_blank"
-        className="right-10 bottom-10 z-50 md:fixed hidden"
+        className="right-10 bottom-10 z-50 md:fixed hidden md:block"
       >
         <img
           src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=709488&theme=light"
