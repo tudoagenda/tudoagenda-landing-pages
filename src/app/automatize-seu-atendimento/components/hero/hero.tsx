@@ -1,7 +1,6 @@
 import Image from "next/image";
 import AgendabelaLogo from "../../assets/agendabela-logo.png";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FormComponent } from "../form";
 
 export const HeroComponent = () => {
   return (
@@ -29,10 +28,7 @@ export const HeroComponent = () => {
       </div>
 
       <div className="flex flex-col gap-4 w-full max-w-2xl items-center">
-        <div className="flex gap-2 w-full max-w-lg">
-          <Input placeholder="Digite seu e-mail aqui" />
-          <Button variant="agendabela-accent">Teste Gratuitamente</Button>
-        </div>
+        <FormComponent />
         <div className="md:text-xs text-[11px] font-lexend text-purple-500 text-center">
           <p>
             Teste nossa plataforma por 30 dias gratuitamente.{" "}
