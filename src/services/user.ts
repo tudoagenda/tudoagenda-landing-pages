@@ -5,7 +5,7 @@ type CreateUserResponse = {
 
 export const userService = {
   async createUser(email: string): Promise<CreateUserResponse> {
-    const response = await fetch("/api/create-user", {
+    const response = await fetch("/agendabela/api/create-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
