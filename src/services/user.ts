@@ -14,7 +14,7 @@ export const userService = {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error occurred! status: ${response.status}`);
     }
 
     return response.json();
