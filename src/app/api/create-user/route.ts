@@ -5,7 +5,7 @@ export async function POST(req: Request) {
 
   try {
     const response = await fetch(
-      `${process.env.API_URL}/create-user-and-send`,
+      `${process.env.NEXT_PUBLIC_API_URL}/create-user-and-send`,
       {
         method: "POST",
         headers: {
