@@ -1,5 +1,3 @@
-// Create a spinner component
-
 interface SpinnerProps {
   size?: "sm" | "md" | "lg";
   variant?: "default" | "primary" | "secondary";
