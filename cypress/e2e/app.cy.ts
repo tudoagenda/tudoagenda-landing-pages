@@ -1,6 +1,6 @@
 describe("Form Component E2E Tests", () => {
   beforeEach(() => {
-    cy.visit(Cypress.env("ENVIRONMENT_URL"));
+    cy.visit(Cypress.env("NEXT_PUBLIC_ENVIRONMENT_URL"));
   });
 
   it("should fill the input with email and click to send", () => {
@@ -8,7 +8,7 @@ describe("Form Component E2E Tests", () => {
 
     cy.intercept(
       "POST",
-      `${Cypress.env("ENVIRONMENT_URL")}/agendabela/api/create-user`
+      `${Cypress.env("NEXT_PUBLIC_ENVIRONMENT_URL")}/agendabela/api/create-user`
     ).as("createUser");
 
     cy.get('input[placeholder="Digite seu e-mail aqui"]').type(email);
