@@ -1,7 +1,7 @@
 import Image from "next/image";
 
-import SantanderX from "@/app/automatize-seu-atendimento/assets/santander-x.png";
-import FoundersClub from "@/app/automatize-seu-atendimento/assets/founders-club.png";
+import SantanderX from "@/app/agendabela/automatize-seu-atendimento/assets/santander-x.png";
+import FoundersClub from "@/app/agendabela/automatize-seu-atendimento/assets/founders-club.png";
 
 export const TrustComponent = () => {
   return (
