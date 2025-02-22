@@ -6,17 +6,25 @@ import { Spinner } from "@/components/ui/spinner";
 import { useState } from "react";
 import { SuccessModal } from "../success-modal";
 import { useCreateUser } from "@/hooks/use-create-user";
-
+import { useAmplitude } from "@/contexts/AmplitudeProvider";
 export const FormComponent = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { mutate, isPending } = useCreateUser();
+  const { track } = useAmplitude();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    track("agendabela/automatize-seu-atendimento/form_submission", { email });
+
     mutate(email, {
-      onSuccess: () => setShowSuccessModal(true),
+      onSuccess: () => {
+        setShowSuccessModal(true);
+        track("agendabela/automatize-seu-atendimento/form_submission_success", {
+          email,
+        });
+      },
     });
   };
 
