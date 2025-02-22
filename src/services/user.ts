@@ -3,12 +3,10 @@ type CreateUserResponse = {
   user: string;
 };
 
-const NEXT_PUBLIC_ENVIRONMENT_URL = process.env.NEXT_PUBLIC_ENVIRONMENT_URL;
-
 export const userService = {
   async createUser(email: string): Promise<CreateUserResponse> {
     const response = await fetch(
-      `${NEXT_PUBLIC_ENVIRONMENT_URL}/agendabela/api/create-user`,
+      `/api/agendabela/create-user`,
       {
         method: "POST",
         headers: {
