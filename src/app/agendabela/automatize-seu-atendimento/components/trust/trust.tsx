@@ -6,7 +6,7 @@ import FoundersClub from "@/app/agendabela/automatize-seu-atendimento/assets/fou
 export const TrustComponent = () => {
   return (
     <div className="flex flex-col items-center w-full px-8 md:px-16 py-16">
-      <div className="flex gap-8 p-12 w-full max-w-7xl border-y border-y-purple-200 items-center justify-center">
+      <div className="flex flex-col md:flex-row gap-8 p-12 w-full max-w-7xl border-y border-y-purple-200 items-center justify-center">
         <Image
           src={SantanderX}
           width={200}

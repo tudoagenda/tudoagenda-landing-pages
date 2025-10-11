@@ -30,7 +30,7 @@ export const FormComponent = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-lg">
+      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2 w-full max-w-lg">
         <Input
           placeholder="Digite seu e-mail aqui"
           type="email"
