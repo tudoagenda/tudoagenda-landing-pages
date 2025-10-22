@@ -1,6 +1,13 @@
 import "./globals.css";
 import { Providers } from "./providers";
 import Script from "next/script";
+import { Lexend } from 'next/font/google';
+
+const lexend = Lexend({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-lexend',
+});
 
 export default function RootLayout({
   children,
@@ -8,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-br" className={lexend.variable}>
       <head>
         {/* Google Tag Manager */}
         <Script
