@@ -17,7 +17,8 @@ export default function RootLayout({
   return (
     <html lang="pt-br" className={lexend.variable}>
       <head>
-        {/* Google Tag Manager */}
+        <link rel="preload" href="/agendabela-logo.png" as="image" type="image/png" />
+        <link rel="preload" href="/gif-agendamento.gif" as="image" type="image/gif" />
         <Script
           id="gtm-script"
           strategy="afterInteractive"
@@ -29,10 +30,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-NCLL3WLW');`,
           }}
         />
-        {/* End Google Tag Manager */}
       </head>
       <body>
-        {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-NCLL3WLW"
@@ -41,7 +40,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        {/* End Google Tag Manager (noscript) */}
         <Providers>{children}</Providers>
       </body>
     </html>
