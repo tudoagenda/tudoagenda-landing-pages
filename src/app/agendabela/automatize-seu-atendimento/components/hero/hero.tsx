@@ -3,7 +3,16 @@
 import Image from "next/image";
 import AgendabelaLogo from "../../assets/agendabela-logo.png";
 import GifAgendamento from "../../assets/gif-agendamento.gif";
-import { FormComponent } from "../form";
+import dynamic from "next/dynamic";
+
+const FormComponent = dynamic(() => import("../form").then(mod => ({ default: mod.FormComponent })), {
+  loading: () => (
+    <div className="flex flex-col md:flex-row gap-2 w-full max-w-lg">
+      <div className="h-10 bg-gray-300 animate-pulse rounded flex-1" />
+      <div className="h-10 bg-purple-400 animate-pulse rounded w-32" />
+    </div>
+  )
+});
 
 export const HeroComponent = () => {
   return (
@@ -36,14 +45,14 @@ export const HeroComponent = () => {
               alt="Demonstração do sistema de agendamento"
               width={400}
               height={300}
-              priority
+              unoptimized
+              loading="eager"
               className="rounded-lg shadow-lg max-h-[450px] w-auto mx-auto"
             />
           </div>
           
         </div>
 
-        {/* Form visível apenas no desktop */}
         <div className="hidden md:flex flex-col gap-4 w-full max-w-2xl items-center">
           <FormComponent />
           <div className="md:text-xs text-[11px] font-lexend text-purple-500 text-center">
@@ -55,7 +64,6 @@ export const HeroComponent = () => {
         </div>
       </main>
 
-      {/* Form fixado na parte inferior apenas no mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-purple-900 p-4 border-t border-purple-700">
         <div className="flex flex-col gap-2 w-full max-w-lg mx-auto">
           <FormComponent />
