@@ -25,7 +25,7 @@ export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: Succes
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md mx-0 sm:mx-auto px-4 sm:px-6">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl text-center mb-4">
             🎉 Cadastro realizado com sucesso!
@@ -34,36 +34,36 @@ export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: Succes
             <div className="space-y-4">
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2">
-                  <span className="text-lg">1️⃣</span>
-                  <span>Acesse o sistema com seu e-mail e senha temporária.</span>
+                  <span className="text-lg flex-shrink-0">1️⃣</span>
+                  <span className="break-words">Acesse o sistema com seu e-mail e senha temporária.</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-lg">2️⃣</span>
-                  <span>Cadastre o nome do seu salão.</span>
+                  <span className="text-lg flex-shrink-0">2️⃣</span>
+                  <span className="break-words">Cadastre o nome do seu salão.</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-lg">3️⃣</span>
-                  <span>Compartilhe seu link e receba seus primeiros agendamentos.</span>
+                  <span className="text-lg flex-shrink-0">3️⃣</span>
+                  <span className="break-words">Compartilhe seu link e receba seus primeiros agendamentos.</span>
                 </div>
               </div>
               
               <div className="bg-blue-50 p-3 rounded-lg">
-                <div className="text-sm text-blue-800">
+                <div className="text-sm text-blue-800 break-words">
                   💬 <strong>Dica:</strong> você também pode testar o agendamento clicando no link da sua agenda!
                 </div>
               </div>
 
               {email && tempPassword && (
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🔐</span>
-                    <span className="text-sm font-medium">Login:</span>
-                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{email}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-lg flex-shrink-0">🔐</span>
+                    <span className="text-sm font-medium flex-shrink-0">Login:</span>
+                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border break-all">{email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🔑</span>
-                    <span className="text-sm font-medium">Senha temporária:</span>
-                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{tempPassword}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-lg flex-shrink-0">🔑</span>
+                    <span className="text-sm font-medium flex-shrink-0">Senha:</span>
+                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border break-all">{tempPassword}</span>
                   </div>
                 </div>
               )}
