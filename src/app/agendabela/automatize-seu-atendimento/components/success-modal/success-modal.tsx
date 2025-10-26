@@ -11,34 +11,83 @@ import { Button } from "@/components/ui/button";
 interface SuccessModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  email?: string;
+  tempPassword?: string;
 }
 
-export const SuccessModal = ({ open, onOpenChange }: SuccessModalProps) => {
+export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: SuccessModalProps) => {
+  const handleAccessPanel = () => {
+    if (email && tempPassword) {
+      const url = `https://agendabela.tudoagenda.com.br/entrar/?email=${encodeURIComponent(email)}&temp=${encodeURIComponent(tempPassword)}`;
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-lg">Sucesso!</AlertDialogTitle>
-          <AlertDialogDescription>
-            <p className="text-base mb-2">
-              Em breve você receberá um e-mail com o usuário e senha para
-              acessar a sua nova plataforma.
-            </p>
-            <p className="text-base mb-2">
-              Não se preocupe, o e-mail é o seu e-mail de contato.
-            </p>
-            <p className="text-base mb-2">
-              Lá na plataforma você terá acesso a todas as funcionalidades e aos
-              vídeo-tutoriais para começar a usar.
-            </p>
+          <AlertDialogTitle className="text-xl text-center mb-4">
+            🎉 Cadastro realizado com sucesso!
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-4">
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">1️⃣</span>
+                  <span>Acesse o sistema com seu e-mail e senha temporária.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">2️⃣</span>
+                  <span>Cadastre o nome do seu salão.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">3️⃣</span>
+                  <span>Compartilhe seu link e receba seus primeiros agendamentos.</span>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-sm text-blue-800">
+                  💬 <strong>Dica:</strong> você também pode testar o agendamento clicando no link da sua agenda!
+                </div>
+              </div>
+
+              {email && tempPassword && (
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔐</span>
+                    <span className="text-sm font-medium">Login:</span>
+                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔑</span>
+                    <span className="text-sm font-medium">Senha temporária:</span>
+                    <span className="text-sm font-mono bg-white px-2 py-1 rounded border">{tempPassword}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex-col gap-2">
+          {email && tempPassword && (
+            <Button
+              onClick={handleAccessPanel}
+              className="w-full text-white"
+              style={{ backgroundColor: '#673ab7', color: 'white' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5e35b1'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#673ab7'}
+            >
+              🚀 Começar a usar agora
+            </Button>
+          )}
           <Button
-            variant="agendabela-accent"
+            variant="outline"
             onClick={() => onOpenChange(false)}
+            className="w-full"
           >
-            Ok
+            Fechar
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

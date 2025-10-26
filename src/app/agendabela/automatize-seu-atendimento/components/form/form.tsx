@@ -7,8 +7,10 @@ import { useState } from "react";
 import { SuccessModal } from "../success-modal";
 import { useCreateUser } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
+
 export const FormComponent = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loginData, setLoginData] = useState<{ email: string; tempPassword: string } | null>(null);
   const { mutate, isPending } = useCreateUser();
   const { track } = useAmplitude();
 
@@ -19,7 +21,11 @@ export const FormComponent = () => {
     track("agendabela/automatize-seu-atendimento/form_submission", { email });
 
     mutate(email, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        setLoginData({
+          email: data.user,
+          tempPassword: data.temporaryPassword
+        });
         setShowSuccessModal(true);
         track("agendabela/automatize-seu-atendimento/form_submission_success", {
           email,
@@ -46,6 +52,8 @@ export const FormComponent = () => {
       <SuccessModal
         open={showSuccessModal}
         onOpenChange={setShowSuccessModal}
+        email={loginData?.email}
+        tempPassword={loginData?.tempPassword}
       />
     </>
   );

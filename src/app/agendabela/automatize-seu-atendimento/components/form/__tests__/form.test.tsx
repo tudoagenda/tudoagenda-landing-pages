@@ -1,9 +1,19 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { FormComponent } from "../form";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
 
 // Create a new QueryClient instance for each test
 const queryClient = new QueryClient();
+
+// Mock AmplitudeProvider
+const mockAmplitudeProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <AmplitudeProvider>
+      {children}
+    </AmplitudeProvider>
+  );
+};
 
 describe("FormComponent", () => {
   beforeEach(() => {
@@ -14,7 +24,9 @@ describe("FormComponent", () => {
   it("should render the FormComponent", () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <FormComponent />
+        <AmplitudeProvider>
+          <FormComponent />
+        </AmplitudeProvider>
       </QueryClientProvider>
     );
     expect(
@@ -33,14 +45,17 @@ describe("FormComponent", () => {
         json: () =>
           Promise.resolve({
             message: "User created successfully",
-            user: { email: "test@example.com" },
+            user: "test@example.com",
+            temporaryPassword: "1234Temp",
           }),
       })
     ) as jest.Mock;
 
     render(
       <QueryClientProvider client={queryClient}>
-        <FormComponent />
+        <AmplitudeProvider>
+          <FormComponent />
+        </AmplitudeProvider>
       </QueryClientProvider>
     );
 
@@ -52,9 +67,15 @@ describe("FormComponent", () => {
     );
 
     // Wait for the success modal to appear
-    expect(await screen.findByText("Sucesso!")).toBeInTheDocument();
+    expect(await screen.findByText("🎉 Cadastro realizado com sucesso!")).toBeInTheDocument();
     expect(
-      screen.getByText(/Em breve você receberá um e-mail/i)
+      screen.getByText(/Acesse o sistema com seu e-mail e senha temporária/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("test@example.com")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("1234Temp")
     ).toBeInTheDocument();
   });
 });

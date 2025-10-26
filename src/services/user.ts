@@ -1,6 +1,7 @@
 type CreateUserResponse = {
   message: string;
   user: string;
+  temporaryPassword: string;
 };
 
 export const userService = {
