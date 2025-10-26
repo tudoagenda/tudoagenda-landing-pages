@@ -6,15 +6,6 @@ import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
 // Create a new QueryClient instance for each test
 const queryClient = new QueryClient();
 
-// Mock AmplitudeProvider
-const mockAmplitudeProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <AmplitudeProvider>
-      {children}
-    </AmplitudeProvider>
-  );
-};
-
 describe("FormComponent", () => {
   beforeEach(() => {
     // Clear all mocks before each test
