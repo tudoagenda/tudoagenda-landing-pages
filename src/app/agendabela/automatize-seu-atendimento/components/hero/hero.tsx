@@ -45,9 +45,9 @@ export const HeroComponent = () => {
               alt="Demonstração do sistema de agendamento"
               width={400}
               height={300}
-              unoptimized
               loading="eager"
               className="rounded-lg shadow-lg max-h-[450px] w-auto mx-auto"
+              priority
             />
           </div>
           
