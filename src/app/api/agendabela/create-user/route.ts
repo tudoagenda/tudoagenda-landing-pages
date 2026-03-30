@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_API = "https://api.agendabela.tudoagenda.com.br/api";
+const BACKEND_API =
+  process.env.BACKEND_API_URL ||
+  "https://api.agendabela.tudoagenda.com.br/api";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
 
 export async function POST(req: Request) {
   try {
@@ -13,9 +18,35 @@ export async function POST(req: Request) {
       );
     }
 
+    // Server-side validation
+    if (!EMAIL_REGEX.test(email)) {
+      return NextResponse.json(
+        { error: "Email inválido" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return NextResponse.json(
+        { error: `Senha deve ter no mínimo ${MIN_PASSWORD_LENGTH} caracteres` },
+        { status: 400 }
+      );
+    }
+
+    const cognitoUrl =
+      process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
+
+    if (!cognitoUrl) {
+      console.error("BACKEND_API_URL env var not set");
+      return NextResponse.json(
+        { error: "Configuração do servidor indisponível" },
+        { status: 500 }
+      );
+    }
+
     // 1. Create Cognito account with user-defined password
     const cognitoResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/create-user-and-send`,
+      `${cognitoUrl}/create-user-and-send`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,15 +63,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Create profile on backend
+    const internalHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add internal API key for server-to-server auth
+    // TODO: backend should enforce auth guard on these endpoints (see PR #42)
+    if (process.env.INTERNAL_API_KEY) {
+      internalHeaders["X-Internal-Key"] = process.env.INTERNAL_API_KEY;
+    }
+
+    // 2. Create profile on backend (linked via billingEmail)
     let profileId: string | undefined;
     try {
       const profileResponse = await fetch(`${BACKEND_API}/profile`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: internalHeaders,
         body: JSON.stringify({
           name: salonName,
           phone,
+          billingEmail: email,
           specialty: "Salão de Beleza",
           type: "salon",
           numberOfAppointments: 0,
@@ -61,7 +103,7 @@ export async function POST(req: Request) {
     try {
       await fetch(`${BACKEND_API}/auth/magic-link`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: internalHeaders,
         body: JSON.stringify({ phone, email }),
       });
     } catch (magicLinkError) {

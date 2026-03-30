@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 
+// R$1,00 (100 centavos) é validação do cartão, estornado automaticamente.
+// Cobrança recorrente de R$59,90 é gerenciada pelo backend após trial.
+const DEFAULT_AMOUNT_CENTS = 100;
+
+const RETURN_URL =
+  process.env.BILLING_RETURN_URL ||
+  "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento?payment=success";
+
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -20,6 +28,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const amountCents = Number(process.env.PLAN_AMOUNT_CENTS) || DEFAULT_AMOUNT_CENTS;
+
     const response = await fetch(
       "https://api.abacatepay.com/v1/billing/create",
       {
@@ -36,13 +46,11 @@ export async function POST(req: Request) {
               externalId: "PRO-PLAN",
               name: "Agenda Bela Pro",
               quantity: 1,
-              price: 100,
+              price: amountCents,
             },
           ],
-          returnUrl:
-            "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento?payment=success",
-          completionUrl:
-            "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento?payment=success",
+          returnUrl: RETURN_URL,
+          completionUrl: RETURN_URL,
           customer: { email },
         }),
       }

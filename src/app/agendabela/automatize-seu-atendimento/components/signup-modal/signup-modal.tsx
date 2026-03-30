@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateUser, useCreateBilling } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
+
+const SESSION_KEY = "agendabela_signup_email";
 
 interface SignupModalProps {
   open: boolean;
@@ -54,11 +56,31 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { track } = useAmplitude();
 
+  // Guard step 3: only allow if user completed signup (email in sessionStorage)
+  useEffect(() => {
+    if (initialStep === 3) {
+      const storedEmail = sessionStorage.getItem(SESSION_KEY);
+      if (!storedEmail) {
+        // No signup context — ignore the query param, reset to step 1
+        setStep(1);
+      } else {
+        setEmail(storedEmail);
+        setStep(3);
+      }
+    }
+  }, [initialStep]);
+
   // Sync initialEmail/step when modal opens
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setEmail(initialEmail);
-      setStep(initialStep);
+      if (initialStep === 3) {
+        const storedEmail = sessionStorage.getItem(SESSION_KEY);
+        setStep(storedEmail ? 3 : 1);
+        if (storedEmail) setEmail(storedEmail);
+      } else {
+        setStep(initialStep);
+      }
     }
     if (!nextOpen) {
       // Reset on close
@@ -106,6 +128,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: () => {
           track("agendabela/signup-modal/account_created", { email });
+          // Persist email so step 3 can validate context
+          sessionStorage.setItem(SESSION_KEY, email);
           setStep(2);
         },
       }
@@ -244,14 +268,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <Button
                 onClick={handleStep1Submit}
                 disabled={isCreating}
-                className="w-full text-white"
-                style={{ backgroundColor: "#673ab7" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#5e35b1")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#673ab7")
-                }
+                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
               >
                 Criar conta e continuar
                 {isCreating && <Spinner size="sm" variant="primary" />}
@@ -292,14 +309,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <Button
                 onClick={handlePayment}
                 disabled={isBilling}
-                className="w-full text-white"
-                style={{ backgroundColor: "#673ab7" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#5e35b1")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#673ab7")
-                }
+                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
               >
                 Cadastrar cartão
                 {isBilling && <Spinner size="sm" variant="primary" />}
@@ -349,15 +359,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
             <AlertDialogFooter className="flex-col gap-2 pt-2">
               <Button
-                onClick={() => handleOpenChange(false)}
-                className="w-full text-white"
-                style={{ backgroundColor: "#673ab7" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#5e35b1")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#673ab7")
-                }
+                onClick={() => {
+                  sessionStorage.removeItem(SESSION_KEY);
+                  handleOpenChange(false);
+                }}
+                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
               >
                 Fechar
               </Button>
