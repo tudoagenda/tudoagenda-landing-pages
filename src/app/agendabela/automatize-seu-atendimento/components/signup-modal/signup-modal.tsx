@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -49,6 +49,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -89,6 +92,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setSalonName("");
       setPhone("");
       setPassword("");
+      setConfirmPassword("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
       setAcceptedTerms(false);
       setErrors({});
     }
@@ -109,6 +115,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
     const pwError = validatePassword(password);
     if (pwError) newErrors.password = pwError;
+
+    if (password !== confirmPassword) newErrors.confirmPassword = "As senhas não coincidem";
 
     if (!acceptedTerms) newErrors.terms = "Aceite os termos para continuar";
 
@@ -214,19 +222,50 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               </div>
 
               <div>
-                <Input
-                  placeholder="Crie uma senha"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={errors.password ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Crie uma senha"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
                 {errors.password ? (
                   <p className="text-xs text-red-500 mt-1">{errors.password}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground mt-1">
                     Min. 8 caracteres, maiúscula, minúscula, número e especial
                   </p>
+                )}
+              </div>
+
+              <div>
+                <div className="relative">
+                  <Input
+                    placeholder="Confirme sua senha"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
                 )}
               </div>
 
