@@ -2,36 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
-import { useState } from "react";
-import { SuccessModal } from "../success-modal";
-import { useCreateUser } from "@/hooks/use-create-user";
+import { useState, useEffect } from "react";
+import { SignupModal } from "../signup-modal";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 
 export const FormComponent = () => {
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [loginData, setLoginData] = useState<{ email: string; tempPassword: string } | null>(null);
-  const { mutate, isPending } = useCreateUser();
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [initialStep, setInitialStep] = useState<1 | 2 | 3>(1);
   const { track } = useAmplitude();
+
+  // Detect ?payment=success to show success step
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      setInitialStep(3);
+      setShowSignupModal(true);
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("payment");
+      window.history.replaceState({}, "", url.pathname);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    track("agendabela/automatize-seu-atendimento/form_submission", { email });
-
-    mutate(email, {
-      onSuccess: (data) => {
-        setLoginData({
-          email: data.user,
-          tempPassword: data.temporaryPassword
-        });
-        setShowSuccessModal(true);
-        track("agendabela/automatize-seu-atendimento/form_submission_success", {
-          email,
-        });
-      },
-    });
+    const emailValue = formData.get("email") as string;
+    setEmail(emailValue);
+    setInitialStep(1);
+    track("agendabela/automatize-seu-atendimento/form_submission", { email: emailValue });
+    setShowSignupModal(true);
   };
 
   return (
@@ -43,17 +44,16 @@ export const FormComponent = () => {
           name="email"
           required
         />
-        <Button variant="agendabela-accent" type="submit" disabled={isPending}>
+        <Button variant="agendabela-accent" type="submit">
           Teste Gratuitamente
-          {isPending && <Spinner size="sm" variant="primary" />}
         </Button>
       </form>
 
-      <SuccessModal
-        open={showSuccessModal}
-        onOpenChange={setShowSuccessModal}
-        email={loginData?.email}
-        tempPassword={loginData?.tempPassword}
+      <SignupModal
+        open={showSignupModal}
+        onOpenChange={setShowSignupModal}
+        initialEmail={email}
+        initialStep={initialStep}
       />
     </>
   );
