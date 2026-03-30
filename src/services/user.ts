@@ -1,24 +1,47 @@
+export interface CreateUserParams {
+  email: string;
+  password: string;
+  name: string;
+  salonName: string;
+  phone: string;
+}
+
 type CreateUserResponse = {
-  message: string;
-  user: string;
-  temporaryPassword: string;
+  success: boolean;
+  profileId?: string;
+  message?: string;
+};
+
+type CreateBillingResponse = {
+  url: string;
 };
 
 export const userService = {
-  async createUser(email: string): Promise<CreateUserResponse> {
-    const response = await fetch(
-      `/api/agendabela/create-user`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      }
-    );
+  async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
+    const response = await fetch(`/api/agendabela/create-user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP error occurred! status: ${response.status}`);
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  async createBilling(email: string): Promise<CreateBillingResponse> {
+    const response = await fetch(`/api/agendabela/create-billing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || `HTTP error! status: ${response.status}`);
     }
 
     return response.json();
