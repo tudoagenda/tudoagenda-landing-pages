@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Create Cognito account
-    const signUpParams: any = {
+    const signUpInput = {
       ClientId: clientId,
       Username: email,
       Password: password,
@@ -73,14 +73,10 @@ export async function POST(req: Request) {
         { Name: "name", Value: name },
         { Name: "custom:role", Value: "admin" },
       ],
+      ...(generateSecretHash(email) ? { SecretHash: generateSecretHash(email) } : {}),
     };
 
-    const secretHash = generateSecretHash(email);
-    if (secretHash) {
-      signUpParams.SecretHash = secretHash;
-    }
-
-    await cognitoClient.send(new SignUpCommand(signUpParams));
+    await cognitoClient.send(new SignUpCommand(signUpInput));
 
     // Auto-confirm user for immediate login
     await cognitoClient.send(
@@ -135,11 +131,12 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, profileId });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating user:", error);
 
     // Handle Cognito specific errors
-    const code = error?.name || error?.__type || "";
+    const err = error as { name?: string; __type?: string; message?: string };
+    const code = err?.name || err?.__type || "";
     if (code === "UsernameExistsException") {
       return NextResponse.json(
         { error: "Este email já está cadastrado. Tente fazer login." },
