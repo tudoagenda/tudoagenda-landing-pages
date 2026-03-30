@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+  AdminConfirmSignUpCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+import { createHmac } from "crypto";
 
 const BACKEND_API =
   process.env.BACKEND_API_URL ||
@@ -6,6 +12,31 @@ const BACKEND_API =
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
+
+// Cognito config
+const region = process.env.AWS_REGION || "us-east-1";
+const userPoolId = process.env.AWS_COGNITO_USER_POOL_ID || process.env.AWS_USER_POOL_ID || "";
+const clientId = process.env.AWS_COGNITO_USER_POOL_CLIENT_ID || process.env.AWS_USER_POOL_CLIENT_ID || "";
+const clientSecret = process.env.AWS_COGNITO_USER_POOL_CLIENT_SECRET || process.env.AWS_USER_POOL_CLIENT_SECRET || "";
+
+const cognitoClient = new CognitoIdentityProviderClient({
+  region,
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+    ? {
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      }
+    : {}),
+});
+
+function generateSecretHash(username: string): string | undefined {
+  if (!clientSecret) return undefined;
+  return createHmac("sha256", clientSecret)
+    .update(username + clientId)
+    .digest("base64");
+}
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +49,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Server-side validation
     if (!EMAIL_REGEX.test(email)) {
       return NextResponse.json(
         { error: "Email inválido" },
@@ -33,47 +63,41 @@ export async function POST(req: Request) {
       );
     }
 
-    const cognitoUrl =
-      process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
+    // 1. Create Cognito account
+    const signUpParams: any = {
+      ClientId: clientId,
+      Username: email,
+      Password: password,
+      UserAttributes: [
+        { Name: "email", Value: email },
+        { Name: "name", Value: name },
+        { Name: "custom:role", Value: "admin" },
+      ],
+    };
 
-    if (!cognitoUrl) {
-      console.error("BACKEND_API_URL env var not set");
-      return NextResponse.json(
-        { error: "Configuração do servidor indisponível" },
-        { status: 500 }
-      );
+    const secretHash = generateSecretHash(email);
+    if (secretHash) {
+      signUpParams.SecretHash = secretHash;
     }
 
-    // 1. Create Cognito account with user-defined password
-    const cognitoResponse = await fetch(
-      `${cognitoUrl}/create-user-and-send`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      }
+    await cognitoClient.send(new SignUpCommand(signUpParams));
+
+    // Auto-confirm user for immediate login
+    await cognitoClient.send(
+      new AdminConfirmSignUpCommand({
+        UserPoolId: userPoolId,
+        Username: email,
+      })
     );
 
-    if (!cognitoResponse.ok) {
-      const cognitoError = await cognitoResponse.json().catch(() => ({}));
-      console.error("Cognito error:", cognitoError);
-      return NextResponse.json(
-        { error: cognitoError.message || "Erro ao criar conta" },
-        { status: cognitoResponse.status }
-      );
-    }
-
+    // 2. Create profile on backend
     const internalHeaders: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    // Add internal API key for server-to-server auth
-    // TODO: backend should enforce auth guard on these endpoints (see PR #42)
     if (process.env.INTERNAL_API_KEY) {
       internalHeaders["X-Internal-Key"] = process.env.INTERNAL_API_KEY;
     }
 
-    // 2. Create profile on backend (linked via billingEmail)
     let profileId: string | undefined;
     try {
       const profileResponse = await fetch(`${BACKEND_API}/profile`, {
@@ -111,10 +135,26 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, profileId });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating user:", error);
+
+    // Handle Cognito specific errors
+    const code = error?.name || error?.__type || "";
+    if (code === "UsernameExistsException") {
+      return NextResponse.json(
+        { error: "Este email já está cadastrado. Tente fazer login." },
+        { status: 409 }
+      );
+    }
+    if (code === "InvalidPasswordException") {
+      return NextResponse.json(
+        { error: "Senha não atende aos requisitos de segurança." },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Falha ao criar usuário" },
+      { error: "Falha ao criar usuário. Tente novamente." },
       { status: 500 }
     );
   }
