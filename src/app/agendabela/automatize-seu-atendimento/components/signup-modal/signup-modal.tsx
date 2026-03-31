@@ -61,7 +61,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [magicLinkError, setMagicLinkError] = useState(false);
   const { track } = useAmplitude();
 
@@ -88,7 +87,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           sendMagicLink(
             { phone: storedPhone, email: storedEmail },
             {
-              onSuccess: () => setMagicLinkSent(true),
               onError: () => setMagicLinkError(true),
             }
           );
@@ -122,7 +120,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setAcceptedTerms(false);
       setErrors({});
       setGeneralError(null);
-      setMagicLinkSent(false);
       setMagicLinkError(false);
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
@@ -416,7 +413,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                       Não conseguimos enviar o link. Baixe o app e faça login manualmente.
                     </div>
                   )}
-                  {!isSendingLink && (
+                  {!isSendingLink && !magicLinkError && (
                     <>
                       <p>
                         Enviamos um link pro seu WhatsApp.
