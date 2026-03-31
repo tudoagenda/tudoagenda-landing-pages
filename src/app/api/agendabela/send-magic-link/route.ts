@@ -7,6 +7,25 @@ const BACKEND_API =
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\d{10,11}$/;
 
+// In-memory rate limiter: max 3 calls per email per 5 minutes
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+
+export const rateLimitMap = new Map<string, number[]>();
+
+function isRateLimited(email: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(email) ?? [];
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  rateLimitMap.set(email, recent);
+
+  if (recent.length >= RATE_LIMIT_MAX) return true;
+
+  recent.push(now);
+  rateLimitMap.set(email, recent);
+  return false;
+}
+
 export async function POST(req: Request) {
   try {
     const { phone, email } = await req.json();
@@ -15,6 +34,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Phone and email are required" },
         { status: 400 }
+      );
+    }
+
+    if (isRateLimited(email)) {
+      return NextResponse.json(
+        { error: "Too many requests. Try again later." },
+        { status: 429 }
       );
     }
 

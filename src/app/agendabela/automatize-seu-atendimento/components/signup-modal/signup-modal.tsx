@@ -18,6 +18,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
+const SESSION_MAGIC_LINK_SENT = "agendabela_magic_link_sent";
 
 interface SignupModalProps {
   open: boolean;
@@ -62,6 +63,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
   const [magicLinkError, setMagicLinkError] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [noPhone, setNoPhone] = useState(false);
   const { track } = useAmplitude();
 
   // Sync initialEmail when modal opens
@@ -82,14 +85,20 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       } else {
         setEmail(storedEmail);
         setStep(3);
-        // Send magic link after payment success
-        if (storedPhone) {
+        // Send magic link after payment success (only once per session)
+        if (!storedPhone) {
+          setNoPhone(true);
+        } else if (!sessionStorage.getItem(SESSION_MAGIC_LINK_SENT)) {
+          sessionStorage.setItem(SESSION_MAGIC_LINK_SENT, "1");
+          setMagicLinkSent(true);
           sendMagicLink(
             { phone: storedPhone, email: storedEmail },
             {
               onError: () => setMagicLinkError(true),
             }
           );
+        } else {
+          setMagicLinkSent(true);
         }
       }
     }
@@ -121,8 +130,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setErrors({});
       setGeneralError(null);
       setMagicLinkError(false);
+      setMagicLinkSent(false);
+      setNoPhone(false);
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
+      sessionStorage.removeItem(SESSION_MAGIC_LINK_SENT);
     }
     onOpenChange(nextOpen);
   };
@@ -415,14 +427,20 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                   )}
                   {!isSendingLink && !magicLinkError && (
                     <>
-                      <p>
-                        Enviamos um link pro seu WhatsApp.
-                        <br />
-                        <strong>Toque nele pra abrir o app!</strong>
-                      </p>
+                      {noPhone ? (
+                        <p>
+                          Conta criada! Baixe o app e faça login:
+                        </p>
+                      ) : (
+                        <p>
+                          Enviamos um link pro seu WhatsApp.
+                          <br />
+                          <strong>Toque nele pra abrir o app!</strong>
+                        </p>
+                      )}
 
                       <div className="bg-purple-50 p-3 rounded-lg text-sm">
-                        <p className="font-medium mb-2">Não recebeu? Baixe o app e faça login:</p>
+                        <p className="font-medium mb-2">{noPhone ? "Baixe o app:" : "Não recebeu? Baixe o app e faça login:"}</p>
                         <div className="flex gap-3 justify-center">
                           <a
                             href="https://apps.apple.com/app/agenda-bela"
