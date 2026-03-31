@@ -143,10 +143,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           sessionStorage.setItem(SESSION_KEY, email);
           setStep(2);
         },
-        onError: (error: unknown) => {
-          const err = error as { response?: { data?: { error?: string } }; message?: string };
-          const msg = err?.response?.data?.error || err?.message || "Erro ao criar conta. Tente novamente.";
-          setGeneralError(msg);
+        onError: (error: Error) => {
+          setGeneralError(error.message || "Erro ao criar conta. Tente novamente.");
         },
       }
     );
