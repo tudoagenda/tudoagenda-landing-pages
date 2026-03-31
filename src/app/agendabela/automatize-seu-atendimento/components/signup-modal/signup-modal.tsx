@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateUser, useCreateBilling } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
+import { Eye, EyeOff } from "lucide-react";
 
 const SESSION_KEY = "agendabela_signup_email";
 
@@ -235,7 +236,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password ? (
@@ -261,7 +262,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
                   >
-                    {showConfirmPassword ? "🙈" : "👁️"}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
