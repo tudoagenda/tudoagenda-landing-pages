@@ -32,6 +32,21 @@ export const userService = {
     return response.json();
   },
 
+  async sendMagicLink(phone: string, email: string): Promise<{ sent: boolean }> {
+    const response = await fetch(`/api/agendabela/send-magic-link`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
   async createBilling(email: string): Promise<CreateBillingResponse> {
     const response = await fetch(`/api/agendabela/create-billing`, {
       method: "POST",

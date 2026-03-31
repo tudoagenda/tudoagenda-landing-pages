@@ -119,17 +119,6 @@ export async function POST(req: Request) {
       console.error("Profile creation error:", profileError);
     }
 
-    // 3. Send magic link via WhatsApp
-    try {
-      await fetch(`${BACKEND_API}/auth/magic-link`, {
-        method: "POST",
-        headers: internalHeaders,
-        body: JSON.stringify({ phone, email }),
-      });
-    } catch (magicLinkError) {
-      console.error("Magic link error:", magicLinkError);
-    }
-
     return NextResponse.json({ success: true, profileId });
   } catch (error: unknown) {
     console.error("Error creating user:", error);

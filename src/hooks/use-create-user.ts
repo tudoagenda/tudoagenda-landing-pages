@@ -8,6 +8,13 @@ export function useCreateUser() {
   });
 }
 
+export function useSendMagicLink() {
+  return useMutation({
+    mutationFn: ({ phone, email }: { phone: string; email: string }) =>
+      userService.sendMagicLink(phone, email),
+  });
+}
+
 export function useCreateBilling() {
   const { toast } = useToast();
 
