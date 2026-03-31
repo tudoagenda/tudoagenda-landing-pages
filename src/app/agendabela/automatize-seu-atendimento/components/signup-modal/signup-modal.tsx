@@ -54,6 +54,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
@@ -97,6 +98,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setShowConfirmPassword(false);
       setAcceptedTerms(false);
       setErrors({});
+      setGeneralError(null);
     }
     onOpenChange(nextOpen);
   };
@@ -127,6 +129,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const handleStep1Submit = () => {
     if (!validateStep1()) return;
 
+    setGeneralError(null);
     const phoneDigits = phone.replace(/\D/g, "");
 
     track("agendabela/signup-modal/step1_submit", { email });
@@ -139,6 +142,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           // Persist email so step 3 can validate context
           sessionStorage.setItem(SESSION_KEY, email);
           setStep(2);
+        },
+        onError: (error: unknown) => {
+          const err = error as { response?: { data?: { error?: string } }; message?: string };
+          const msg = err?.response?.data?.error || err?.message || "Erro ao criar conta. Tente novamente.";
+          setGeneralError(msg);
         },
       }
     );
@@ -171,6 +179,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             </AlertDialogHeader>
 
             <div className="space-y-3 py-2">
+              {generalError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
+                  {generalError}
+                </div>
+              )}
               <div>
                 <Input
                   placeholder="Seu nome completo"
