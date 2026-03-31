@@ -1,39 +1,61 @@
-/**
- * @jest-environment node
- */
-
-import { setupServer } from "msw/node";
 import { userService } from "../user";
-import { successHandler, errorHandler } from "../../mocks/handlers";
-
-// Setup MSW server
-const server = setupServer();
 
 describe("userService", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  const createUserParams = {
+    email: "test@example.com",
+    password: "Test1234!",
+    name: "Test User",
+    salonName: "Test Salon",
+    phone: "11999999999",
+  };
+
   it("should create a user and return a response", async () => {
-    server.use(successHandler);
-    server.listen();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true, profileId: "profile-123" }),
+    }) as unknown as typeof fetch;
 
-    const email = "test@example.com";
-    const response = await userService.createUser(email);
-
-    expect(response).toEqual({ message: "User created", user: email });
-
-    server.resetHandlers();
-    server.close();
+    const response = await userService.createUser(createUserParams);
+    expect(response).toEqual({ success: true, profileId: "profile-123" });
   });
 
   it("should return an error if the user creation fails", async () => {
-    server.use(errorHandler);
-    server.listen();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: "User creation failed" }),
+    }) as unknown as typeof fetch;
 
-    const email = "test@example.com";
-
-    await expect(userService.createUser(email)).rejects.toThrow(
-      "HTTP error occurred! status: 500"
+    await expect(userService.createUser(createUserParams)).rejects.toThrow(
+      "User creation failed"
     );
+  });
 
-    server.resetHandlers();
-    server.close();
+  it("should send a magic link successfully", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ sent: true }),
+    }) as unknown as typeof fetch;
+
+    const response = await userService.sendMagicLink("11999999999", "test@example.com");
+    expect(response).toEqual({ sent: true });
+  });
+
+  it("should throw when magic link fails", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: "Failed to send magic link" }),
+    }) as unknown as typeof fetch;
+
+    await expect(
+      userService.sendMagicLink("11999999999", "test@example.com")
+    ).rejects.toThrow("Failed to send magic link");
   });
 });

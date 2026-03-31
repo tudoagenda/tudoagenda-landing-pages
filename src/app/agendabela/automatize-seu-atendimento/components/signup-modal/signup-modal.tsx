@@ -12,11 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useCreateUser, useCreateBilling } from "@/hooks/use-create-user";
+import { useCreateUser, useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { Eye, EyeOff } from "lucide-react";
 
 const SESSION_KEY = "agendabela_signup_email";
+const SESSION_PHONE_KEY = "agendabela_signup_phone";
+const SESSION_MAGIC_LINK_SENT = "agendabela_magic_link_sent";
 
 interface SignupModalProps {
   open: boolean;
@@ -59,6 +61,10 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
+  const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
+  const [magicLinkError, setMagicLinkError] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [noPhone, setNoPhone] = useState(false);
   const { track } = useAmplitude();
 
   // Sync initialEmail when modal opens
@@ -72,12 +78,28 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   useEffect(() => {
     if (initialStep === 3) {
       const storedEmail = sessionStorage.getItem(SESSION_KEY);
+      const storedPhone = sessionStorage.getItem(SESSION_PHONE_KEY);
       if (!storedEmail) {
         // No signup context — ignore the query param, reset to step 1
         setStep(1);
       } else {
         setEmail(storedEmail);
         setStep(3);
+        // Send magic link after payment success (only once per session)
+        if (!storedPhone) {
+          setNoPhone(true);
+        } else if (!sessionStorage.getItem(SESSION_MAGIC_LINK_SENT)) {
+          sessionStorage.setItem(SESSION_MAGIC_LINK_SENT, "1");
+          setMagicLinkSent(true);
+          sendMagicLink(
+            { phone: storedPhone, email: storedEmail },
+            {
+              onError: () => setMagicLinkError(true),
+            }
+          );
+        } else {
+          setMagicLinkSent(true);
+        }
       }
     }
   }, [initialStep]);
@@ -107,6 +129,12 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setAcceptedTerms(false);
       setErrors({});
       setGeneralError(null);
+      setMagicLinkError(false);
+      setMagicLinkSent(false);
+      setNoPhone(false);
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_PHONE_KEY);
+      sessionStorage.removeItem(SESSION_MAGIC_LINK_SENT);
     }
     onOpenChange(nextOpen);
   };
@@ -147,8 +175,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: () => {
           track("agendabela/signup-modal/account_created", { email });
-          // Persist email so step 3 can validate context
+          // Persist email and phone so step 3 can validate context and send magic link
           sessionStorage.setItem(SESSION_KEY, email);
+          sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
           setStep(2);
         },
         onError: (error: Error) => {
@@ -382,47 +411,65 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           <>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl text-center">
-                Conta criada! 🎉
+                {isSendingLink ? "Enviando link..." : "Conta criada! 🎉"}
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-4 text-center">
-                  <p>
-                    Enviamos um link pro seu WhatsApp.
-                    <br />
-                    <strong>Toque nele pra abrir o app!</strong>
-                  </p>
-
-                  <div className="bg-purple-50 p-3 rounded-lg text-sm">
-                    <p className="font-medium mb-2">Não recebeu? Baixe o app e faça login:</p>
-                    <div className="flex gap-3 justify-center">
-                      <a
-                        href="https://apps.apple.com/app/agenda-bela"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-purple-700"
-                      >
-                        📱 App Store
-                      </a>
-                      <a
-                        href="https://play.google.com/store/apps/details?id=com.agendabela"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-purple-700"
-                      >
-                        🤖 Google Play
-                      </a>
+                  {isSendingLink && (
+                    <div className="flex justify-center py-4">
+                      <Spinner size="md" variant="primary" />
                     </div>
-                  </div>
+                  )}
+                  {magicLinkError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
+                      Não conseguimos enviar o link. Baixe o app e faça login manualmente.
+                    </div>
+                  )}
+                  {!isSendingLink && !magicLinkError && (
+                    <>
+                      {noPhone ? (
+                        <p>
+                          Conta criada! Baixe o app e faça login:
+                        </p>
+                      ) : (
+                        <p>
+                          Enviamos um link pro seu WhatsApp.
+                          <br />
+                          <strong>Toque nele pra abrir o app!</strong>
+                        </p>
+                      )}
+
+                      <div className="bg-purple-50 p-3 rounded-lg text-sm">
+                        <p className="font-medium mb-2">{noPhone ? "Baixe o app:" : "Não recebeu? Baixe o app e faça login:"}</p>
+                        <div className="flex gap-3 justify-center">
+                          <a
+                            href="https://apps.apple.com/app/agenda-bela"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-purple-700"
+                          >
+                            📱 App Store
+                          </a>
+                          <a
+                            href="https://play.google.com/store/apps/details?id=com.agendabela"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-purple-700"
+                          >
+                            🤖 Google Play
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <AlertDialogFooter className="flex-col gap-2 pt-2">
               <Button
-                onClick={() => {
-                  sessionStorage.removeItem(SESSION_KEY);
-                  handleOpenChange(false);
-                }}
+                onClick={() => handleOpenChange(false)}
+                disabled={isSendingLink}
                 className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
               >
                 Fechar
