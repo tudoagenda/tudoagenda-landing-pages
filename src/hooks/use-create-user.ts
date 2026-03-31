@@ -3,17 +3,8 @@ import { userService, CreateUserParams } from "@/services/user";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCreateUser() {
-  const { toast } = useToast();
-
   return useMutation({
     mutationFn: (params: CreateUserParams) => userService.createUser(params),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Ops, algo deu errado",
-        description: "Tente novamente mais tarde",
-      });
-    },
   });
 }
 
