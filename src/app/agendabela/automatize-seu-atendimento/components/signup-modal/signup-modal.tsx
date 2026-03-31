@@ -59,6 +59,13 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { track } = useAmplitude();
 
+  // Sync initialEmail when modal opens
+  useEffect(() => {
+    if (open && initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [open, initialEmail]);
+
   // Guard step 3: only allow if user completed signup (email in sessionStorage)
   useEffect(() => {
     if (initialStep === 3) {
