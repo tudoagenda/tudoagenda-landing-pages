@@ -28,20 +28,7 @@ describe("FormComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("should show success modal on successful user creation", async () => {
-    // Mock the fetch function to simulate a successful response
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            message: "User created successfully",
-            user: "test@example.com",
-            temporaryPassword: "1234Temp",
-          }),
-      })
-    ) as jest.Mock;
-
+  it("should open signup modal on form submission", async () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AmplitudeProvider>
@@ -57,16 +44,7 @@ describe("FormComponent", () => {
       screen.getByRole("button", { name: /Teste Gratuitamente/i })
     );
 
-    // Wait for the success modal to appear
-    expect(await screen.findByText("🎉 Cadastro realizado com sucesso!")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Acesse o sistema com seu e-mail e senha temporária/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("test@example.com")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("1234Temp")
-    ).toBeInTheDocument();
+    // The signup modal should appear with the step 1 form
+    expect(await screen.findByText("Crie sua conta gratuita")).toBeInTheDocument();
   });
 });

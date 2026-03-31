@@ -1,14 +1,12 @@
 import { http, HttpResponse } from "msw";
 
-const BASE_URL = process.env.NEXT_PUBLIC_ENVIRONMENT_URL;
-
 export const successHandler = http.post(
-  `${BASE_URL}/agendabela/api/create-user`,
+  "http://localhost/api/agendabela/create-user",
   () => {
     return HttpResponse.json(
       {
-        message: "User created",
-        user: "test@example.com",
+        success: true,
+        profileId: "profile-123",
       },
       {
         headers: {
@@ -21,11 +19,11 @@ export const successHandler = http.post(
 );
 
 export const errorHandler = http.post(
-  `${BASE_URL}/agendabela/api/create-user`,
+  "http://localhost/api/agendabela/create-user",
   () => {
     return HttpResponse.json(
       {
-        message: "User creation failed",
+        error: "User creation failed",
       },
       {
         headers: {
@@ -33,6 +31,26 @@ export const errorHandler = http.post(
         },
         status: 500,
       }
+    );
+  }
+);
+
+export const sendMagicLinkSuccessHandler = http.post(
+  "http://localhost/api/agendabela/send-magic-link",
+  () => {
+    return HttpResponse.json(
+      { sent: true },
+      { status: 200 }
+    );
+  }
+);
+
+export const sendMagicLinkErrorHandler = http.post(
+  "http://localhost/api/agendabela/send-magic-link",
+  () => {
+    return HttpResponse.json(
+      { error: "Failed to send magic link" },
+      { status: 500 }
     );
   }
 );
