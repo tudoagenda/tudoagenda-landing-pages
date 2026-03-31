@@ -63,7 +63,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
   const [magicLinkError, setMagicLinkError] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [noPhone, setNoPhone] = useState(false);
   const { track } = useAmplitude();
 
@@ -90,15 +89,12 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           setNoPhone(true);
         } else if (!sessionStorage.getItem(SESSION_MAGIC_LINK_SENT)) {
           sessionStorage.setItem(SESSION_MAGIC_LINK_SENT, "1");
-          setMagicLinkSent(true);
           sendMagicLink(
             { phone: storedPhone, email: storedEmail },
             {
               onError: () => setMagicLinkError(true),
             }
           );
-        } else {
-          setMagicLinkSent(true);
         }
       }
     }
@@ -130,7 +126,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setErrors({});
       setGeneralError(null);
       setMagicLinkError(false);
-      setMagicLinkSent(false);
       setNoPhone(false);
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);

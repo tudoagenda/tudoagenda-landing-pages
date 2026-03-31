@@ -2,10 +2,9 @@
  * @jest-environment node
  */
 
-import { POST, rateLimitMap } from "../route";
+import { POST } from "../route";
 
 beforeEach(() => {
-  rateLimitMap.clear();
   jest.restoreAllMocks();
 });
 
@@ -61,14 +60,16 @@ describe("POST /api/agendabela/send-magic-link", () => {
       new Response(JSON.stringify({ ok: true }), { status: 200 })
     );
 
+    const rateLimitBody = { phone: "11999999999", email: "ratelimit@test.com" };
+
     // First 3 should succeed
     for (let i = 0; i < 3; i++) {
-      const response = await POST(makeRequest(validBody));
+      const response = await POST(makeRequest(rateLimitBody));
       expect(response.status).toBe(200);
     }
 
     // 4th should be rate limited
-    const response = await POST(makeRequest(validBody));
+    const response = await POST(makeRequest(rateLimitBody));
     expect(response.status).toBe(429);
   });
 });
