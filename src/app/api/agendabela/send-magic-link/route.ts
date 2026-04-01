@@ -5,7 +5,7 @@ const BACKEND_API =
   "https://api.agendabela.tudoagenda.com.br/api";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^\d{10,11}$/;
+const PHONE_REGEX = /^\d{10,13}$/;
 
 // In-memory rate limiter: max 3 calls per email per 5 minutes
 const RATE_LIMIT_MAX = 3;
