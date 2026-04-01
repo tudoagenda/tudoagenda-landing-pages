@@ -7,6 +7,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface SuccessModalProps {
   open: boolean;
@@ -14,6 +15,10 @@ interface SuccessModalProps {
   email?: string;
   tempPassword?: string;
 }
+
+// TODO: Update these URLs when the apps are published
+const APP_STORE_URL = "https://apps.apple.com";
+const PLAY_STORE_URL = "https://play.google.com";
 
 export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: SuccessModalProps) => {
   const handleAccessPanel = () => {
@@ -35,7 +40,7 @@ export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: Succes
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2">
                   <span className="text-lg flex-shrink-0">1️⃣</span>
-                  <span className="break-words">Acesse o sistema com seu e-mail e senha temporária.</span>
+                  <span className="break-words">Baixe o app ou acesse pelo navegador.</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-lg flex-shrink-0">2️⃣</span>
@@ -45,6 +50,38 @@ export const SuccessModal = ({ open, onOpenChange, email, tempPassword }: Succes
                   <span className="text-lg flex-shrink-0">3️⃣</span>
                   <span className="break-words">Compartilhe seu link e receba seus primeiros agendamentos.</span>
                 </div>
+              </div>
+
+              {/* Store Badges */}
+              <div className="flex items-center justify-center gap-3 pt-1">
+                <a
+                  href={APP_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105 active:scale-95"
+                >
+                  <Image
+                    src="/images/badges/app-store.svg"
+                    alt="Baixar na App Store"
+                    width={135}
+                    height={40}
+                    className="h-10 w-auto"
+                  />
+                </a>
+                <a
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105 active:scale-95"
+                >
+                  <Image
+                    src="/images/badges/google-play.svg"
+                    alt="Disponível no Google Play"
+                    width={135}
+                    height={40}
+                    className="h-10 w-auto"
+                  />
+                </a>
               </div>
               
               <div className="bg-blue-50 p-3 rounded-lg">
