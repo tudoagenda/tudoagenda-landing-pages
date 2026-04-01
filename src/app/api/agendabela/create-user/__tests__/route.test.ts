@@ -9,8 +9,8 @@ jest.mock("@aws-sdk/client-cognito-identity-provider", () => {
   const send = jest.fn().mockResolvedValue({});
   return {
     CognitoIdentityProviderClient: jest.fn(() => ({ send })),
-    SignUpCommand: jest.fn(),
-    AdminConfirmSignUpCommand: jest.fn(),
+    AdminCreateUserCommand: jest.fn(),
+    AdminSetUserPasswordCommand: jest.fn(),
   };
 });
 

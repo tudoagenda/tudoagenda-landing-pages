@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import {
   CognitoIdentityProviderClient,
-  SignUpCommand,
-  AdminConfirmSignUpCommand,
+  AdminCreateUserCommand,
+  AdminSetUserPasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { createHmac } from "crypto";
 
 const BACKEND_API =
   process.env.BACKEND_API_URL ||
@@ -16,8 +15,6 @@ const MIN_PASSWORD_LENGTH = 8;
 // Cognito config
 const region = process.env.AWS_REGION || "us-east-1";
 const userPoolId = process.env.AWS_COGNITO_USER_POOL_ID || process.env.AWS_USER_POOL_ID || "";
-const clientId = process.env.AWS_COGNITO_USER_POOL_CLIENT_ID || process.env.AWS_USER_POOL_CLIENT_ID || "";
-const clientSecret = process.env.AWS_COGNITO_USER_POOL_CLIENT_SECRET || process.env.AWS_USER_POOL_CLIENT_SECRET || "";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region,
@@ -30,13 +27,6 @@ const cognitoClient = new CognitoIdentityProviderClient({
       }
     : {}),
 });
-
-function generateSecretHash(username: string): string | undefined {
-  if (!clientSecret) return undefined;
-  return createHmac("sha256", clientSecret)
-    .update(username + clientId)
-    .digest("base64");
-}
 
 export async function POST(req: Request) {
   try {
@@ -63,26 +53,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Create Cognito account
-    const signUpInput = {
-      ClientId: clientId,
-      Username: email,
-      Password: password,
-      UserAttributes: [
-        { Name: "email", Value: email },
-        { Name: "name", Value: name },
-        { Name: "custom:role", Value: "admin" },
-      ],
-      ...(generateSecretHash(email) ? { SecretHash: generateSecretHash(email) } : {}),
-    };
-
-    await cognitoClient.send(new SignUpCommand(signUpInput));
-
-    // Auto-confirm user for immediate login
+    // 1. Create Cognito account (SUPPRESS to avoid sending useless verification email)
     await cognitoClient.send(
-      new AdminConfirmSignUpCommand({
+      new AdminCreateUserCommand({
         UserPoolId: userPoolId,
         Username: email,
+        MessageAction: "SUPPRESS",
+        UserAttributes: [
+          { Name: "email", Value: email },
+          { Name: "email_verified", Value: "true" },
+          { Name: "name", Value: name },
+          { Name: "custom:role", Value: "admin" },
+        ],
+      })
+    );
+
+    // Set permanent password (AdminCreateUser creates with temp password)
+    await cognitoClient.send(
+      new AdminSetUserPasswordCommand({
+        UserPoolId: userPoolId,
+        Username: email,
+        Password: password,
+        Permanent: true,
       })
     );
 
