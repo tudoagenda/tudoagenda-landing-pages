@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         headers: internalHeaders,
         body: JSON.stringify({
           name: salonName,
-          phone,
+          phone: phone.replace(/\D/g, ''),
           billingEmail: email,
           specialty: "Salão de Beleza",
           type: "salon",
@@ -117,6 +117,21 @@ export async function POST(req: Request) {
       }
     } catch (profileError) {
       console.error("Profile creation error:", profileError);
+    }
+
+    // 3. Send magic link via WhatsApp (non-blocking)
+    const cleanPhone = phone.replace(/\D/g, '');
+    try {
+      const magicRes = await fetch(`${BACKEND_API}/auth/magic-link`, {
+        method: "POST",
+        headers: internalHeaders,
+        body: JSON.stringify({ phone: cleanPhone, email }),
+      });
+      if (!magicRes.ok) {
+        console.warn("Magic link dispatch failed:", magicRes.status);
+      }
+    } catch (magicError) {
+      console.warn("Magic link dispatch error:", magicError);
     }
 
     return NextResponse.json({ success: true, profileId });
