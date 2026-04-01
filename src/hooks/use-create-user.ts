@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { userService, CreateUserParams } from "@/services/user";
+import { userService, CreateUserParams, CreateBillingParams } from "@/services/user";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCreateUser() {
@@ -19,13 +19,13 @@ export function useCreateBilling() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ email, name }: { email: string; name: string }) =>
-      userService.createBilling(email, name),
-    onError: () => {
+    mutationFn: (params: CreateBillingParams) =>
+      userService.createBilling(params),
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Erro ao gerar link de pagamento",
-        description: "Tente novamente mais tarde",
+        description: error.message || "Tente novamente mais tarde",
       });
     },
   });
