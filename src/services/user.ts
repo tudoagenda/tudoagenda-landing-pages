@@ -8,8 +8,8 @@ export interface CreateUserParams {
 
 export interface CreateBillingParams {
   email: string;
-  name: string;
-  phone: string;
+  name?: string;
+  phone?: string;
 }
 
 type CreateUserResponse = {
