@@ -19,7 +19,8 @@ export function useCreateBilling() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: (email: string) => userService.createBilling(email),
+    mutationFn: ({ email, name }: { email: string; name: string }) =>
+      userService.createBilling(email, name),
     onError: () => {
       toast({
         variant: "destructive",
