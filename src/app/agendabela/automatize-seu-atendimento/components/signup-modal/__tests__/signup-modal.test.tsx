@@ -14,7 +14,8 @@ jest.mock("@/hooks/use-create-user", () => ({
     isPending: false,
   }),
   useCreateBilling: () => ({
-    mutate: jest.fn((_data: { email: string; name: string }, _opts?: unknown) => {}),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    mutate: jest.fn((data: { email: string; name: string }, opts?: unknown) => {}),
     isPending: false,
   }),
   useSendMagicLink: () => ({
