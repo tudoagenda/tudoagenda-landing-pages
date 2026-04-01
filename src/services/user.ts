@@ -47,11 +47,11 @@ export const userService = {
     return response.json();
   },
 
-  async createBilling(email: string, name: string): Promise<CreateBillingResponse> {
+  async createBilling(email: string, name: string, phone: string): Promise<CreateBillingResponse> {
     const response = await fetch(`/api/agendabela/create-billing`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
+      body: JSON.stringify({ email, name, phone }),
     });
 
     if (!response.ok) {

@@ -10,7 +10,7 @@ const RETURN_URL =
 
 export async function POST(req: Request) {
   try {
-    const { email, name } = await req.json();
+    const { email, name, phone } = await req.json();
 
     if (!email) {
       return NextResponse.json(
@@ -22,6 +22,13 @@ export async function POST(req: Request) {
     if (!name) {
       return NextResponse.json(
         { error: "Nome é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    if (!phone) {
+      return NextResponse.json(
+        { error: "Telefone é obrigatório" },
         { status: 400 }
       );
     }
@@ -58,7 +65,7 @@ export async function POST(req: Request) {
           ],
           returnUrl: RETURN_URL,
           completionUrl: RETURN_URL,
-          customer: { email, name },
+          customer: { email, name, cellphone: phone },
         }),
       }
     );

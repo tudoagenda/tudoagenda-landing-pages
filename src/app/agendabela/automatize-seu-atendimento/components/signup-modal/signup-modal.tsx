@@ -189,8 +189,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     track("agendabela/signup-modal/payment_click", { email });
 
     const customerName = name || sessionStorage.getItem(SESSION_NAME_KEY) || "";
+    const customerPhone = phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "";
     createBilling(
-      { email, name: customerName },
+      { email, name: customerName, phone: customerPhone },
       {
         onSuccess: (data) => {
           if (data.url) {
