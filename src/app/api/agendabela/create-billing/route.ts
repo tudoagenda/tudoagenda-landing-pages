@@ -10,7 +10,7 @@ const RETURN_URL =
 
 export async function POST(req: Request) {
   try {
-    const { email, name } = await req.json();
+    const { email, name, phone, taxId } = await req.json();
 
     if (!email) {
       return NextResponse.json(
@@ -26,6 +26,20 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!phone) {
+      return NextResponse.json(
+        { error: "Telefone é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    if (!taxId) {
+      return NextResponse.json(
+        { error: "CPF é obrigatório" },
+        { status: 400 }
+      );
+    }
+
     const apiKey = process.env.ABACATE_PAY_API;
     if (!apiKey) {
       console.error("ABACATE_PAY_API env var not set");
@@ -35,7 +49,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const amountCents = Number(process.env.PLAN_AMOUNT_CENTS) || DEFAULT_AMOUNT_CENTS;
+    const amountCents =
+      Number(process.env.PLAN_AMOUNT_CENTS) || DEFAULT_AMOUNT_CENTS;
 
     const response = await fetch(
       "https://api.abacatepay.com/v1/billing/create",
@@ -58,7 +73,12 @@ export async function POST(req: Request) {
           ],
           returnUrl: RETURN_URL,
           completionUrl: RETURN_URL,
-          customer: { email, name },
+          customer: {
+            name,
+            email,
+            cellphone: phone,
+            taxId,
+          },
         }),
       }
     );
@@ -66,14 +86,34 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("AbacatePay error:", errorData);
+
+      // Forward specific AbacatePay validation errors
+      const abacateError = errorData?.error;
+      if (typeof abacateError === "string" && abacateError.includes("taxId")) {
+        return NextResponse.json(
+          { error: "CPF inválido. Verifique e tente novamente." },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Erro ao criar link de pagamento" },
+        { error: "Erro ao criar link de pagamento. Tente novamente." },
         { status: response.status }
       );
     }
 
     const data = await response.json();
-    return NextResponse.json({ url: data.data?.url || data.url });
+    const url = data.data?.url || data.url;
+
+    if (!url) {
+      console.error("AbacatePay response missing URL:", data);
+      return NextResponse.json(
+        { error: "Resposta inválida do serviço de pagamento." },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ url });
   } catch (error) {
     console.error("Billing error:", error);
     return NextResponse.json(

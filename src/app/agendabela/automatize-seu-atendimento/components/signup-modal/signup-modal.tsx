@@ -19,6 +19,7 @@ import { Eye, EyeOff } from "lucide-react";
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
+const SESSION_TAXID_KEY = "agendabela_signup_taxid";
 const SESSION_MAGIC_LINK_SENT = "agendabela_magic_link_sent";
 
 interface SignupModalProps {
@@ -37,6 +38,33 @@ function formatPhone(value: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function validateCPF(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== parseInt(digits[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+  remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  return remainder === parseInt(digits[10]);
+}
+
 function validatePassword(pw: string): string | null {
   if (pw.length < 8) return "Mínimo 8 caracteres";
   if (!/[A-Z]/.test(pw)) return "Precisa de letra maiúscula";
@@ -51,6 +79,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const [name, setName] = useState("");
   const [salonName, setSalonName] = useState("");
   const [phone, setPhone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -119,6 +148,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setName("");
       setSalonName("");
       setPhone("");
+      setCpf("");
       setPassword("");
       setConfirmPassword("");
       setShowPassword(false);
@@ -131,6 +161,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_NAME_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
+      sessionStorage.removeItem(SESSION_TAXID_KEY);
       sessionStorage.removeItem(SESSION_MAGIC_LINK_SENT);
     }
     onOpenChange(nextOpen);
@@ -144,6 +175,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 10) newErrors.phone = "Telefone inválido";
+
+    if (!validateCPF(cpf)) newErrors.cpf = "CPF inválido";
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       newErrors.email = "Email inválido";
@@ -172,10 +205,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: () => {
           track("agendabela/signup-modal/account_created", { email });
-          // Persist email, name and phone so step 3 can validate context and send magic link
+          // Persist data so step 2 (billing) and step 3 (magic link) can use it
           sessionStorage.setItem(SESSION_KEY, email);
           sessionStorage.setItem(SESSION_NAME_KEY, name);
           sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
+          sessionStorage.setItem(SESSION_TAXID_KEY, cpf.replace(/\D/g, ""));
           setStep(2);
         },
         onError: (error: Error) => {
@@ -189,8 +223,16 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     track("agendabela/signup-modal/payment_click", { email });
 
     const customerName = name || sessionStorage.getItem(SESSION_NAME_KEY) || "";
+    const customerPhone = phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "";
+    const customerTaxId = cpf.replace(/\D/g, "") || sessionStorage.getItem(SESSION_TAXID_KEY) || "";
+
     createBilling(
-      { email, name: customerName },
+      {
+        email,
+        name: customerName,
+        phone: customerPhone,
+        taxId: customerTaxId,
+      },
       {
         onSuccess: (data) => {
           if (data.url) {
@@ -255,6 +297,19 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                 />
                 {errors.phone && (
                   <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="CPF (000.000.000-00)"
+                  inputMode="numeric"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCPF(e.target.value))}
+                  className={errors.cpf ? "border-red-500" : ""}
+                />
+                {errors.cpf && (
+                  <p className="text-xs text-red-500 mt-1">{errors.cpf}</p>
                 )}
               </div>
 
