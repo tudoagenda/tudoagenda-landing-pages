@@ -14,7 +14,7 @@ jest.mock("@/hooks/use-create-user", () => ({
     isPending: false,
   }),
   useCreateBilling: () => ({
-    mutate: jest.fn(),
+    mutate: jest.fn((_data: { email: string; name: string }, _opts?: unknown) => {}),
     isPending: false,
   }),
   useSendMagicLink: () => ({

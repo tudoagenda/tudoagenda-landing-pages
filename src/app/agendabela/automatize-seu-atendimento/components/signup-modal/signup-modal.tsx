@@ -17,6 +17,7 @@ import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { Eye, EyeOff } from "lucide-react";
 
 const SESSION_KEY = "agendabela_signup_email";
+const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
 const SESSION_MAGIC_LINK_SENT = "agendabela_magic_link_sent";
 
@@ -128,6 +129,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setMagicLinkError(false);
       setNoPhone(false);
       sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_NAME_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
       sessionStorage.removeItem(SESSION_MAGIC_LINK_SENT);
     }
@@ -170,8 +172,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: () => {
           track("agendabela/signup-modal/account_created", { email });
-          // Persist email and phone so step 3 can validate context and send magic link
+          // Persist email, name and phone so step 3 can validate context and send magic link
           sessionStorage.setItem(SESSION_KEY, email);
+          sessionStorage.setItem(SESSION_NAME_KEY, name);
           sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
           setStep(2);
         },
@@ -185,13 +188,17 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const handlePayment = () => {
     track("agendabela/signup-modal/payment_click", { email });
 
-    createBilling(email, {
-      onSuccess: (data) => {
-        if (data.url) {
-          window.location.href = data.url;
-        }
+    const customerName = name || sessionStorage.getItem(SESSION_NAME_KEY) || "";
+    createBilling(
+      { email, name: customerName },
+      {
+        onSuccess: (data) => {
+          if (data.url) {
+            window.location.href = data.url;
+          }
+        },
       },
-    });
+    );
   };
 
   return (
