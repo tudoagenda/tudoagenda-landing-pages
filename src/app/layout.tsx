@@ -17,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br" className={lexend.variable}>
       <head>
+        <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
         <link rel="preload" href="/agendabela-logo.png" as="image" type="image/png" />
         <link rel="preload" href="/gif-agendamento.gif" as="image" type="image/gif" />
         <Script
