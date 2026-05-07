@@ -17,6 +17,7 @@ export default function RootLayout({
     <html lang="pt-br" className={lexend.variable}>
       <head>
         <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
+        <meta name="google-site-verification" content="DMHYDDq3HYq2eCbpCQsLPYTVWX5Svmrbdh0a0thP9Qc" />
         {/* Google Tag Manager — must be as high as possible in <head> for proper detection by Search Console, Tag Assistant, etc. */}
         <script
           dangerouslySetInnerHTML={{
