@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Providers } from "./providers";
-import Script from "next/script";
 import { Lexend } from 'next/font/google';
 
 const lexend = Lexend({
@@ -18,11 +17,9 @@ export default function RootLayout({
     <html lang="pt-br" className={lexend.variable}>
       <head>
         <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
-        <link rel="preload" href="/agendabela-logo.png" as="image" type="image/png" />
-        <link rel="preload" href="/gif-agendamento.gif" as="image" type="image/gif" />
-        <Script
-          id="gtm-script"
-          strategy="afterInteractive"
+        <meta name="google-site-verification" content="DMHYDDq3HYq2eCbpCQsLPYTVWX5Svmrbdh0a0thP9Qc" />
+        {/* Google Tag Manager — must be as high as possible in <head> for proper detection by Search Console, Tag Assistant, etc. */}
+        <script
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -31,6 +28,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TSM8GGL6');`,
           }}
         />
+        <link rel="preload" href="/agendabela-logo.png" as="image" type="image/png" />
+        <link rel="preload" href="/gif-agendamento.gif" as="image" type="image/gif" />
       </head>
       <body>
         <noscript>
