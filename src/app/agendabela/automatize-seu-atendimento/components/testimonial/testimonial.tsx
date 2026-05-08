@@ -1,5 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 
 export const TestimonialComponent = () => {
   return (
@@ -15,7 +18,18 @@ export const TestimonialComponent = () => {
         </p>
       </div>
       <Button asChild variant="agendabela-accent" size="lg">
-        <Link href="#teste-gratuitamente">Teste Gratuitamente</Link>
+        <Link
+          href="#teste-gratuitamente"
+          onClick={() =>
+            pushAgendaBelaMainEvent({
+              event: "lp_cta_clicked",
+              cta_position: "testimonial",
+              cta_intent: "primary",
+            })
+          }
+        >
+          Teste Gratuitamente
+        </Link>
       </Button>
     </div>
   );

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { SignupModal } from "../signup-modal";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
+import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 
 export const FormComponent = () => {
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -32,6 +33,10 @@ export const FormComponent = () => {
     setEmail(emailValue);
     setInitialStep(1);
     track("agendabela/automatize-seu-atendimento/form_submission", { email: emailValue });
+    pushAgendaBelaMainEvent({
+      event: "lp_form_submitted",
+      form_name: "signup_initial",
+    });
     setShowSignupModal(true);
   };
 
