@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useCreateUser, useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
+import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 import { Eye, EyeOff } from "lucide-react";
 
 const SESSION_KEY = "agendabela_signup_email";
@@ -174,6 +175,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: () => {
           track("agendabela/signup-modal/account_created", { email });
+          pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
           // Persist email, name and phone so step 3 can validate context and send magic link
           sessionStorage.setItem(SESSION_KEY, email);
           sessionStorage.setItem(SESSION_NAME_KEY, name);
