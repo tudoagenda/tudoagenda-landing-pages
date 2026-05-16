@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { AppStoreBadges } from "@/components/app-store-badges/app-store-badges";
 import { useCreateUser, useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
@@ -431,27 +432,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                     </p>
                   )}
 
-                  <div className="bg-purple-50 p-3 rounded-lg text-sm">
-                    <p className="font-medium mb-2">Baixe o app Meu Salão:</p>
-                    <div className="flex gap-3 justify-center">
-                      <a
-                        href="https://apps.apple.com/app/agenda-bela"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-purple-700"
-                      >
-                        📱 App Store
-                      </a>
-                      <a
-                        href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-purple-700"
-                      >
-                        🤖 Google Play
-                      </a>
-                    </div>
-                  </div>
+                  <AppStoreBadges heading="Baixe o app Meu Salão:" />
 
                   {!noPhone && (
                     <>
