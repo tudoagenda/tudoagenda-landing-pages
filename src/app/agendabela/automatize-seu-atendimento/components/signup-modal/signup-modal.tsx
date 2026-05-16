@@ -20,7 +20,6 @@ import { Eye, EyeOff } from "lucide-react";
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
-const SESSION_MAGIC_LINK_SENT = "agendabela_magic_link_sent";
 
 // Note: No CPF field needed — AbacatePay v2 only requires email for customer.
 
@@ -88,18 +87,14 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       } else {
         setEmail(storedEmail);
         setStep(3);
-        // Send magic link after payment success (only once per session)
         if (!storedPhone) {
           setNoPhone(true);
-        } else if (!sessionStorage.getItem(SESSION_MAGIC_LINK_SENT)) {
-          sessionStorage.setItem(SESSION_MAGIC_LINK_SENT, "1");
-          sendMagicLink(
-            { phone: storedPhone, email: storedEmail },
-            {
-              onError: () => setMagicLinkError(true),
-            }
-          );
         }
+        // Magic link is now dispatched server-side by the AbacatePay
+        // webhook (backend PR #65). Step 3 just informs the user it's
+        // coming via WhatsApp; the "Reenviar link" button below can
+        // request a resend through the public endpoint, which only
+        // succeeds for subscriptions already marked ACTIVE.
       }
     }
   }, [initialStep]);
@@ -134,7 +129,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_NAME_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
-      sessionStorage.removeItem(SESSION_MAGIC_LINK_SENT);
     }
     onOpenChange(nextOpen);
   };
@@ -418,55 +412,71 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           <>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl text-center">
-                {isSendingLink ? "Enviando link..." : "Conta criada! 🎉"}
+                Pagamento confirmado! 🎉
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-4 text-center">
-                  {isSendingLink && (
-                    <div className="flex justify-center py-4">
-                      <Spinner size="md" variant="primary" />
-                    </div>
+                  {noPhone ? (
+                    <p>
+                      Sua conta está pronta! Baixe o app abaixo e faça login com seu email.
+                    </p>
+                  ) : (
+                    <p>
+                      Em até <strong>1 minuto</strong> você vai receber no
+                      WhatsApp o link para abrir o app Meu Salão.
+                      <br />
+                      <br />
+                      Se ainda não tem o app instalado, baixe primeiro pelos
+                      botões abaixo e depois toque no link do WhatsApp.
+                    </p>
                   )}
-                  {magicLinkError && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
-                      Não conseguimos enviar o link. Baixe o app e faça login manualmente.
-                    </div>
-                  )}
-                  {!isSendingLink && !magicLinkError && (
-                    <>
-                      {noPhone ? (
-                        <p>
-                          Conta criada! Baixe o app e faça login:
-                        </p>
-                      ) : (
-                        <p>
-                          Enviamos um link pro seu WhatsApp.
-                          <br />
-                          <strong>Toque nele pra abrir o app!</strong>
-                        </p>
-                      )}
 
-                      <div className="bg-purple-50 p-3 rounded-lg text-sm">
-                        <p className="font-medium mb-2">{noPhone ? "Baixe o app:" : "Não recebeu? Baixe o app e faça login:"}</p>
-                        <div className="flex gap-3 justify-center">
-                          <a
-                            href="https://apps.apple.com/app/agenda-bela"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline text-purple-700"
-                          >
-                            📱 App Store
-                          </a>
-                          <a
-                            href="https://play.google.com/store/apps/details?id=com.agendabela"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline text-purple-700"
-                          >
-                            🤖 Google Play
-                          </a>
+                  <div className="bg-purple-50 p-3 rounded-lg text-sm">
+                    <p className="font-medium mb-2">Baixe o app Meu Salão:</p>
+                    <div className="flex gap-3 justify-center">
+                      <a
+                        href="https://apps.apple.com/app/agenda-bela"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-purple-700"
+                      >
+                        📱 App Store
+                      </a>
+                      <a
+                        href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-purple-700"
+                      >
+                        🤖 Google Play
+                      </a>
+                    </div>
+                  </div>
+
+                  {!noPhone && (
+                    <>
+                      {magicLinkError && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
+                          Não conseguimos reenviar o link. Tente de novo em alguns minutos.
                         </div>
-                      </div>
+                      )}
+                      <button
+                        type="button"
+                        disabled={isSendingLink}
+                        onClick={() => {
+                          const storedPhone = sessionStorage.getItem(SESSION_PHONE_KEY);
+                          const storedEmail = sessionStorage.getItem(SESSION_KEY);
+                          if (!storedPhone || !storedEmail) return;
+                          setMagicLinkError(false);
+                          sendMagicLink(
+                            { phone: storedPhone, email: storedEmail },
+                            { onError: () => setMagicLinkError(true) },
+                          );
+                        }}
+                        className="text-sm text-purple-700 underline disabled:opacity-50"
+                      >
+                        {isSendingLink ? "Reenviando..." : "Não recebeu? Reenviar link"}
+                      </button>
                     </>
                   )}
                 </div>
@@ -476,7 +486,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             <AlertDialogFooter className="flex-col gap-2 pt-2">
               <Button
                 onClick={() => handleOpenChange(false)}
-                disabled={isSendingLink}
                 className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
               >
                 Fechar
