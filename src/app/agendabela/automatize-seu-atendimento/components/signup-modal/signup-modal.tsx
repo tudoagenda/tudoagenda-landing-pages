@@ -21,6 +21,7 @@ import { Eye, EyeOff } from "lucide-react";
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
+const SESSION_PROFILE_ID_KEY = "agendabela_signup_profile_id";
 
 // Note: No CPF field needed — AbacatePay v2 only requires email for customer.
 
@@ -168,13 +169,18 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     createUser(
       { email, password, name, salonName, phone: phoneDigits },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           track("agendabela/signup-modal/account_created", { email });
           pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
           // Persist email, name and phone so step 3 can validate context and send magic link
           sessionStorage.setItem(SESSION_KEY, email);
           sessionStorage.setItem(SESSION_NAME_KEY, name);
           sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
+          // profileId vira `externalId` no checkout AbacatePay pra casar com
+          // o webhook checkout.completed e criar a Subscription TRIALING.
+          if (data?.profileId) {
+            sessionStorage.setItem(SESSION_PROFILE_ID_KEY, data.profileId);
+          }
           setStep(2);
         },
         onError: (error: Error) => {
@@ -189,8 +195,9 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
     const customerName = name || sessionStorage.getItem(SESSION_NAME_KEY) || "";
     const customerPhone = phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "";
+    const profileId = sessionStorage.getItem(SESSION_PROFILE_ID_KEY) || undefined;
     createBilling(
-      { email, name: customerName, phone: customerPhone },
+      { email, name: customerName, phone: customerPhone, profileId },
       {
         onSuccess: (data) => {
           if (data.url) {
