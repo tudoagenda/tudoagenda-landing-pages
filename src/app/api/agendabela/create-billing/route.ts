@@ -36,6 +36,10 @@ export async function POST(req: Request) {
     const email = typeof body.email === "string" ? body.email.trim() : "";
     const rawName = typeof body.name === "string" ? sanitizeName(body.name) : "";
     const rawPhone = typeof body.phone === "string" ? sanitizePhone(body.phone) : "";
+    // profileId vira `externalId` no checkout. Backend usa pra casar o
+    // webhook checkout.completed com a row de Profile e criar a Subscription
+    // em status TRIALING (Opção E — AbacatePay v2 sem trial nativo).
+    const profileId = typeof body.profileId === "string" ? body.profileId.trim() : "";
 
     if (!email || !isValidEmail(email)) {
       return NextResponse.json(
@@ -89,6 +93,10 @@ export async function POST(req: Request) {
 
     if (customerId) {
       checkoutPayload.customerId = customerId;
+    }
+
+    if (profileId) {
+      checkoutPayload.externalId = profileId;
     }
 
     const checkoutRes = await fetch(`${ABACATE_PAY_V2_URL}/checkouts/create`, {
