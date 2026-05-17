@@ -41,6 +41,21 @@ function formatPhone(value: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
+/**
+ * Calcula a data de término do trial (now + 30 dias) e retorna formatada
+ * em pt-BR. O cálculo é feito no momento da renderização do step 3
+ * (logo após o pagamento) — mesma janela do `trialEndsAt` que o backend
+ * grava em Subscription. Aceitamos pequena divergência (segundos) entre
+ * o que o user vê e o que está no banco.
+ */
+function formatTrialEndDate(now: Date = new Date()): string {
+  const end = new Date(now);
+  end.setDate(end.getDate() + 30);
+  const day = String(end.getDate()).padStart(2, "0");
+  const month = String(end.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}`;
+}
+
 function validatePassword(pw: string): string | null {
   if (pw.length < 8) return "Mínimo 8 caracteres";
   if (!/[A-Z]/.test(pw)) return "Precisa de letra maiúscula";
@@ -424,6 +439,17 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-4 text-center">
+                  <div className="rounded-md bg-purple-50 border border-purple-200 text-purple-900 text-sm p-3 text-left">
+                    <p className="font-semibold">
+                      30 dias grátis começam agora.
+                    </p>
+                    <p className="mt-1">
+                      Primeira cobrança automática em{" "}
+                      <strong>{formatTrialEndDate()}</strong> de R$ 59,90/mês.
+                      Cancele quando quiser pelo perfil.
+                    </p>
+                  </div>
+
                   {noPhone ? (
                     <p>
                       Sua conta está pronta! Baixe o app abaixo e faça login com seu email.
