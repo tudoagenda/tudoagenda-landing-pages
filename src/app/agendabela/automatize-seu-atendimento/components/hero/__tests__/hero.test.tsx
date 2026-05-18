@@ -15,7 +15,7 @@ describe("HeroComponent", () => {
       </QueryClientProvider>
     );
     expect(
-      screen.getByText("Automatize seu atendimento com o WhatsApp.")
+      screen.getByText("Tem alguém cuidando da sua agenda agora.")
     ).toBeInTheDocument();
   });
 });

@@ -44,13 +44,14 @@ export const FormComponent = () => {
     <>
       <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2 w-full max-w-lg">
         <Input
-          placeholder="Digite seu e-mail aqui"
+          placeholder="Seu melhor email"
           type="email"
           name="email"
           required
+          className="h-11 rounded-full font-inter"
         />
-        <Button variant="agendabela-accent" type="submit">
-          Teste Gratuitamente
+        <Button variant="brand-primary" size="lg" type="submit">
+          Começar com 30 dias grátis
         </Button>
       </form>
 

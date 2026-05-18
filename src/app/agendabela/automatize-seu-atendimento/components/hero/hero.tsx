@@ -1,78 +1,153 @@
 "use client";
 
-import Image from "next/image";
-import AgendabelaLogo from "../../assets/agendabela-logo.png";
-import GifAgendamento from "../../assets/gif-agendamento.gif";
 import dynamic from "next/dynamic";
+import { AgendaBelaLogo } from "@/components/brand/agenda-bela-logo";
+import { AppScreenStack } from "@/components/brand/app-screen-stack";
+import { WhatsAppPreview } from "@/components/brand/whatsapp-preview";
 
-const FormComponent = dynamic(() => import("../form").then(mod => ({ default: mod.FormComponent })), {
-  loading: () => (
-    <div className="flex flex-col md:flex-row gap-2 w-full max-w-lg">
-      <div className="h-10 bg-gray-300 animate-pulse rounded flex-1" />
-      <div className="h-10 bg-purple-400 animate-pulse rounded w-32" />
-    </div>
-  )
-});
+const FormComponent = dynamic(
+  () => import("../form").then((mod) => ({ default: mod.FormComponent })),
+  {
+    loading: () => (
+      <div className="flex flex-col md:flex-row gap-2 w-full">
+        <div className="h-11 bg-surface-alt-card animate-pulse rounded-full flex-1" />
+        <div className="h-11 bg-brand-rosa/40 animate-pulse rounded-full md:w-44" />
+      </div>
+    ),
+  },
+);
+
+const positiveDisclaimer = (
+  <>
+    <strong className="font-inter font-semibold text-ink">
+      30 dias grátis.
+    </strong>{" "}
+    Cancela quando quiser.
+  </>
+);
+
+const features = [
+  "Confirmação automática no WhatsApp do cliente",
+  "Lembrete pro cliente no dia do horário",
+  "Agenda do dia direto no seu celular toda manhã",
+];
 
 export const HeroComponent = () => {
   return (
     <>
       <main
         id="teste-gratuitamente"
-        className="flex flex-col w-full bg-purple-900 md:p-20 p-6 items-center gap-20 md:gap-14"
+        className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-44 md:pb-20"
       >
-        <Image
-          src={AgendabelaLogo}
-          width={170}
-          height={97}
-          alt="AgendaBela logo"
-          priority
-        />
-        <div className="flex flex-col text-center max-w-4xl items-center gap-4">
-          <h1 className="md:text-5xl text-white text-4xl max-w-3xl font-bold">
-            Automatize seu atendimento com o WhatsApp.
-          </h1>
-          <div className="flex flex-col text-purple-300 md:text-xl text-sm font-lexend">
-            <p>
-              Criamos o AgendaBela pra você automatizar seu atendimento e
-              gerenciar melhor seu salão.
-            </p>
+        {/* Top bar — logo + wordmark */}
+        <header className="flex items-center justify-between max-w-7xl mx-auto mb-6 md:mb-12">
+          <div className="flex items-center gap-2">
+            <AgendaBelaLogo color="navy" size={32} />
+            <span className="font-fraunces italic text-brand-petroleo text-lg md:text-2xl tracking-tight">
+              Agenda Bela
+            </span>
           </div>
-          
-          <div className="mt-6 flex justify-center">
-            <Image
-              src={GifAgendamento}
-              alt="Demonstração do sistema de agendamento"
-              width={400}
-              height={300}
-              loading="eager"
-              className="rounded-lg shadow-lg max-h-[450px] w-auto mx-auto"
-              priority
-            />
-          </div>
-          
-        </div>
+          <span className="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-ink-muted">
+            por Tudo Agenda
+          </span>
+        </header>
 
-        <div className="hidden md:flex flex-col gap-4 w-full max-w-2xl items-center">
-          <FormComponent />
-          <div className="md:text-xs text-[11px] font-lexend text-purple-500 text-center">
-            <p>
-              Teste nossa plataforma por 30 dias gratuitamente.{" "}
-              <u>Não vamos te pedir nenhum dado de cartão de crédito agora.</u>
-            </p>
+        {/* Hero card — primeira dobra compacta, identidade do app */}
+        <section className="relative max-w-7xl mx-auto overflow-hidden rounded-app-xl bg-brand-creme shadow-brand-md">
+          {/* Círculos decorativos */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 md:h-80 md:w-80 rounded-full bg-brand-rosa-claro opacity-40"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-32 -top-32 h-56 w-56 md:h-64 md:w-64 rounded-full bg-brand-creme-soft opacity-60"
+          />
+
+          <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 lg:gap-16 p-6 md:p-12 lg:p-16 items-center">
+            {/* Coluna esquerda — copy + form */}
+            <div className="flex flex-col gap-5 md:gap-7">
+              <span className="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho">
+                A secretária do seu salão
+              </span>
+
+              <h1 className="font-fraunces italic font-normal text-brand-petroleo text-[38px] leading-[40px] md:text-[60px] md:leading-[62px] lg:text-[68px] lg:leading-[68px] tracking-[-0.035em] max-w-[18ch]">
+                Tem alguém cuidando da sua agenda agora.
+              </h1>
+
+              <p className="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]">
+                A gente avisa seu cliente no WhatsApp toda vez que ele agenda, e
+                lembra ele no dia. Você recebe a agenda do dia direto no
+                celular. Você fica com o que faz melhor:{" "}
+                <span className="text-brand-petroleo font-medium">
+                  atender bem
+                </span>
+                .
+              </p>
+
+              {/* Bullets de features — fluxo de notificação real (unilateral) */}
+              <ul className="flex flex-col gap-2.5 -mt-1">
+                {features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2.5 font-inter text-[14.5px] text-ink"
+                  >
+                    <span className="inline-flex h-5 w-5 mt-0.5 items-center justify-center rounded-full bg-brand-rosa-50 text-brand-rosa font-bold text-[12px]">
+                      ✓
+                    </span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Form desktop only — mobile usa sticky */}
+              <div className="hidden md:flex flex-col gap-3 bg-white rounded-app-lg shadow-brand-md p-5 max-w-xl">
+                <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-ink-muted">
+                  Comece em 30 segundos
+                </span>
+                <FormComponent />
+                <p className="font-inter text-[12px] leading-[18px] text-ink-muted">
+                  {positiveDisclaimer}
+                </p>
+              </div>
+            </div>
+
+            {/* Coluna direita — stack de phones reais + notificações push */}
+            <div className="relative h-[480px] sm:h-[520px] lg:h-[580px]">
+              {/* Stack de phones com prints reais (sênior — composição estática
+                  com float subtle nos secundários) */}
+              <div className="absolute inset-0">
+                <AppScreenStack />
+              </div>
+
+              {/* Chat WhatsApp do CLIENTE recebendo confirmação + lembrete.
+                  Flutua por cima dos phones. */}
+              <div
+                className="absolute z-30 -left-2 sm:-left-4 lg:-left-8 top-2 sm:top-4 animate-float-soft"
+                style={
+                  {
+                    "--card-rotate": "-3deg",
+                    animationDelay: "0.5s",
+                  } as React.CSSProperties
+                }
+              >
+                <WhatsAppPreview />
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-purple-900 p-4 border-t border-purple-700">
-        <div className="flex flex-col gap-2 w-full max-w-lg mx-auto">
+      {/* Sticky CTA mobile — card flutuante */}
+      <div
+        className="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex flex-col gap-2.5">
           <FormComponent />
-          <div className="text-[11px] font-lexend text-purple-500 text-center">
-            <p>
-              Teste nossa plataforma por 30 dias gratuitamente.{" "}
-              <u>Não vamos te pedir nenhum dado de cartão de crédito agora.</u>
-            </p>
-          </div>
+          <p className="font-inter text-[11px] leading-[15px] text-ink-muted text-center">
+            {positiveDisclaimer}
+          </p>
         </div>
       </div>
     </>

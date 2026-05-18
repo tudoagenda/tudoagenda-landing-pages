@@ -19,6 +19,10 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         "agendabela-accent": "text-black bg-amber-500 hover:bg-amber-600",
+        // Variant principal pós-rebrand visual (Agenda Bela). Pill rosa do app,
+        // pra usar em CTAs. Mantém retrocompat com "agendabela-accent" até V4.
+        "brand-primary":
+          "bg-brand-rosa text-white hover:bg-brand-rosa-hover rounded-full font-inter font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2",

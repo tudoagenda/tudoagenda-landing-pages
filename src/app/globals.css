@@ -64,3 +64,98 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+/* Float animation pros cards flutuantes do hero. Movimento suave vertical
+   + leve rotação preservada via CSS variable. Delay configurável via
+   `style={{ animationDelay: '...' }}` pra criar parallax. */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--card-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-8px) rotate(var(--card-rotate, 0deg));
+  }
+}
+
+.animate-float-soft {
+  animation: float-soft 5s ease-in-out infinite;
+}
+
+/* WhatsApp mock — animação de conversa em loop:
+   typing dots → bubble do salão → typing curto cliente → resposta cliente → repeat */
+@keyframes wa-msg-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes wa-typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.wa-msg-in {
+  animation: wa-msg-in 0.45s ease-out both;
+}
+
+.wa-typing-dot {
+  animation: wa-typing-dot 1.2s ease-in-out infinite;
+}
+
+/* Carrossel de telas do app dentro do phone mockup — fade suave entre slides */
+@keyframes screen-cycle-3 {
+  0%, 28% {
+    opacity: 1;
+  }
+  33%, 95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.screen-cycle {
+  animation: screen-cycle-3 9s ease-in-out infinite;
+}
+
+/* Scroll vertical infinito de uma tela alta dentro do phone frame — simula
+   o usuário rolando o app. Loop 14s suave. */
+@keyframes screen-scroll-vertical {
+  0%, 10% {
+    transform: translateY(0);
+  }
+  50%, 60% {
+    transform: translateY(calc(-100% + 100% / 1.6));
+  }
+  95%, 100% {
+    transform: translateY(0);
+  }
+}
+
+.screen-scroll {
+  animation: screen-scroll-vertical 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-soft,
+  .wa-msg-in,
+  .wa-typing-dot,
+  .screen-cycle {
+    animation: none;
+  }
+}
