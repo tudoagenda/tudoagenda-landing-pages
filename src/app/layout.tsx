@@ -1,11 +1,31 @@
 import "./globals.css";
 import { Providers } from "./providers";
-import { Lexend } from 'next/font/google';
+import { Fraunces, Inter, Space_Mono } from "next/font/google";
 
-const lexend = Lexend({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-lexend',
+// Tipografia idêntica ao agendabela-mobile-app:
+//   - Fraunces (stand-in para Defante) — display italic em headlines
+//   - Inter — texto corpo
+//   - Space Mono — eyebrows uppercase letter-spaced
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-space-mono",
+  weight: ["400"],
 });
 
 export default function RootLayout({
@@ -14,7 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br" className={lexend.variable}>
+    <html
+      lang="pt-br"
+      className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}
+    >
       <head>
         <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
         <meta name="google-site-verification" content="DMHYDDq3HYq2eCbpCQsLPYTVWX5Svmrbdh0a0thP9Qc" />
@@ -28,8 +51,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TSM8GGL6');`,
           }}
         />
-        <link rel="preload" href="/agendabela-logo.png" as="image" type="image/png" />
-        <link rel="preload" href="/gif-agendamento.gif" as="image" type="image/gif" />
       </head>
       <body>
         <noscript>
@@ -37,7 +58,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             src="https://www.googletagmanager.com/ns.html?id=GTM-TSM8GGL6"
             height="0"
             width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
+            style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
         <Providers>{children}</Providers>
