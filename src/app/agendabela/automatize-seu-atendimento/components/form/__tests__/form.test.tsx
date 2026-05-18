@@ -21,10 +21,10 @@ describe("FormComponent", () => {
       </QueryClientProvider>
     );
     expect(
-      screen.getByPlaceholderText("Digite seu e-mail aqui")
+      screen.getByPlaceholderText("Seu melhor email")
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Teste Gratuitamente/i })
+      screen.getByRole("button", { name: /Começar com 30 dias grátis/i })
     ).toBeInTheDocument();
   });
 
@@ -37,11 +37,11 @@ describe("FormComponent", () => {
       </QueryClientProvider>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Digite seu e-mail aqui"), {
+    fireEvent.change(screen.getByPlaceholderText("Seu melhor email"), {
       target: { value: "test@example.com" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /Teste Gratuitamente/i })
+      screen.getByRole("button", { name: /Começar com 30 dias grátis/i })
     );
 
     // The signup modal should appear with the step 1 form
