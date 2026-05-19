@@ -225,11 +225,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-md mx-0 sm:mx-auto px-4 sm:px-6 max-h-[90vh] overflow-y-auto">
+      <AlertDialogContent className="max-w-md mx-0 sm:mx-auto px-4 sm:px-6 max-h-[90vh] overflow-y-auto bg-surface-subtle border border-surface-alt-border rounded-app-xl">
         {step === 1 && (
           <>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl text-center">
+              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
                 Crie sua conta gratuita
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center">
@@ -349,24 +349,24 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                   id="terms"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 accent-purple-700"
+                  className="mt-1 accent-brand-rosa"
                 />
-                <label htmlFor="terms" className="text-xs text-muted-foreground">
+                <label htmlFor="terms" className="text-xs text-ink-muted font-inter">
                   Li e aceito os{" "}
                   <a
-                    href="https://tudoagenda.com.br/termos"
+                    href="/termos"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline text-purple-700"
+                    className="underline text-brand-rosa hover:text-brand-rosa-hover"
                   >
                     Termos de Uso
                   </a>{" "}
                   e{" "}
                   <a
-                    href="https://tudoagenda.com.br/privacidade"
+                    href="/privacidade"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline text-purple-700"
+                    className="underline text-brand-rosa hover:text-brand-rosa-hover"
                   >
                     Política de Privacidade
                   </a>
@@ -381,7 +381,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <Button
                 onClick={handleStep1Submit}
                 disabled={isCreating}
-                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
+                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
                 Criar conta e continuar
                 {isCreating && <Spinner size="sm" variant="primary" />}
@@ -389,7 +389,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <Button
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
-                className="w-full"
+                className="w-full rounded-full font-inter font-semibold"
                 disabled={isCreating}
               >
                 Cancelar
@@ -401,15 +401,15 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
         {step === 2 && (
           <>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl text-center">
-                💳 Cadastre seu cartão
+              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
+                Cadastre seu cartão
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-3 text-center">
                   <p>
                     <strong>Trial gratuito de 30 dias.</strong> Cadastre seu
                     cartão — você{" "}
-                    <strong className="text-green-600">NÃO será cobrado agora</strong>.
+                    <strong className="text-emerald-700">NÃO será cobrado agora</strong>.
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Após 30 dias: R$59,90/mês. Cancele quando quiser.
@@ -422,7 +422,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <Button
                 onClick={handlePayment}
                 disabled={isBilling}
-                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
+                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
                 Cadastrar cartão
                 {isBilling && <Spinner size="sm" variant="primary" />}
@@ -434,18 +434,18 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
         {step === 3 && (
           <>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl text-center">
+              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
                 Pagamento confirmado! 🎉
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-4 text-center">
-                  <div className="rounded-md bg-purple-50 border border-purple-200 text-purple-900 text-sm p-3 text-left">
+                  <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft text-brand-petroleo text-sm p-4 text-left font-inter">
                     <p className="font-semibold">
                       30 dias grátis começam agora.
                     </p>
-                    <p className="mt-1">
+                    <p className="mt-1 text-ink-muted">
                       Primeira cobrança automática em{" "}
-                      <strong>{formatTrialEndDate()}</strong> de R$ 59,90/mês.
+                      <strong className="text-brand-petroleo">{formatTrialEndDate()}</strong> de R$ 59,90/mês.
                       Cancele quando quiser pelo perfil.
                     </p>
                   </div>
@@ -487,7 +487,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                             { onError: () => setMagicLinkError(true) },
                           );
                         }}
-                        className="text-sm text-purple-700 underline disabled:opacity-50"
+                        className="text-sm text-brand-rosa hover:text-brand-rosa-hover underline disabled:opacity-50 font-inter"
                       >
                         {isSendingLink ? "Reenviando..." : "Não recebeu? Reenviar link"}
                       </button>
@@ -500,7 +500,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             <AlertDialogFooter className="flex-col gap-2 pt-2">
               <Button
                 onClick={() => handleOpenChange(false)}
-                className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white"
+                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
                 Fechar
               </Button>

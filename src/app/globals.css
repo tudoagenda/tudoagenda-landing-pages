@@ -53,6 +53,13 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    /* Bloqueia scroll horizontal acidental (elementos posicionados absolute
+       que vazam pra fora dos containers — comum em decorative circles ou
+       cards flutuantes). */
+    overflow-x: hidden;
+  }
   body {
     @apply antialiased bg-background text-foreground;
     font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont,

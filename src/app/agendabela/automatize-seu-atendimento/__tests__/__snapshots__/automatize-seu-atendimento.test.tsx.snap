@@ -3,57 +3,25 @@
 exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSeuAtendimento component 1`] = `
 <DocumentFragment>
   <main
-    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-44 md:pb-20"
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
     id="teste-gratuitamente"
   >
     <header
       class="flex items-center justify-between max-w-7xl mx-auto mb-6 md:mb-12"
     >
-      <div
-        class="flex items-center gap-2"
-      >
-        <svg
-          aria-label="Agenda Bela"
-          height="32"
-          role="img"
-          viewBox="0 0 360 280"
-          width="32"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <title>
-            Agenda Bela
-          </title>
-          <path
-            d="M276.25,141.86c-.4-4.03-2.29-7.73-5.31-10.43l-4.7-4.19c-1.61-1.43-6.81-6.48-6.38-11.35,2.25-25.14-7.76-42.55-16.54-52.74-2-2.31-4.18-4.54-6.49-6.63l-.76-.69-.98.29c-5.88,1.74-11.92,3.16-17.96,4.21l-4.82.84,4.19,2.52c2.26,1.36,8.11,5.21,13.53,11.62,9.23,10.91,13.23,24.02,11.9,38.97-.82,9.19,3.56,18.57,12.32,26.39l2.88,2.57c.29.26.34.71.1,1.03l-1.41,1.89c-3.9,5.19-6.01,11.63-5.96,18.12l.04,4.81c0,1.35-.61,2.59-1.69,3.4-.72.53-1.55.82-2.42.82-.4,0-.81-.06-1.2-.18-6.16-1.9-11.91-2.87-17.09-2.87-3.11,0-6.07.35-8.8,1.04l-1.47.37.1,1.51c.19,3.05.62,8.04,1.57,14.56v1.69h1.83c.26.01.51-.04.74-.14,1.67-.68,3.71-1.03,6.08-1.03,3.34,0,7.29.69,11.73,2.07,2.15.66,4.35,1,6.56,1,4.72,0,9.26-1.52,13.12-4.39,5.75-4.28,9.01-10.83,8.95-17.99l-.04-5.46c-.02-2.15.68-4.28,1.97-5.99l3.27-4.36c2.43-3.24,3.55-7.24,3.14-11.27Z"
-            fill="#213745"
-          />
-          <circle
-            cx="223.88"
-            cy="141.25"
-            fill="#213745"
-            r="9.78"
-          />
-          <path
-            d="M234.6,112.76l-4.45-3.16-1.49-1.06-1.05,1.49-.33.47c-1.04,1.46-2.58,2.43-4.35,2.73-.38.06-.76.1-1.14.1-1.39,0-2.72-.43-3.87-1.24l-.47-.33-1.49-1.05-1.05,1.49-3.16,4.45-1.05,1.49,1.49,1.05.47.33c2.69,1.91,5.85,2.92,9.12,2.92.89,0,1.79-.08,2.68-.23,4.16-.71,7.8-2.99,10.25-6.44l.33-.47,1.06-1.49-1.49-1.06Z"
-            fill="#213745"
-          />
-          <path
-            d="M203.74,116.79c.05,6.29-.33,12.26-.97,17.92-.37,4.1-.91,8.21-1.64,12.34-.9,5.13-2.22,10.69-3.97,16.38-6.79,22.17-20.02,46.47-40.47,56.27-5.93,2.84-12.46,4.47-19.62,4.47-21.64,0-31.2-15.55-34.3-34.29l10.57-4.27,10.55-4.06c1.99,12.95,8.1,21.3,16.77,21.3,2.49,0,5.42-.7,8.47-2.08,3.47-1.57,7.1-4.03,10.43-7.34,11.45-11.55,17.63-31.45,20.48-47.62,2.23-12.67,2.07-25.21.94-37.42-.16-1.75-.34-3.5-.54-5.23-1.74-13.7-5.96-27.12-12.75-40.58,5.01.46,10.07.69,15.16.69,3.23,0,6.46-.09,9.66-.28,2.54,6.07,4.66,12.17,6.32,18.26,3.18,11.62,4.84,23.58,4.92,35.56Z"
-            fill="#213745"
-          />
-          <path
-            d="M129.23,150.21s-1.48,1.13-4.56,2.92c-.41.24-.86.49-1.33.75-.02.01-.04.02-.06.03-6.38,3.53-18.03,8.96-35.71,13.44l-3.89,22.07c9.3-2.01,18.9-4.71,27.87-8.35,9.4-3.61,18.54-8.07,27.02-13.59,13.81-9.31,24.2-22.95,27.21-40.05,2.8-15.85-2.68-32.23-20.49-32.23-4.63,0-9.15,1.42-13.48,3.74-17.57,9.79-25.23,35.07-28.22,51.99l-1.2,6.81c8.15-2.96,16.64-6.85,23.6-11.86.97-4.39,2.26-9.2,4.02-13.74,2.26-5.81,5.28-11.19,9.39-14.68.62-.53,1.4-.89,2.12-.89,4.09,0,3.36,8.19,2.86,11.04-1.71,9.69-7.54,17.25-15.16,22.59Z"
-            fill="#213745"
-          />
-        </svg>
-        <span
-          class="font-fraunces italic text-brand-petroleo text-lg md:text-2xl tracking-tight"
-        >
-          Agenda Bela
-        </span>
-      </div>
+      <img
+        alt="Agenda Bela"
+        class="h-auto w-[120px] md:w-[150px]"
+        data-nimg="1"
+        decoding="async"
+        height="40"
+        src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75"
+        srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75 2x"
+        style="color: transparent;"
+        width="140"
+      />
       <span
-        class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-ink-muted"
+        class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
       >
         por Tudo Agenda
       </span>
@@ -167,13 +135,13 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
           </div>
         </div>
         <div
-          class="relative h-[480px] sm:h-[520px] lg:h-[580px]"
+          class="relative h-[400px] sm:h-[520px] lg:h-[580px]"
         >
           <div
             class="absolute inset-0"
           >
             <div
-              class="relative w-full h-full flex items-center justify-center"
+              class="relative w-full h-full flex items-center justify-end sm:justify-center pr-2 sm:pr-0"
             >
               <div
                 class="absolute left-0 lg:left-4 top-2 z-10 w-[140px] sm:w-[160px] lg:w-[180px] aspect-[9/19] animate-float-soft hidden sm:block"
@@ -186,20 +154,20 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                     class="relative h-full w-full rounded-[28px] overflow-hidden bg-surface-subtle"
                   >
                     <img
-                      alt="Agenda semanal do app"
+                      alt="Tela de agenda do dia com horários"
                       class="object-cover object-top"
                       data-nimg="fill"
                       decoding="async"
                       sizes="(max-width: 768px) 180px, 200px"
-                      src="/_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=3840&q=75"
-                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=3840&q=75 3840w"
+                      src="/_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=3840&q=75"
+                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=3840&q=75 3840w"
                       style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
                     />
                   </div>
                 </div>
               </div>
               <div
-                class="relative z-20 w-[220px] sm:w-[240px] lg:w-[260px] aspect-[9/19.5]"
+                class="relative z-20 w-[200px] sm:w-[240px] lg:w-[260px] aspect-[9/19.5]"
               >
                 <div
                   class="relative rounded-[36px] bg-brand-petroleo shadow-brand-lg p-2 h-full"
@@ -214,7 +182,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                         class="screen-scroll relative w-full h-full"
                       >
                         <img
-                          alt="Tela principal do Agenda Bela com agenda do dia, estatísticas e ações"
+                          alt="Tela inicial do Agenda Bela com agenda do dia e estatísticas"
                           class="object-cover object-top !h-auto"
                           data-nimg="fill"
                           decoding="async"
@@ -239,13 +207,13 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                     class="relative h-full w-full rounded-[28px] overflow-hidden bg-surface-subtle"
                   >
                     <img
-                      alt="Tela financeira com gráfico de receita"
+                      alt="Tela de calendário mensal com agendamentos marcados"
                       class="object-cover object-top"
                       data-nimg="fill"
                       decoding="async"
                       sizes="(max-width: 768px) 180px, 200px"
-                      src="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75"
-                      srcset="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75 3840w"
+                      src="/_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=3840&q=75"
+                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=3840&q=75 3840w"
                       style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
                     />
                   </div>
@@ -254,7 +222,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
             </div>
           </div>
           <div
-            class="absolute z-30 -left-2 sm:-left-4 lg:-left-8 top-2 sm:top-4 animate-float-soft"
+            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
             style="--card-rotate: -3deg; animation-delay: 0.5s;"
           >
             <div
@@ -411,10 +379,13 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
     </div>
   </div>
   <div
-    class="h-32 bg-gray-100 animate-pulse rounded"
+    class="h-64 bg-surface-subtle animate-pulse"
   />
   <div
-    class="h-32 bg-gray-100 animate-pulse rounded"
+    class="h-64 bg-brand-creme-soft animate-pulse"
+  />
+  <div
+    class="h-64 bg-surface-subtle animate-pulse"
   />
   <div
     class="h-32 bg-gray-100 animate-pulse rounded"
@@ -428,57 +399,25 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
 exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with AutomatizeSeuAtendimento 1`] = `
 <DocumentFragment>
   <main
-    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-44 md:pb-20"
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
     id="teste-gratuitamente"
   >
     <header
       class="flex items-center justify-between max-w-7xl mx-auto mb-6 md:mb-12"
     >
-      <div
-        class="flex items-center gap-2"
-      >
-        <svg
-          aria-label="Agenda Bela"
-          height="32"
-          role="img"
-          viewBox="0 0 360 280"
-          width="32"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <title>
-            Agenda Bela
-          </title>
-          <path
-            d="M276.25,141.86c-.4-4.03-2.29-7.73-5.31-10.43l-4.7-4.19c-1.61-1.43-6.81-6.48-6.38-11.35,2.25-25.14-7.76-42.55-16.54-52.74-2-2.31-4.18-4.54-6.49-6.63l-.76-.69-.98.29c-5.88,1.74-11.92,3.16-17.96,4.21l-4.82.84,4.19,2.52c2.26,1.36,8.11,5.21,13.53,11.62,9.23,10.91,13.23,24.02,11.9,38.97-.82,9.19,3.56,18.57,12.32,26.39l2.88,2.57c.29.26.34.71.1,1.03l-1.41,1.89c-3.9,5.19-6.01,11.63-5.96,18.12l.04,4.81c0,1.35-.61,2.59-1.69,3.4-.72.53-1.55.82-2.42.82-.4,0-.81-.06-1.2-.18-6.16-1.9-11.91-2.87-17.09-2.87-3.11,0-6.07.35-8.8,1.04l-1.47.37.1,1.51c.19,3.05.62,8.04,1.57,14.56v1.69h1.83c.26.01.51-.04.74-.14,1.67-.68,3.71-1.03,6.08-1.03,3.34,0,7.29.69,11.73,2.07,2.15.66,4.35,1,6.56,1,4.72,0,9.26-1.52,13.12-4.39,5.75-4.28,9.01-10.83,8.95-17.99l-.04-5.46c-.02-2.15.68-4.28,1.97-5.99l3.27-4.36c2.43-3.24,3.55-7.24,3.14-11.27Z"
-            fill="#213745"
-          />
-          <circle
-            cx="223.88"
-            cy="141.25"
-            fill="#213745"
-            r="9.78"
-          />
-          <path
-            d="M234.6,112.76l-4.45-3.16-1.49-1.06-1.05,1.49-.33.47c-1.04,1.46-2.58,2.43-4.35,2.73-.38.06-.76.1-1.14.1-1.39,0-2.72-.43-3.87-1.24l-.47-.33-1.49-1.05-1.05,1.49-3.16,4.45-1.05,1.49,1.49,1.05.47.33c2.69,1.91,5.85,2.92,9.12,2.92.89,0,1.79-.08,2.68-.23,4.16-.71,7.8-2.99,10.25-6.44l.33-.47,1.06-1.49-1.49-1.06Z"
-            fill="#213745"
-          />
-          <path
-            d="M203.74,116.79c.05,6.29-.33,12.26-.97,17.92-.37,4.1-.91,8.21-1.64,12.34-.9,5.13-2.22,10.69-3.97,16.38-6.79,22.17-20.02,46.47-40.47,56.27-5.93,2.84-12.46,4.47-19.62,4.47-21.64,0-31.2-15.55-34.3-34.29l10.57-4.27,10.55-4.06c1.99,12.95,8.1,21.3,16.77,21.3,2.49,0,5.42-.7,8.47-2.08,3.47-1.57,7.1-4.03,10.43-7.34,11.45-11.55,17.63-31.45,20.48-47.62,2.23-12.67,2.07-25.21.94-37.42-.16-1.75-.34-3.5-.54-5.23-1.74-13.7-5.96-27.12-12.75-40.58,5.01.46,10.07.69,15.16.69,3.23,0,6.46-.09,9.66-.28,2.54,6.07,4.66,12.17,6.32,18.26,3.18,11.62,4.84,23.58,4.92,35.56Z"
-            fill="#213745"
-          />
-          <path
-            d="M129.23,150.21s-1.48,1.13-4.56,2.92c-.41.24-.86.49-1.33.75-.02.01-.04.02-.06.03-6.38,3.53-18.03,8.96-35.71,13.44l-3.89,22.07c9.3-2.01,18.9-4.71,27.87-8.35,9.4-3.61,18.54-8.07,27.02-13.59,13.81-9.31,24.2-22.95,27.21-40.05,2.8-15.85-2.68-32.23-20.49-32.23-4.63,0-9.15,1.42-13.48,3.74-17.57,9.79-25.23,35.07-28.22,51.99l-1.2,6.81c8.15-2.96,16.64-6.85,23.6-11.86.97-4.39,2.26-9.2,4.02-13.74,2.26-5.81,5.28-11.19,9.39-14.68.62-.53,1.4-.89,2.12-.89,4.09,0,3.36,8.19,2.86,11.04-1.71,9.69-7.54,17.25-15.16,22.59Z"
-            fill="#213745"
-          />
-        </svg>
-        <span
-          class="font-fraunces italic text-brand-petroleo text-lg md:text-2xl tracking-tight"
-        >
-          Agenda Bela
-        </span>
-      </div>
+      <img
+        alt="Agenda Bela"
+        class="h-auto w-[120px] md:w-[150px]"
+        data-nimg="1"
+        decoding="async"
+        height="40"
+        src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75"
+        srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75 2x"
+        style="color: transparent;"
+        width="140"
+      />
       <span
-        class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-ink-muted"
+        class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
       >
         por Tudo Agenda
       </span>
@@ -570,17 +509,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
               Comece em 30 segundos
             </span>
             <form
-              class="flex flex-col md:flex-row gap-2 w-full max-w-lg"
+              class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
             >
               <input
-                class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 rounded-full font-inter"
+                class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
                 name="email"
                 placeholder="Seu melhor email"
                 required=""
                 type="email"
               />
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 rounded-md px-8"
+                class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
                 type="submit"
               >
                 Começar com 30 dias grátis
@@ -599,13 +538,13 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           </div>
         </div>
         <div
-          class="relative h-[480px] sm:h-[520px] lg:h-[580px]"
+          class="relative h-[400px] sm:h-[520px] lg:h-[580px]"
         >
           <div
             class="absolute inset-0"
           >
             <div
-              class="relative w-full h-full flex items-center justify-center"
+              class="relative w-full h-full flex items-center justify-end sm:justify-center pr-2 sm:pr-0"
             >
               <div
                 class="absolute left-0 lg:left-4 top-2 z-10 w-[140px] sm:w-[160px] lg:w-[180px] aspect-[9/19] animate-float-soft hidden sm:block"
@@ -618,20 +557,20 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                     class="relative h-full w-full rounded-[28px] overflow-hidden bg-surface-subtle"
                   >
                     <img
-                      alt="Agenda semanal do app"
+                      alt="Tela de agenda do dia com horários"
                       class="object-cover object-top"
                       data-nimg="fill"
                       decoding="async"
                       sizes="(max-width: 768px) 180px, 200px"
-                      src="/_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=3840&q=75"
-                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-semana.jpeg&w=3840&q=75 3840w"
+                      src="/_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=3840&q=75"
+                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-dia.jpeg&w=3840&q=75 3840w"
                       style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
                     />
                   </div>
                 </div>
               </div>
               <div
-                class="relative z-20 w-[220px] sm:w-[240px] lg:w-[260px] aspect-[9/19.5]"
+                class="relative z-20 w-[200px] sm:w-[240px] lg:w-[260px] aspect-[9/19.5]"
               >
                 <div
                   class="relative rounded-[36px] bg-brand-petroleo shadow-brand-lg p-2 h-full"
@@ -646,7 +585,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                         class="screen-scroll relative w-full h-full"
                       >
                         <img
-                          alt="Tela principal do Agenda Bela com agenda do dia, estatísticas e ações"
+                          alt="Tela inicial do Agenda Bela com agenda do dia e estatísticas"
                           class="object-cover object-top !h-auto"
                           data-nimg="fill"
                           decoding="async"
@@ -671,13 +610,13 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                     class="relative h-full w-full rounded-[28px] overflow-hidden bg-surface-subtle"
                   >
                     <img
-                      alt="Tela financeira com gráfico de receita"
+                      alt="Tela de calendário mensal com agendamentos marcados"
                       class="object-cover object-top"
                       data-nimg="fill"
                       decoding="async"
                       sizes="(max-width: 768px) 180px, 200px"
-                      src="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75"
-                      srcset="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75 3840w"
+                      src="/_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=3840&q=75"
+                      srcset="/_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fagenda-mes.jpeg&w=3840&q=75 3840w"
                       style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
                     />
                   </div>
@@ -686,7 +625,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             </div>
           </div>
           <div
-            class="absolute z-30 -left-2 sm:-left-4 lg:-left-8 top-2 sm:top-4 animate-float-soft"
+            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
             style="--card-rotate: -3deg; animation-delay: 0.5s;"
           >
             <div
@@ -821,17 +760,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       class="flex flex-col gap-2.5"
     >
       <form
-        class="flex flex-col md:flex-row gap-2 w-full max-w-lg"
+        class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
       >
         <input
-          class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 rounded-full font-inter"
+          class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
           name="email"
           placeholder="Seu melhor email"
           required=""
           type="email"
         />
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 rounded-md px-8"
+          class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
           type="submit"
         >
           Começar com 30 dias grátis
@@ -849,143 +788,638 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       </p>
     </div>
   </div>
-  <article
-    class="flex flex-col w-full md:p-12 p-6 items-center gap-10 md:gap-20"
+  <section
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-10 pb-16 md:py-24"
   >
-    <h2
-      class="text-purple-950 font-bold text-3xl md:text-4xl text-center md:text-left"
-    >
-      Saia na frente dos outros salões em 3 passos:
-    </h2>
-    <section
-      class="flex flex-col md:flex-row w-full max-w-7xl justify-between gap-8"
+    <div
+      class="max-w-7xl mx-auto"
     >
       <div
-        class="flex flex-col w-full max-w-sm gap-2"
+        class="flex flex-col items-center gap-3 mb-10 md:mb-14 text-center"
       >
-        <svg
-          class="lucide lucide-store"
-          fill="none"
-          height="32"
-          stroke="#A855F7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="32"
-          xmlns="http://www.w3.org/2000/svg"
+        <span
+          class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
         >
-          <path
-            d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"
-          />
-          <path
-            d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"
-          />
-          <path
-            d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"
-          />
-          <path
-            d="M2 7h20"
-          />
-          <path
-            d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"
-          />
-        </svg>
-        <h3
-          class="text-purple-950 font-bold text-lg"
+          Sem complicação
+        </span>
+        <h2
+          class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[34px] md:text-[44px] md:leading-[46px] tracking-[-0.025em] max-w-[18ch]"
         >
-          1 Configure seu salão
-        </h3>
-        <p
-          class="text-purple-950 text-base"
-        >
-          Talvez você já conheceu outras plataformas onde, pra configurar o seu salão, era quase que um exercício de matemática. O AgendaBela não é assim. Simples e rápido, com tutoriais em vídeo, você vai conseguir configurar o seu salão em 5 minutos!
-        </p>
+          Em 5 minutos a sua secretária tá trabalhando.
+        </h2>
       </div>
       <div
-        class="flex flex-col w-full max-w-sm gap-2"
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
       >
-        <svg
-          class="lucide lucide-smartphone"
-          fill="none"
-          height="32"
-          stroke="#A855F7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="32"
-          xmlns="http://www.w3.org/2000/svg"
+        <div
+          class="relative flex flex-col gap-3 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 md:p-7"
         >
-          <rect
-            height="20"
-            rx="2"
-            ry="2"
-            width="14"
-            x="5"
-            y="2"
-          />
-          <path
-            d="M12 18h.01"
-          />
-        </svg>
-        <h3
-          class="text-purple-950 font-bold text-lg"
+          <span
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-rosa text-white font-fraunces italic text-xl"
+          >
+            1
+          </span>
+          <h3
+            class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
+          >
+            Cadastra seu salão em 5 minutos
+          </h3>
+          <p
+            class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
+          >
+            Pelo celular, sem complicação. Você cria os profissionais, os serviços com preço e duração, e pronto — tá no ar.
+          </p>
+        </div>
+        <div
+          class="relative flex flex-col gap-3 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 md:p-7"
         >
-          2 Peça seu atendente virtual
-        </h3>
-        <p
-          class="text-purple-950 text-base"
+          <span
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-rosa text-white font-fraunces italic text-xl"
+          >
+            2
+          </span>
+          <h3
+            class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
+          >
+            Marca agendamentos no app
+          </h3>
+          <p
+            class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
+          >
+            Toda vez que você marca um horário, o cliente recebe a confirmação no WhatsApp dele. Sem você apertar nada.
+          </p>
+        </div>
+        <div
+          class="relative flex flex-col gap-3 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 md:p-7"
         >
-          Sim, nós vamos criar um atendente virtual para você no WhatsApp. Mas não se preocupe, você não vai perder o seu número atual. Nós criamos um novo número para o seu atendente virtual. Seus clientes podem interagir com ele e, com poucos cliques, serem atendidos rapidamente.
-        </p>
+          <span
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-rosa text-white font-fraunces italic text-xl"
+          >
+            3
+          </span>
+          <h3
+            class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
+          >
+            A gente cuida do dia a dia
+          </h3>
+          <p
+            class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
+          >
+            Toda manhã, seu cliente recebe o lembrete do horário do dia. Você acorda com a agenda pronta no celular.
+          </p>
+        </div>
       </div>
-      <div
-        class="flex flex-col w-full max-w-sm gap-2"
-      >
-        <svg
-          class="lucide lucide-users-round"
-          fill="none"
-          height="32"
-          stroke="#A855F7"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="32"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M18 21a8 8 0 0 0-16 0"
-          />
-          <circle
-            cx="10"
-            cy="8"
-            r="5"
-          />
-          <path
-            d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"
-          />
-        </svg>
-        <h3
-          class="text-purple-950 font-bold text-lg"
-        >
-          3 Agora é só falar para seus clientes
-        </h3>
-        <p
-          class="text-purple-950 text-base"
-        >
-          Configure uma mensagem automática no seu WhatsApp atual para redirecionar seus clientes para serem atendidos pelo atendente virtual. Nós te ajudamos com isso também, não se preocupe. Pronto! É só isso mesmo. Seu salão já está na frente de 90% dos outros salões.
-        </p>
-      </div>
-    </section>
-    <a
-      class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-black bg-amber-500 hover:bg-amber-600 h-11 rounded-md px-8"
-      href="#teste-gratuitamente"
+    </div>
+  </section>
+  <section
+    class="w-full bg-brand-creme-soft px-5 md:px-10 lg:px-20 py-16 md:py-24"
+  >
+    <div
+      class="max-w-7xl mx-auto"
     >
-      Teste Gratuitamente
-    </a>
-  </article>
+      <div
+        class="flex flex-col items-center gap-3 mb-10 md:mb-14 text-center"
+      >
+        <span
+          class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
+        >
+          O que sua secretária faz
+        </span>
+        <h2
+          class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[40px] md:text-[44px] md:leading-[52px] tracking-[-0.025em]"
+        >
+          <span
+            class="block"
+          >
+            Cuida das mensagens
+          </span>
+          <span
+            class="block"
+          >
+            Lembra dos horários
+          </span>
+          <span
+            class="block"
+          >
+            Mostra o que importa
+          </span>
+        </h2>
+      </div>
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8"
+      >
+        <article
+          class="relative overflow-hidden rounded-app-xl bg-brand-creme shadow-brand-sm"
+        >
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-brand-rosa-claro opacity-30"
+          />
+          <div
+            class="relative flex flex-col gap-5 p-6 md:p-8"
+          >
+            <span
+              class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
+            >
+              Confirmação automática
+            </span>
+            <h3
+              class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
+            >
+              Avisa seu cliente no WhatsApp
+            </h3>
+            <p
+              class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
+            >
+              Cada agendamento que você marca, a gente envia uma mensagem no WhatsApp do cliente confirmando. Sem ligar, sem digitar.
+            </p>
+            <div
+              class="mt-2 flex justify-center md:justify-start"
+            >
+              <div
+                class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
+                style="width: 240px;"
+              >
+                <div
+                  class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                >
+                  <span
+                    class="text-white text-[13px] leading-none"
+                  >
+                    ‹
+                  </span>
+                  <div
+                    class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
+                  >
+                    SE
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <p
+                      class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
+                    >
+                      Salão Estilo
+                    </p>
+                    <p
+                      class="font-inter text-[8.5px] text-white/70 leading-tight"
+                    >
+                      online
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="px-2.5 py-3 flex flex-col gap-1.5"
+                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
+                >
+                  <div
+                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                  >
+                    <div
+                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                    >
+                      Oi Camila! ✨ Seu agendamento foi confirmado:
+                      <br />
+                      <strong>
+                        Manicure com Paula
+                      </strong>
+                      <br />
+                      amanhã (sex), 15h
+                    </div>
+                    <span
+                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                    >
+                      14:32
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article
+          class="relative overflow-hidden rounded-app-xl bg-brand-creme-soft shadow-brand-sm"
+        >
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-brand-rosa-claro opacity-30"
+          />
+          <div
+            class="relative flex flex-col gap-5 p-6 md:p-8"
+          >
+            <span
+              class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
+            >
+              Toda manhã, sem você lembrar
+            </span>
+            <h3
+              class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
+            >
+              Você recebe a agenda do dia. Seu cliente recebe o lembrete dele.
+            </h3>
+            <p
+              class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
+            >
+              Cedinho, antes do salão abrir, a gente manda no WhatsApp todos os horários do dia pra você — e lembra cada cliente do horário que ele marcou.
+            </p>
+            <div
+              class="mt-2 flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center md:justify-start"
+            >
+              <div
+                class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
+                style="width: 232px;"
+              >
+                <div
+                  class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                >
+                  <span
+                    class="text-white text-[13px] leading-none"
+                  >
+                    ‹
+                  </span>
+                  <div
+                    class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
+                  >
+                    SE
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <p
+                      class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
+                    >
+                      Salão Estilo · Você
+                    </p>
+                    <p
+                      class="font-inter text-[8.5px] text-white/70 leading-tight"
+                    >
+                      online
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="px-2.5 py-3 flex flex-col gap-1.5"
+                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
+                >
+                  <div
+                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                  >
+                    <div
+                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                    >
+                      🌅 Bom dia, Salão Estilo!
+                      <br />
+                      <strong>
+                        Sua agenda hoje (5 horários):
+                      </strong>
+                      <br />
+                      • 09:00 — Maria · Manicure
+                      <br />
+                      • 10:30 — Joana · Sobrancelha
+                      <br />
+                      • 13:00 — Camila · Pedicure
+                      <br />
+                      • 15:00 — Luzinete · Manicure e pedicure
+                      <br />
+                      • 16:30 — Megui · Banho de petróleo
+                    </div>
+                    <span
+                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                    >
+                      07:00
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
+                style="width: 232px;"
+              >
+                <div
+                  class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                >
+                  <span
+                    class="text-white text-[13px] leading-none"
+                  >
+                    ‹
+                  </span>
+                  <div
+                    class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
+                  >
+                    CA
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <p
+                      class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
+                    >
+                      Camila · Cliente
+                    </p>
+                    <p
+                      class="font-inter text-[8.5px] text-white/70 leading-tight"
+                    >
+                      online
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="px-2.5 py-3 flex flex-col gap-1.5"
+                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
+                >
+                  <div
+                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                  >
+                    <div
+                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                    >
+                      🔔 Bom dia, Camila!
+                      <br />
+                      Hoje você tem horário às 
+                      <strong>
+                        15h
+                      </strong>
+                       com a Paula 💜
+                    </div>
+                    <span
+                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                    >
+                      07:00
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article
+          class="relative overflow-hidden rounded-app-xl bg-brand-creme shadow-brand-sm"
+        >
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-brand-rosa-claro opacity-30"
+          />
+          <div
+            class="relative flex flex-col gap-5 p-6 md:p-8"
+          >
+            <span
+              class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
+            >
+              Tela inicial do app
+            </span>
+            <h3
+              class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
+            >
+              Te entrega o dia pronto, no celular
+            </h3>
+            <p
+              class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
+            >
+              Você acorda e abre o app: aparece quanto vai entrar hoje, quantos clientes tem, quem é o próximo. Sem caderno, sem planilha.
+            </p>
+            <div
+              class="mt-2 flex justify-center md:justify-start"
+            >
+              <div
+                class="relative w-[180px] md:w-[200px] aspect-[9/19.5] rounded-[28px] bg-brand-petroleo shadow-brand-md p-2"
+              >
+                <div
+                  class="relative h-full w-full rounded-[20px] overflow-hidden bg-surface-subtle"
+                >
+                  <img
+                    alt="Dashboard do app com agenda do dia"
+                    class="object-cover object-top"
+                    data-nimg="fill"
+                    decoding="async"
+                    loading="lazy"
+                    sizes="200px"
+                    src="/_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=3840&q=75"
+                    srcset="/_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Fdashboard-full.jpeg&w=3840&q=75 3840w"
+                    style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article
+          class="relative overflow-hidden rounded-app-xl bg-brand-creme-soft shadow-brand-sm"
+        >
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full bg-brand-rosa-claro opacity-30"
+          />
+          <div
+            class="relative flex flex-col gap-5 p-6 md:p-8"
+          >
+            <span
+              class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
+            >
+              Painel completo
+            </span>
+            <h3
+              class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
+            >
+              Mostra o que importa do salão
+            </h3>
+            <p
+              class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
+            >
+              Faturamento do mês, dias mais movimentados, serviços que mais saem, ranking dos profissionais. Tudo num toque.
+            </p>
+            <div
+              class="mt-2 flex justify-center md:justify-start"
+            >
+              <div
+                class="relative w-[160px] md:w-[180px] aspect-[9/19] rounded-[24px] bg-brand-petroleo shadow-brand-md p-1.5"
+              >
+                <div
+                  class="relative h-full w-full rounded-[18px] overflow-hidden bg-surface-subtle"
+                >
+                  <img
+                    alt="Tela financeira com gráfico de receita"
+                    class="object-cover object-top"
+                    data-nimg="fill"
+                    decoding="async"
+                    loading="lazy"
+                    sizes="180px"
+                    src="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75"
+                    srcset="/_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=16&q=75 16w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=32&q=75 32w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=48&q=75 48w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=64&q=75 64w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=96&q=75 96w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=128&q=75 128w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=256&q=75 256w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=384&q=75 384w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=640&q=75 640w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=750&q=75 750w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=828&q=75 828w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1080&q=75 1080w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1200&q=75 1200w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=1920&q=75 1920w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=2048&q=75 2048w, /_next/image?url=%2Fapp-screens%2Ffinanceiro-faturamento.jpeg&w=3840&q=75 3840w"
+                    style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+  <section
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-16 md:py-24"
+  >
+    <div
+      class="max-w-7xl mx-auto"
+    >
+      <div
+        class="flex flex-col items-center gap-3 mb-10 md:mb-14 text-center"
+      >
+        <span
+          class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
+        >
+          Quem já tem secretária
+        </span>
+        <h2
+          class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[36px] md:text-[44px] md:leading-[48px] tracking-[-0.025em] max-w-[22ch]"
+        >
+          Donas de salão que dormem mais tranquilas.
+        </h2>
+      </div>
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
+      >
+        <article
+          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
+        >
+          <span
+            aria-hidden="true"
+            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
+          >
+            “
+          </span>
+          <blockquote
+            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
+          >
+            Antes vivia esquecendo de confirmar horário com cliente. Agora chega tudo no WhatsApp delas automático. Meu no-show caiu pela metade no primeiro mês.
+          </blockquote>
+          <div
+            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
+          >
+            <p
+              class="font-semibold text-ink"
+            >
+              Mariana Helena
+            </p>
+            <p
+              class="text-ink-muted"
+            >
+              Salão Bela Mari
+            </p>
+            <p
+              class="text-ink-subtle text-[12px] mt-0.5"
+            >
+              Sorocaba — SP
+            </p>
+          </div>
+        </article>
+        <article
+          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
+        >
+          <span
+            aria-hidden="true"
+            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
+          >
+            “
+          </span>
+          <blockquote
+            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
+          >
+            Comecei usando só pra receber lembrete da agenda do dia. Em uma semana já tava economizando uma hora por dia que eu gastava respondendo WhatsApp.
+          </blockquote>
+          <div
+            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
+          >
+            <p
+              class="font-semibold text-ink"
+            >
+              Carla Andrade
+            </p>
+            <p
+              class="text-ink-muted"
+            >
+              Studio Carla
+            </p>
+            <p
+              class="text-ink-subtle text-[12px] mt-0.5"
+            >
+              Ribeirão Preto — SP
+            </p>
+          </div>
+        </article>
+        <article
+          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
+        >
+          <span
+            aria-hidden="true"
+            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
+          >
+            “
+          </span>
+          <blockquote
+            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
+          >
+            Eu não sabia exatamente quanto faturava no dia. Hoje abro o app de manhã, vejo o número e a agenda pronta. Mudou minha cabeça sobre o negócio.
+          </blockquote>
+          <div
+            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
+          >
+            <p
+              class="font-semibold text-ink"
+            >
+              Patrícia Ramos
+            </p>
+            <p
+              class="text-ink-muted"
+            >
+              Espaço Patty
+            </p>
+            <p
+              class="text-ink-subtle text-[12px] mt-0.5"
+            >
+              Curitiba — PR
+            </p>
+          </div>
+        </article>
+        <article
+          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
+        >
+          <span
+            aria-hidden="true"
+            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
+          >
+            “
+          </span>
+          <blockquote
+            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
+          >
+            O cadastro do salão levou uns 5 minutos mesmo. Cadastrei minha filha como profissional e os serviços, e no mesmo dia já tava marcando agendamento.
+          </blockquote>
+          <div
+            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
+          >
+            <p
+              class="font-semibold text-ink"
+            >
+              Juliana Costa
+            </p>
+            <p
+              class="text-ink-muted"
+            >
+              Beleza & Cia
+            </p>
+            <p
+              class="text-ink-subtle text-[12px] mt-0.5"
+            >
+              Campinas — SP
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
   <div
     class="flex flex-col items-center w-full px-8 md:px-16 py-16"
   >
@@ -1016,43 +1450,61 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       />
     </div>
   </div>
-  <div
-    class="flex flex-col w-full p-10 gap-16 items-center"
+  <footer
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-10 md:py-12 border-t border-surface-alt-border"
   >
     <div
-      class="flex flex-col w-full max-w-3xl text-center gap-4 items-center"
+      class="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-6"
     >
-      <p
-        class="text-2xl text-purple-950"
+      <div
+        class="flex flex-col items-center md:items-start gap-2"
       >
-        ”O Agenda Bela facilitou muito o dia-a-dia aqui no salão. Agora eu consigo gerenciar a minha agenda e ter uma visão muito melhor do meu trabalho por aqui”
-      </p>
-      <p
-        class="text-lg font-semibold text-purple-950"
+        <img
+          alt="Agenda Bela"
+          class="h-auto w-[120px]"
+          data-nimg="1"
+          decoding="async"
+          height="36"
+          loading="lazy"
+          src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75"
+          srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=128&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 2x"
+          style="color: transparent;"
+          width="120"
+        />
+        <span
+          class="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
+        >
+          por Tudo Agenda
+        </span>
+      </div>
+      <nav
+        class="flex flex-col md:flex-row gap-3 md:gap-6 items-center"
       >
-        MARIA JOANA, PROPRIETÁRIA DO SALÃO PARIS
-      </p>
+        <a
+          class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          href="/termos"
+        >
+          Termos de serviço
+        </a>
+        <a
+          class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          href="/privacidade"
+        >
+          Política de privacidade
+        </a>
+        <a
+          class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          href="mailto:contato@tudoagenda.com.br"
+        >
+          contato@tudoagenda.com.br
+        </a>
+      </nav>
     </div>
-    <a
-      class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-black bg-amber-500 hover:bg-amber-600 h-11 rounded-md px-8"
-      href="#teste-gratuitamente"
+    <p
+      class="text-center md:text-left font-inter text-[11px] text-ink-subtle mt-8"
     >
-      Teste Gratuitamente
-    </a>
-  </div>
-  <footer
-    class="flex w-full p-8 justify-center"
-  >
-    <button
-      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary underline-offset-4 hover:underline h-10 px-4 py-2"
-    >
-      Termos de serviço
-    </button>
-    <button
-      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary underline-offset-4 hover:underline h-10 px-4 py-2"
-    >
-      Política de privacidade
-    </button>
+      © 2026 Tudo Agenda. Todos os direitos reservados.
+    </p>
   </footer>
 </DocumentFragment>
 `;

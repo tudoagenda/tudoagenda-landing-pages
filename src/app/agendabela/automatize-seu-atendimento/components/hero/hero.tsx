@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AgendaBelaLogo } from "@/components/brand/agenda-bela-logo";
+import Image from "next/image";
 import { AppScreenStack } from "@/components/brand/app-screen-stack";
 import { WhatsAppPreview } from "@/components/brand/whatsapp-preview";
 
@@ -37,17 +37,19 @@ export const HeroComponent = () => {
     <>
       <main
         id="teste-gratuitamente"
-        className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-44 md:pb-20"
+        className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
       >
         {/* Top bar — logo + wordmark */}
         <header className="flex items-center justify-between max-w-7xl mx-auto mb-6 md:mb-12">
-          <div className="flex items-center gap-2">
-            <AgendaBelaLogo color="navy" size={32} />
-            <span className="font-fraunces italic text-brand-petroleo text-lg md:text-2xl tracking-tight">
-              Agenda Bela
-            </span>
-          </div>
-          <span className="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-ink-muted">
+          <Image
+            src="/brand/logo-wine-cream.png"
+            alt="Agenda Bela"
+            width={140}
+            height={40}
+            priority
+            className="h-auto w-[120px] md:w-[150px]"
+          />
+          <span className="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho">
             por Tudo Agenda
           </span>
         </header>
@@ -112,18 +114,20 @@ export const HeroComponent = () => {
               </div>
             </div>
 
-            {/* Coluna direita — stack de phones reais + notificações push */}
-            <div className="relative h-[480px] sm:h-[520px] lg:h-[580px]">
-              {/* Stack de phones com prints reais (sênior — composição estática
-                  com float subtle nos secundários) */}
+            {/* Coluna direita — stack de phones reais + notificações push.
+                Mobile: altura compacta, só dashboard central (laterais ficam
+                em sm+). WhatsAppPreview empurrado pra baixo-esquerda em
+                mobile pra não tapar o miolo da prova visual. */}
+            <div className="relative h-[400px] sm:h-[520px] lg:h-[580px]">
               <div className="absolute inset-0">
                 <AppScreenStack />
               </div>
 
               {/* Chat WhatsApp do CLIENTE recebendo confirmação + lembrete.
-                  Flutua por cima dos phones. */}
+                  z-10 = ATRÁS do phone central (z-20 no AppScreenStack) pra
+                  não tapar o dashboard. Mobile com scale menor. */}
               <div
-                className="absolute z-30 -left-2 sm:-left-4 lg:-left-8 top-2 sm:top-4 animate-float-soft"
+                className="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
                 style={
                   {
                     "--card-rotate": "-3deg",
