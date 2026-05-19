@@ -1420,36 +1420,47 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       </div>
     </div>
   </section>
-  <div
-    class="flex flex-col items-center w-full px-8 md:px-16 py-16"
+  <section
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pb-12 md:pb-16"
   >
     <div
-      class="flex flex-col md:flex-row gap-8 p-12 w-full max-w-7xl border-y border-y-purple-200 items-center justify-center"
+      class="max-w-7xl mx-auto flex flex-col items-center gap-6 border-t border-surface-alt-border pt-12 md:pt-14"
     >
-      <img
-        alt="Santander X logo"
-        data-nimg="1"
-        decoding="async"
-        height="27"
-        loading="lazy"
-        src="/_next/image?url=%2Fimg.jpg&w=640&q=75"
-        srcset="/_next/image?url=%2Fimg.jpg&w=256&q=75 1x, /_next/image?url=%2Fimg.jpg&w=640&q=75 2x"
-        style="color: transparent;"
-        width="200"
-      />
-      <img
-        alt="Founders Club logo"
-        data-nimg="1"
-        decoding="async"
-        height="80"
-        loading="lazy"
-        src="/_next/image?url=%2Fimg.jpg&w=384&q=75"
-        srcset="/_next/image?url=%2Fimg.jpg&w=256&q=75 1x, /_next/image?url=%2Fimg.jpg&w=384&q=75 2x"
-        style="color: transparent;"
-        width="141"
-      />
+      <span
+        class="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
+      >
+        Apoiado por
+      </span>
+      <div
+        class="flex flex-col sm:flex-row items-center gap-8 md:gap-14"
+      >
+        <img
+          alt="Santander X"
+          class="h-auto opacity-70 hover:opacity-100 transition-opacity"
+          data-nimg="1"
+          decoding="async"
+          height="24"
+          loading="lazy"
+          src="/_next/image?url=%2Fimg.jpg&w=384&q=75"
+          srcset="/_next/image?url=%2Fimg.jpg&w=256&q=75 1x, /_next/image?url=%2Fimg.jpg&w=384&q=75 2x"
+          style="color: transparent;"
+          width="180"
+        />
+        <img
+          alt="Founders Club"
+          class="h-auto opacity-70 hover:opacity-100 transition-opacity"
+          data-nimg="1"
+          decoding="async"
+          height="68"
+          loading="lazy"
+          src="/_next/image?url=%2Fimg.jpg&w=256&q=75"
+          srcset="/_next/image?url=%2Fimg.jpg&w=128&q=75 1x, /_next/image?url=%2Fimg.jpg&w=256&q=75 2x"
+          style="color: transparent;"
+          width="120"
+        />
+      </div>
     </div>
-  </div>
+  </section>
   <footer
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-10 md:py-12 border-t border-surface-alt-border"
   >
