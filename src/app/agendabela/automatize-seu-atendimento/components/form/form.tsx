@@ -42,15 +42,25 @@ export const FormComponent = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2 w-full max-w-lg">
+      {/* Form pill segmentada: input arredondado à esquerda + botão arredondado
+          à direita, sem gap → parece um componente único. */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
+      >
         <Input
           placeholder="Seu melhor email"
           type="email"
           name="email"
           required
-          className="h-11 rounded-full font-inter"
+          className="h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
         />
-        <Button variant="brand-primary" size="lg" type="submit">
+        <Button
+          variant="brand-primary"
+          size="lg"
+          type="submit"
+          className="rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
+        >
           Começar com 30 dias grátis
         </Button>
       </form>
