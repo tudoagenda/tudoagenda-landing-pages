@@ -7,11 +7,11 @@ export const FooterComponent = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
         <div className="flex flex-col items-center md:items-start gap-2">
           <Image
-            src="/brand/logo-wine-cream.png"
+            src="/brand/logo-app.png"
             alt="Agenda Bela"
-            width={120}
-            height={36}
-            className="h-auto w-[120px]"
+            width={56}
+            height={56}
+            className="h-12 w-12"
           />
           <span className="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho">
             por Tudo Agenda
