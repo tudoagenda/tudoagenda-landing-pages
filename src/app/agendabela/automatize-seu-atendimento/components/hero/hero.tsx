@@ -39,15 +39,15 @@ export const HeroComponent = () => {
         id="teste-gratuitamente"
         className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
       >
-        {/* Top bar — logo + wordmark */}
+        {/* Top bar — logo do app (icon-only, igual mobile) */}
         <header className="flex items-center justify-between max-w-7xl mx-auto mb-6 md:mb-12">
           <Image
-            src="/brand/logo-wine-cream.png"
+            src="/brand/logo-app.png"
             alt="Agenda Bela"
-            width={140}
-            height={40}
+            width={72}
+            height={72}
             priority
-            className="h-auto w-[120px] md:w-[150px]"
+            className="h-14 w-14 md:h-16 md:w-16"
           />
           <span className="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho">
             por Tudo Agenda

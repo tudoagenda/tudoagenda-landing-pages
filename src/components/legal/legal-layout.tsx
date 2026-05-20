@@ -39,12 +39,12 @@ export function LegalLayout({
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/agendabela/automatize-seu-atendimento">
             <Image
-              src="/brand/logo-wine-cream.png"
+              src="/brand/logo-app.png"
               alt="Agenda Bela"
-              width={140}
-              height={40}
+              width={72}
+              height={72}
               priority
-              className="h-auto w-[120px] md:w-[150px]"
+              className="h-14 w-14 md:h-16 md:w-16"
             />
           </Link>
           <Link
