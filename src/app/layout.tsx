@@ -1,32 +1,63 @@
 import "./globals.css";
 import { Providers } from "./providers";
-import { Fraunces, Inter, Space_Mono } from "next/font/google";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
 
-// Tipografia idêntica ao agendabela-mobile-app:
-//   - Fraunces (stand-in para Defante) — display italic em headlines
-//   - Inter — texto corpo
-//   - Space Mono — eyebrows uppercase letter-spaced
-const fraunces = Fraunces({
-  subsets: ["latin"],
+const defante = localFont({
+  src: "./fonts/defante.otf",
   display: "swap",
-  variable: "--font-fraunces",
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  variable: "--font-defante",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
+const aguilar = localFont({
+  src: "./fonts/aguilar-playful-display.woff2",
   display: "swap",
-  variable: "--font-inter",
-  weight: ["400", "500", "600", "700"],
+  variable: "--font-aguilar",
 });
 
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-space-mono",
-  weight: ["400"],
-});
+const siteUrl = "https://tudoagenda.com.br";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    template: "%s | Tudo Agenda",
+  },
+  description:
+    "A Tudo Agenda cria SaaS verticais com agentes digitais para pequenos negócios venderem mais, organizarem a operação e reduzirem trabalho manual.",
+  applicationName: "Tudo Agenda",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    siteName: "Tudo Agenda",
+    title: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    description:
+      "Soluções para pequenos negócios que precisam vender mais, organizar a operação e liberar tempo do trabalho manual.",
+    images: [
+      {
+        url: "/brand/tudo-agenda/favicon.png",
+        width: 512,
+        height: 512,
+        alt: "Tudo Agenda",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    description:
+      "SaaS verticais com agentes digitais para pequenos negócios.",
+    images: ["/brand/tudo-agenda/favicon.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+  },
+};
 
 export default function RootLayout({
   children,
@@ -36,7 +67,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-br"
-      className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}
+      className={`${defante.variable} ${aguilar.variable}`}
     >
       <head>
         <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
