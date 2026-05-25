@@ -2,6 +2,11 @@
 
 exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSeuAtendimento component 1`] = `
 <DocumentFragment>
+  <script
+    type="application/ld+json"
+  >
+    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/agendabela_print.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
+  </script>
   <main
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
     id="teste-gratuitamente"
@@ -11,14 +16,14 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
     >
       <img
         alt="Agenda Bela"
-        class="h-auto w-[120px] md:w-[150px]"
+        class="h-14 w-14 md:h-16 md:w-16"
         data-nimg="1"
         decoding="async"
-        height="40"
-        src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75"
-        srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75 2x"
+        height="72"
+        src="/_next/image?url=%2Fbrand%2Flogo-app.png&w=256&q=75"
+        srcset="/_next/image?url=%2Fbrand%2Flogo-app.png&w=96&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-app.png&w=256&q=75 2x"
         style="color: transparent;"
-        width="140"
+        width="72"
       />
       <span
         class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
@@ -398,6 +403,11 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
 
 exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with AutomatizeSeuAtendimento 1`] = `
 <DocumentFragment>
+  <script
+    type="application/ld+json"
+  >
+    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/agendabela_print.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
+  </script>
   <main
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
     id="teste-gratuitamente"
@@ -407,14 +417,14 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
     >
       <img
         alt="Agenda Bela"
-        class="h-auto w-[120px] md:w-[150px]"
+        class="h-14 w-14 md:h-16 md:w-16"
         data-nimg="1"
         decoding="async"
-        height="40"
-        src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75"
-        srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=384&q=75 2x"
+        height="72"
+        src="/_next/image?url=%2Fbrand%2Flogo-app.png&w=256&q=75"
+        srcset="/_next/image?url=%2Fbrand%2Flogo-app.png&w=96&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-app.png&w=256&q=75 2x"
         style="color: transparent;"
-        width="140"
+        width="72"
       />
       <span
         class="hidden md:inline font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
@@ -512,7 +522,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
               class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
             >
               <input
-                class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
+                class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand-rosa focus-visible:ring-2 focus-visible:ring-brand-rosa/30 focus-visible:ring-offset-0 focus-visible:z-10 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
                 name="email"
                 placeholder="Seu melhor email"
                 required=""
@@ -763,7 +773,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
       >
         <input
-          class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
+          class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand-rosa focus-visible:ring-2 focus-visible:ring-brand-rosa/30 focus-visible:ring-offset-0 focus-visible:z-10 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
           name="email"
           placeholder="Seu melhor email"
           required=""
@@ -1472,15 +1482,15 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       >
         <img
           alt="Agenda Bela"
-          class="h-auto w-[120px]"
+          class="h-12 w-12"
           data-nimg="1"
           decoding="async"
-          height="36"
+          height="56"
           loading="lazy"
-          src="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75"
-          srcset="/_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=128&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-wine-cream.png&w=256&q=75 2x"
+          src="/_next/image?url=%2Fbrand%2Flogo-app.png&w=128&q=75"
+          srcset="/_next/image?url=%2Fbrand%2Flogo-app.png&w=64&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-app.png&w=128&q=75 2x"
           style="color: transparent;"
-          width="120"
+          width="56"
         />
         <span
           class="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
