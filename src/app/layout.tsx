@@ -1,31 +1,17 @@
 import "./globals.css";
 import { Providers } from "./providers";
-import { Fraunces, Inter, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 
-// Tipografia idêntica ao agendabela-mobile-app:
-//   - Fraunces (stand-in para Defante) — display italic em headlines
-//   - Inter — texto corpo
-//   - Space Mono — eyebrows uppercase letter-spaced
-const fraunces = Fraunces({
-  subsets: ["latin"],
+const defante = localFont({
+  src: "./fonts/defante.otf",
   display: "swap",
-  variable: "--font-fraunces",
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  variable: "--font-defante",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
+const aguilar = localFont({
+  src: "./fonts/aguilar-playful-display.woff2",
   display: "swap",
-  variable: "--font-inter",
-  weight: ["400", "500", "600", "700"],
-});
-
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-space-mono",
-  weight: ["400"],
+  variable: "--font-aguilar",
 });
 
 export default function RootLayout({
@@ -36,7 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-br"
-      className={`${fraunces.variable} ${inter.variable} ${spaceMono.variable}`}
+      className={`${defante.variable} ${aguilar.variable}`}
     >
       <head>
         <meta name="facebook-domain-verification" content="ejc4341iemcbhtlk85ih0f6fxxxf7b" />
