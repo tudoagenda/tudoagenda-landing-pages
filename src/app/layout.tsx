@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Providers } from "./providers";
+import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 const defante = localFont({
@@ -13,6 +14,50 @@ const aguilar = localFont({
   display: "swap",
   variable: "--font-aguilar",
 });
+
+const siteUrl = "https://tudoagenda.com.br";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    template: "%s | Tudo Agenda",
+  },
+  description:
+    "A Tudo Agenda cria SaaS verticais com agentes digitais para pequenos negócios venderem mais, organizarem a operação e reduzirem trabalho manual.",
+  applicationName: "Tudo Agenda",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    siteName: "Tudo Agenda",
+    title: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    description:
+      "Soluções para pequenos negócios que precisam vender mais, organizar a operação e liberar tempo do trabalho manual.",
+    images: [
+      {
+        url: "/brand/tudo-agenda/favicon.png",
+        width: 512,
+        height: 512,
+        alt: "Tudo Agenda",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Tudo Agenda | SaaS verticais com agentes para pequenos negócios",
+    description:
+      "SaaS verticais com agentes digitais para pequenos negócios.",
+    images: ["/brand/tudo-agenda/favicon.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+  },
+};
 
 export default function RootLayout({
   children,

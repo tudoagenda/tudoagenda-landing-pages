@@ -1,5 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const workPanels = [
   {
@@ -55,6 +62,52 @@ const appScreens = [
   },
 ];
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://tudoagenda.com.br/#organization",
+      name: "Tudo Agenda",
+      url: "https://tudoagenda.com.br",
+      logo: "https://tudoagenda.com.br/brand/tudo-agenda/favicon.png",
+      description:
+        "A Tudo Agenda cria SaaS verticais com agentes digitais para pequenos negócios.",
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "contato@tudoagenda.com.br",
+        contactType: "customer support",
+        availableLanguage: "pt-BR",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://tudoagenda.com.br/#website",
+      name: "Tudo Agenda",
+      url: "https://tudoagenda.com.br",
+      inLanguage: "pt-BR",
+      publisher: {
+        "@id": "https://tudoagenda.com.br/#organization",
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software",
+      name: "Agenda Bela",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, iOS, Android",
+      url: "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento",
+      image:
+        "https://tudoagenda.com.br/app-screens/agenda-bela/dashboard-resumo-do-dia.jpeg",
+      description:
+        "SaaS para profissionais de beleza feminina com automação de atendimento e gestão de agenda.",
+      publisher: {
+        "@id": "https://tudoagenda.com.br/#organization",
+      },
+    },
+  ],
+};
+
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
   <p className="mb-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#353839]">
     {children}
@@ -101,6 +154,12 @@ const PhoneScreen = ({
 export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#FFFCEE] text-[#1D1D1D]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <div className="relative bg-[#FFFCEE]">
         <div className="absolute right-0 top-0 hidden h-[610px] w-[350px] bg-[#1D1D1D] lg:block">
           <div className="h-[360px] bg-[radial-gradient(circle_at_34%_55%,rgba(255,252,238,0.9),transparent_28%),linear-gradient(145deg,#D7F20B_0%,#EFFF00_48%,#FFFCEE_100%)] opacity-90" />
