@@ -39,6 +39,32 @@ type LandingContext = {
   landing_slug: string;
 };
 
+type BlogEvent =
+  | {
+      event: "blog_view";
+      article_slug: string;
+      article_title: string;
+      category: string;
+    }
+  | {
+      event: "blog_cta_clicked";
+      article_slug: string;
+      cta_position: string;
+      cta_label: string;
+    }
+  | {
+      event: "blog_article_completed";
+      article_slug: string;
+      article_title: string;
+      scroll_depth: number;
+    };
+
+type BlogContext = {
+  product: string;
+  content_type: "blog";
+  blog_slug: string;
+};
+
 /**
  * Faz push de um evento da landing principal do Agenda Bela.
  * Componentes da landing principal usam `pushAgendaBelaMainEvent`.
@@ -59,6 +85,15 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
 export function pushLandingEvent(
   eventData: LandingEvent,
   context: LandingContext,
+): void {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ ...context, ...eventData });
+}
+
+export function pushProductBlogEvent(
+  eventData: BlogEvent,
+  context: BlogContext,
 ): void {
   if (typeof window === "undefined") return;
   window.dataLayer = window.dataLayer || [];

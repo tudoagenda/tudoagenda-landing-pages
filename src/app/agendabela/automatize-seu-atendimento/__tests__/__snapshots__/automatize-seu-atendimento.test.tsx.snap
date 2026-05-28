@@ -1503,6 +1503,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
       >
         <a
           class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          href="/agendabela/blog"
+        >
+          Blog
+        </a>
+        <a
+          class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
           href="/termos"
         >
           Termos de serviço
