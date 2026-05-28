@@ -10,9 +10,8 @@ export interface CreateBillingParams {
   email: string;
   name?: string;
   phone?: string;
-  // Backend usa esse profileId como `externalId` no payload do AbacatePay
-  // pra casar o webhook checkout.completed com a row de Profile e criar
-  // a Subscription em status TRIALING (Opção E).
+  // Backend usa esse profileId para criar o checkout de assinatura com
+  // trial nativo de 30 dias no produto AbacatePay v2.
   profileId?: string;
 }
 
