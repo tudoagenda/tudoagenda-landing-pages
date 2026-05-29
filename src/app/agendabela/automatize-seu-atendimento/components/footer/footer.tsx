@@ -20,6 +20,12 @@ export const FooterComponent = () => {
 
         <nav className="flex flex-col md:flex-row gap-3 md:gap-6 items-center">
           <Link
+            href="/agendabela/blog"
+            className="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
             href="/termos"
             className="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
           >
