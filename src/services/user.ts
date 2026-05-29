@@ -8,12 +8,10 @@ export interface CreateUserParams {
 
 export interface CreateBillingParams {
   email: string;
-  name?: string;
-  phone?: string;
-  // Backend usa esse profileId como `externalId` no payload do AbacatePay
-  // pra casar o webhook checkout.completed com a row de Profile e criar
-  // a Subscription em status TRIALING (Opção E).
-  profileId?: string;
+  password: string;
+  salonName: string;
+  name: string;
+  phone: string;
 }
 
 type CreateUserResponse = {
@@ -24,6 +22,7 @@ type CreateUserResponse = {
 
 type CreateBillingResponse = {
   url: string;
+  pendingSignupId?: string;
 };
 
 export const userService = {

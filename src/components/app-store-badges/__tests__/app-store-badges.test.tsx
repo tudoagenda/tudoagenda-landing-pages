@@ -20,9 +20,12 @@ describe("AppStoreBadges — device detection", () => {
     it("renders only Google badge for Android", () => {
       render(<AppStoreBadges forcePlatform="android" />);
 
-      expect(
-        screen.getByAltText("Disponível no Google Play"),
-      ).toBeInTheDocument();
+      const googlePlayBadge = screen.getByAltText("Disponível no Google Play");
+      expect(googlePlayBadge).toBeInTheDocument();
+      expect(googlePlayBadge.closest("a")).toHaveAttribute(
+        "href",
+        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela",
+      );
       expect(
         screen.queryByAltText("Baixar na App Store"),
       ).not.toBeInTheDocument();

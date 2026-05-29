@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { AppStoreBadges } from "@/components/app-store-badges/app-store-badges";
-import { useCreateUser, useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
+import { useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 import { Eye, EyeOff } from "lucide-react";
@@ -21,7 +21,6 @@ import { Eye, EyeOff } from "lucide-react";
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
-const SESSION_PROFILE_ID_KEY = "agendabela_signup_profile_id";
 
 // Note: No CPF field needed — AbacatePay v2 only requires email for customer.
 
@@ -79,7 +78,6 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
   const [magicLinkError, setMagicLinkError] = useState(false);
@@ -181,38 +179,25 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
     track("agendabela/signup-modal/step1_submit", { email });
 
-    createUser(
-      { email, password, name, salonName, phone: phoneDigits },
-      {
-        onSuccess: (data) => {
-          track("agendabela/signup-modal/account_created", { email });
-          pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
-          // Persist email, name and phone so step 3 can validate context and send magic link
-          sessionStorage.setItem(SESSION_KEY, email);
-          sessionStorage.setItem(SESSION_NAME_KEY, name);
-          sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
-          // profileId vira `externalId` no checkout AbacatePay pra casar com
-          // o webhook checkout.completed e criar a Subscription TRIALING.
-          if (data?.profileId) {
-            sessionStorage.setItem(SESSION_PROFILE_ID_KEY, data.profileId);
-          }
-          setStep(2);
-        },
-        onError: (error: Error) => {
-          setGeneralError(error.message || "Erro ao criar conta. Tente novamente.");
-        },
-      }
-    );
+    track("agendabela/signup-modal/account_details_completed", { email });
+    pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+    sessionStorage.setItem(SESSION_KEY, email);
+    sessionStorage.setItem(SESSION_NAME_KEY, name);
+    sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
+    setStep(2);
   };
 
   const handlePayment = () => {
     track("agendabela/signup-modal/payment_click", { email });
 
-    const customerName = name || sessionStorage.getItem(SESSION_NAME_KEY) || "";
-    const customerPhone = phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "";
-    const profileId = sessionStorage.getItem(SESSION_PROFILE_ID_KEY) || undefined;
     createBilling(
-      { email, name: customerName, phone: customerPhone, profileId },
+      {
+        email,
+        password,
+        name: name || sessionStorage.getItem(SESSION_NAME_KEY) || "",
+        salonName,
+        phone: phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "",
+      },
       {
         onSuccess: (data) => {
           if (data.url) {
@@ -380,17 +365,14 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             <AlertDialogFooter className="flex-col gap-2">
               <Button
                 onClick={handleStep1Submit}
-                disabled={isCreating}
                 className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
-                Criar conta e continuar
-                {isCreating && <Spinner size="sm" variant="primary" />}
+                Continuar
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 className="w-full rounded-full font-inter font-semibold"
-                disabled={isCreating}
               >
                 Cancelar
               </Button>
