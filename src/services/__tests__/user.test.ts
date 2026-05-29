@@ -47,6 +47,30 @@ describe("userService", () => {
     expect(response).toEqual({ sent: true });
   });
 
+  it("should create a card-first billing checkout", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          url: "https://pay.abacatepay.com/checkout/test",
+          pendingSignupId: "pending-123",
+        }),
+    }) as unknown as typeof fetch;
+
+    const response = await userService.createBilling(createUserParams);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/agendabela/create-billing",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify(createUserParams),
+      }),
+    );
+    expect(response).toEqual({
+      url: "https://pay.abacatepay.com/checkout/test",
+      pendingSignupId: "pending-123",
+    });
+  });
+
   it("should throw when magic link fails", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,

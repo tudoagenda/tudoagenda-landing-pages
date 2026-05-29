@@ -28,37 +28,46 @@ function makeRequest(body: Record<string, unknown>) {
 }
 
 describe("POST /api/agendabela/create-billing", () => {
-  test("delegates trial checkout creation to backend start-trial endpoint", async () => {
+  const validBody = {
+    email: "test@example.com",
+    password: "Test1234!",
+    name: "Test User",
+    salonName: "Test Salon",
+    phone: "11999999999",
+  };
+
+  test("delegates card-first pending signup checkout creation to backend", async () => {
     const fetchMock = jest.spyOn(global, "fetch").mockResolvedValueOnce(
       new Response(
         JSON.stringify({
           checkoutUrl: "https://pay.abacatepay.com/checkout/test",
-          subscriptionId: "sub_123",
+          pendingSignupId: "pending_123",
         }),
         { status: 200 },
       ),
     );
 
-    const response = await POST(makeRequest({ profileId: "profile-123" }));
+    const response = await POST(makeRequest(validBody));
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.example.test/api/subscriptions/profile-123/start-trial",
+      "https://api.example.test/api/subscriptions/signup-trial",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Internal-Key": "test-internal-key",
         },
+        body: JSON.stringify(validBody),
       },
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       url: "https://pay.abacatepay.com/checkout/test",
-      id: "sub_123",
+      pendingSignupId: "pending_123",
     });
   });
 
-  test("requires profileId", async () => {
+  test("requires complete signup data", async () => {
     const response = await POST(makeRequest({ email: "test@example.com" }));
     expect(response.status).toBe(400);
   });
@@ -68,7 +77,7 @@ describe("POST /api/agendabela/create-billing", () => {
       new Response("Backend error", { status: 500 }),
     );
 
-    const response = await POST(makeRequest({ profileId: "profile-123" }));
+    const response = await POST(makeRequest(validBody));
     expect(response.status).toBe(502);
   });
 });

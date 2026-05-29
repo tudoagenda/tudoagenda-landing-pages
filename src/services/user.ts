@@ -8,11 +8,10 @@ export interface CreateUserParams {
 
 export interface CreateBillingParams {
   email: string;
-  name?: string;
-  phone?: string;
-  // Backend usa esse profileId para criar o checkout de assinatura com
-  // trial nativo de 30 dias no produto AbacatePay v2.
-  profileId?: string;
+  password: string;
+  salonName: string;
+  name: string;
+  phone: string;
 }
 
 type CreateUserResponse = {
@@ -23,6 +22,7 @@ type CreateUserResponse = {
 
 type CreateBillingResponse = {
   url: string;
+  pendingSignupId?: string;
 };
 
 export const userService = {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function getBackendApiUrl(): string {
   return (
     process.env.BACKEND_API_URL ||
@@ -7,18 +9,30 @@ function getBackendApiUrl(): string {
   );
 }
 
-function sanitizeProfileId(profileId: unknown): string {
-  return typeof profileId === "string" ? profileId.trim() : "";
+function sanitizeString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function sanitizePhone(value: unknown): string {
+  return sanitizeString(value).replace(/\D/g, "").slice(0, 15);
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const profileId = sanitizeProfileId(body.profileId);
+    const email = sanitizeString(body.email).toLowerCase();
+    const password = sanitizeString(body.password);
+    const name = sanitizeString(body.name);
+    const salonName = sanitizeString(body.salonName);
+    const phone = sanitizePhone(body.phone);
 
-    if (!profileId) {
+    if (!email || !EMAIL_REGEX.test(email)) {
+      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
+    }
+
+    if (!password || password.length < 8 || !name || !salonName || phone.length < 10) {
       return NextResponse.json(
-        { error: "Perfil é obrigatório para iniciar o trial." },
+        { error: "Dados de cadastro incompletos." },
         { status: 400 },
       );
     }
@@ -30,23 +44,32 @@ export async function POST(req: Request) {
       internalHeaders["X-Internal-Key"] = process.env.INTERNAL_API_KEY;
     }
 
-    const response = await fetch(
-      `${getBackendApiUrl()}/subscriptions/${encodeURIComponent(profileId)}/start-trial`,
-      {
-        method: "POST",
-        headers: internalHeaders,
-      },
-    );
+    const response = await fetch(`${getBackendApiUrl()}/subscriptions/signup-trial`, {
+      method: "POST",
+      headers: internalHeaders,
+      body: JSON.stringify({
+        email,
+        password,
+        name,
+        salonName,
+        phone,
+      }),
+    });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "");
       console.error(
-        "[Billing] Backend trial checkout error:",
+        "[Billing] Backend pending signup checkout error:",
         response.status,
         errorBody,
       );
       return NextResponse.json(
-        { error: "Erro ao criar checkout. Tente novamente." },
+        {
+          error:
+            response.status === 409
+              ? "Este email já possui uma conta. Faça login ou use o fluxo de reativação."
+              : "Erro ao criar checkout. Tente novamente.",
+        },
         { status: response.status === 409 ? 409 : 502 },
       );
     }
@@ -64,7 +87,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       url,
-      id: result?.subscriptionId,
+      pendingSignupId: result?.pendingSignupId,
     });
   } catch (error) {
     console.error("[Billing] Unexpected error:", error);
