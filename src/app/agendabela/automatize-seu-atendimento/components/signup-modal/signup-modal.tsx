@@ -82,6 +82,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
   const [magicLinkError, setMagicLinkError] = useState(false);
   const [noPhone, setNoPhone] = useState(false);
+  // Quando o backend devolve 409 "email já tem conta" sinalizamos com banner
+  // dedicado no step 1 — orienta a usuária a usar `/agendabela/reativar` em
+  // vez de tentar novo cadastro. Mensagem do backend é estável (veja
+  // `agendabela-backend-services/src/subscriptions/abacatepay.service.ts`).
+  const [duplicateEmail, setDuplicateEmail] = useState(false);
   const { track } = useAmplitude();
 
   // Sync initialEmail when modal opens
@@ -141,6 +146,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setGeneralError(null);
       setMagicLinkError(false);
       setNoPhone(false);
+      setDuplicateEmail(false);
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_NAME_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
@@ -189,6 +195,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
   const handlePayment = () => {
     track("agendabela/signup-modal/payment_click", { email });
+    setGeneralError(null);
+    setDuplicateEmail(false);
 
     createBilling(
       {
@@ -203,6 +211,30 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           if (data.url) {
             window.location.href = data.url;
           }
+        },
+        onError: (error: Error) => {
+          // O backend (`abacatepay.service.ts`) responde 409 quando o
+          // email já tem conta — caminho típico pra base legada que
+          // tenta usar o signup novo. Voltamos pra step 1 com banner
+          // explicando e link pra LP de reativação.
+          const msg = (error.message || "").toLowerCase();
+          const isDuplicate =
+            msg.includes("já possui uma conta") ||
+            msg.includes("já existe") ||
+            msg.includes("reativação");
+          if (isDuplicate) {
+            track("agendabela/signup-modal/duplicate_email_blocked", { email });
+            setDuplicateEmail(true);
+            setStep(1);
+            return;
+          }
+          // Outros erros: mensagem genérica no banner (toast do hook já
+          // cobre como fallback secundário).
+          setGeneralError(
+            error.message ||
+              "Não foi possível processar o pagamento. Tente novamente.",
+          );
+          setStep(1);
         },
       },
     );
@@ -223,7 +255,23 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             </AlertDialogHeader>
 
             <div className="space-y-3 py-2">
-              {generalError && (
+              {duplicateEmail && (
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
+                  <p className="text-sm text-amber-900 font-semibold">
+                    Esse email já tem conta no Agenda Bela.
+                  </p>
+                  <p className="text-sm text-amber-800">
+                    Se você já é nossa cliente, reative sua conta cadastrando o cartão — seus dados antigos são mantidos.
+                  </p>
+                  <a
+                    href="/agendabela/reativar"
+                    className="inline-flex items-center justify-center w-full h-10 px-4 rounded-full bg-brand-rosa hover:bg-brand-rosa-hover text-white font-inter font-semibold text-sm transition-colors"
+                  >
+                    Reativar minha conta
+                  </a>
+                </div>
+              )}
+              {generalError && !duplicateEmail && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
                   {generalError}
                 </div>
