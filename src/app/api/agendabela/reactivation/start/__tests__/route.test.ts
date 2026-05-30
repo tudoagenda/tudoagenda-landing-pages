@@ -2,7 +2,7 @@
  * @jest-environment node
  *
  * Testes do BFF de start de reativação.
- * Cobre: validação de lookupToken e password, repasse ao backend,
+ * Cobre: validação de reactivationToken e password, repasse ao backend,
  * tratamento de token expirado (410), checkout indisponível.
  */
 
@@ -33,26 +33,26 @@ function makeRequest(body: Record<string, unknown>) {
 
 describe("POST /api/agendabela/reactivation/start", () => {
   const validBody = {
-    lookupToken: "tok_valid_abc123",
-    newPassword: "MinhaSenh4!",
+    reactivationToken: "tok_valid_abc123",
+    password: "MinhaSenh4!",
   };
 
-  test("rejects missing lookupToken", async () => {
-    const response = await POST(makeRequest({ newPassword: "MinhaSenh4!" }));
+  test("rejects missing reactivationToken", async () => {
+    const response = await POST(makeRequest({ password: "MinhaSenh4!" }));
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.error).toBeTruthy();
   });
 
-  test("rejects empty lookupToken", async () => {
-    const response = await POST(makeRequest({ lookupToken: "", newPassword: "MinhaSenh4!" }));
+  test("rejects empty reactivationToken", async () => {
+    const response = await POST(makeRequest({ reactivationToken: "", password: "MinhaSenh4!" }));
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.error).toBeTruthy();
   });
 
   test("rejects short password (< 8 chars)", async () => {
-    const response = await POST(makeRequest({ lookupToken: "tok_abc", newPassword: "abc" }));
+    const response = await POST(makeRequest({ reactivationToken: "tok_abc", password: "abc" }));
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.error).toBeTruthy();
