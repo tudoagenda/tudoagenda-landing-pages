@@ -99,7 +99,7 @@ export function ReactivationFlow() {
           return;
         }
 
-        // LEGACY_INACTIVE — mostra confirmação + dispara paywall_viewed
+        // LEGACY_PROFILE_FOUND — mostra confirmação + dispara paywall_viewed
         setStep("confirm");
         pushAgendaBelaReativacaoEvent({
           event: "paywall_viewed",
@@ -130,7 +130,7 @@ export function ReactivationFlow() {
       return;
     }
 
-    if (!lookupResult?.lookupToken) {
+    if (!lookupResult?.reactivationToken) {
       setGeneralError("Sessão perdida. Reinicie o processo.");
       setStep("lookup");
       return;
@@ -144,7 +144,7 @@ export function ReactivationFlow() {
     });
 
     startReactivation.mutate(
-      { lookupToken: lookupResult.lookupToken, newPassword: password },
+      { reactivationToken: lookupResult.reactivationToken, password },
       {
         onSuccess: (data) => {
           setStep("redirecting");

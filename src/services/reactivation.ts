@@ -15,25 +15,25 @@
 // ---------------------------------------------------------------------------
 
 export type ReactivationLookupStatus =
-  | "LEGACY_INACTIVE"   // Profile existente, inativo, sem gateway — fluxo desta LP
-  | "ALREADY_ACTIVE"    // Profile ACTIVE/TRIALING moderno — orientar login
-  | "NEW_SIGNUP_REQUIRED"; // Nenhum profile encontrado — encaminhar para cadastro novo
+  | "LEGACY_PROFILE_FOUND"  // Profile existente, inativo, sem gateway — fluxo desta LP
+  | "ALREADY_ACTIVE"        // Profile ACTIVE/TRIALING moderno — orientar login
+  | "NEW_SIGNUP_REQUIRED";  // Nenhum profile encontrado — encaminhar para cadastro novo
 
 export interface ReactivationLookupResponse {
   status: ReactivationLookupStatus;
-  /** Presente quando status = LEGACY_INACTIVE */
+  /** Presente quando status = LEGACY_PROFILE_FOUND */
   salonName?: string;
   /** Email mascarado: j***@example.com */
   maskedEmail?: string;
   /** WhatsApp mascarado: (11) 9****-1234 */
   maskedPhone?: string;
-  /** Token opaco pra correlacionar lookup → start (TTL: 15 min) */
-  lookupToken?: string;
+  /** JWT HS256, TTL 15min, payload `{ profileId, purpose: 'reactivation' }`. Presente em LEGACY_PROFILE_FOUND. */
+  reactivationToken?: string;
 }
 
 export interface ReactivationStartPayload {
-  lookupToken: string;
-  newPassword: string;
+  reactivationToken: string;
+  password: string;
 }
 
 export interface ReactivationStartResponse {
@@ -72,11 +72,11 @@ async function mockLookup(
   }
   // Padrão: base legado inativa
   return {
-    status: "LEGACY_INACTIVE",
+    status: "LEGACY_PROFILE_FOUND",
     salonName: "Salão da Loide",
     maskedEmail: "l***@hotmail.com",
     maskedPhone: "(11) 9****-3421",
-    lookupToken: "mock-token-abc123",
+    reactivationToken: "mock-token-abc123",
   };
 }
 

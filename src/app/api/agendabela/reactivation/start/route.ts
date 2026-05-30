@@ -17,24 +17,27 @@ function buildInternalHeaders(): Record<string, string> {
 
 /**
  * BFF: repassa POST /subscriptions/reactivation/start ao backend.
- * Recebe lookupToken + newPassword; retorna checkoutUrl.
+ * Recebe reactivationToken + password (contrato canônico do backend #86,
+ * documentado em `src/subscriptions/dto/reactivation-start.dto.ts`).
  */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const lookupToken: string =
-      typeof body?.lookupToken === "string" ? body.lookupToken.trim() : "";
-    const newPassword: string =
-      typeof body?.newPassword === "string" ? body.newPassword : "";
+    const reactivationToken: string =
+      typeof body?.reactivationToken === "string"
+        ? body.reactivationToken.trim()
+        : "";
+    const password: string =
+      typeof body?.password === "string" ? body.password : "";
 
-    if (!lookupToken) {
+    if (!reactivationToken) {
       return NextResponse.json(
-        { error: "Token de lookup ausente. Recomece o fluxo." },
+        { error: "Token de reativação ausente. Recomece o fluxo." },
         { status: 400 },
       );
     }
 
-    if (!newPassword || newPassword.length < 8) {
+    if (!password || password.length < 8) {
       return NextResponse.json(
         { error: "Senha deve ter no mínimo 8 caracteres." },
         { status: 400 },
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
       {
         method: "POST",
         headers: buildInternalHeaders(),
-        body: JSON.stringify({ lookupToken, newPassword }),
+        body: JSON.stringify({ reactivationToken, password }),
       },
     );
 
