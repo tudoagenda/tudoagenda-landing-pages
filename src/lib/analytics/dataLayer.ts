@@ -31,6 +31,17 @@ type LandingEvent =
     }
   | {
       event: "lp_signup_completed";
+    }
+  | {
+      event: "paywall_viewed";
+      flow: "reactivation" | "manage";
+      alert_kind?: string;
+      landing_slug: string;
+    }
+  | {
+      event: "checkout_opened";
+      flow: "reactivation" | "new_signup";
+      source: string;
     };
 
 type LandingContext = {
@@ -49,6 +60,18 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
     product: "agendabela",
     landing_type: "main",
     landing_slug: "automatize-seu-atendimento",
+  });
+}
+
+/**
+ * Faz push de um evento da LP de reativação do Agenda Bela.
+ * Contexto: campaign, slug = reativacao.
+ */
+export function pushAgendaBelaReativacaoEvent(eventData: LandingEvent): void {
+  pushLandingEvent(eventData, {
+    product: "agendabela",
+    landing_type: "campaign",
+    landing_slug: "reativacao",
   });
 }
 
