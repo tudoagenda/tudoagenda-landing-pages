@@ -76,6 +76,18 @@ export function pushAgendaBelaReativacaoEvent(eventData: LandingEvent): void {
 }
 
 /**
+ * Faz push de um evento da LP de lista de espera (pré-lançamento) do Agenda Bela.
+ * Contexto: campaign, slug = lista-de-espera.
+ */
+export function pushAgendaBelaListaEsperaEvent(eventData: LandingEvent): void {
+  pushLandingEvent(eventData, {
+    product: "agendabela",
+    landing_type: "campaign",
+    landing_slug: "lista-de-espera",
+  });
+}
+
+/**
  * Push genérico — só usar em componentes que sabem o contexto deles.
  * Componentes da landing principal devem usar pushAgendaBelaMainEvent.
  */
