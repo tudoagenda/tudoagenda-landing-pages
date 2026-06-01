@@ -27,6 +27,11 @@ fica no app — só a URL `/exec` (e um segredo opcional).
 // Deixe "" se não for usar segredo (não recomendado em produção).
 const SECRET = "TROQUE_POR_UM_SEGREDO_FORTE";
 
+// ID da planilha (o trecho entre /d/ e /edit na URL). Usamos openById em vez de
+// getActiveSpreadsheet() porque num Web App publicado (execução via HTTP) não
+// existe planilha "ativa" no contexto — getActiveSpreadsheet() retorna null.
+const SHEET_ID = "1IDXcBydDqkpPuZZ61GYBWYzmxUpHS0dwxMdtIhezSyc";
+
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents || "{}");
@@ -35,7 +40,7 @@ function doPost(e) {
       return json({ error: "unauthorized" });
     }
 
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
 
     // Cria cabeçalho na primeira execução, se a planilha estiver vazia.
     if (sheet.getLastRow() === 0) {
