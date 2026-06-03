@@ -209,6 +209,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       {
         onSuccess: (data) => {
           if (data.url) {
+            pushAgendaBelaMainEvent({
+              event: "checkout_opened",
+              flow: "new_signup",
+              source: "lp_signup_modal",
+            });
             window.location.href = data.url;
           }
         },
