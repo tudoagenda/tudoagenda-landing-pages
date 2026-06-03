@@ -50,6 +50,21 @@ type LandingContext = {
   landing_slug: string;
 };
 
+const ATTRIBUTION_KEYS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+  "gclid",
+  "fbclid",
+] as const;
+
+type AttributionKey = (typeof ATTRIBUTION_KEYS)[number];
+type AttributionContext = Partial<Record<AttributionKey, string>>;
+
+const ATTRIBUTION_STORAGE_KEY = "agendabela_landing_attribution";
+
 /**
  * Faz push de um evento da landing principal do Agenda Bela.
  * Componentes da landing principal usam `pushAgendaBelaMainEvent`.
@@ -97,5 +112,57 @@ export function pushLandingEvent(
 ): void {
   if (typeof window === "undefined") return;
   window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({ ...context, ...eventData });
+  window.dataLayer.push({
+    ...context,
+    ...getAttributionContext(),
+    ...eventData,
+  });
+}
+
+function getAttributionContext(): AttributionContext {
+  const currentAttribution = readAttributionFromUrl();
+
+  if (Object.keys(currentAttribution).length > 0) {
+    persistAttribution(currentAttribution);
+    return currentAttribution;
+  }
+
+  return readPersistedAttribution();
+}
+
+function readAttributionFromUrl(): AttributionContext {
+  const params = new URLSearchParams(window.location.search);
+
+  return ATTRIBUTION_KEYS.reduce<AttributionContext>((acc, key) => {
+    const value = params.get(key);
+    if (value) acc[key] = value;
+    return acc;
+  }, {});
+}
+
+function persistAttribution(attribution: AttributionContext): void {
+  try {
+    window.sessionStorage.setItem(
+      ATTRIBUTION_STORAGE_KEY,
+      JSON.stringify(attribution),
+    );
+  } catch {
+    // Storage can be unavailable in restricted browsers; analytics should keep working.
+  }
+}
+
+function readPersistedAttribution(): AttributionContext {
+  try {
+    const raw = window.sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw) as AttributionContext;
+    return ATTRIBUTION_KEYS.reduce<AttributionContext>((acc, key) => {
+      const value = parsed[key];
+      if (typeof value === "string" && value) acc[key] = value;
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
 }
