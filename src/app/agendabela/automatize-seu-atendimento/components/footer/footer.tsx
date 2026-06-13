@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
 
 export const FooterComponent = () => {
   return (
@@ -42,6 +43,9 @@ export const FooterComponent = () => {
 
       <p className="text-center md:text-left font-inter text-[11px] text-ink-subtle mt-8">
         © {new Date().getFullYear()} Tudo Agenda. Todos os direitos reservados.
+      </p>
+      <p className="text-center md:text-left font-inter text-[11px] text-ink-subtle mt-1">
+        {COMPANY_LEGAL_IDENTIFICATION}
       </p>
     </footer>
   );

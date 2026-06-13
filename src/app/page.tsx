@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -341,9 +342,12 @@ export default function Home() {
             height={132}
             className="h-auto w-[150px]"
           />
-          <p className="max-w-xl text-sm font-semibold">
-            Soluções que organizam seu negócio e otimizam seu tempo.
-          </p>
+          <div className="max-w-xl space-y-1 text-sm">
+            <p className="font-semibold">
+              Soluções que organizam seu negócio e otimizam seu tempo.
+            </p>
+            <p>{COMPANY_LEGAL_IDENTIFICATION}</p>
+          </div>
           <Link href="/privacidade" className="text-sm font-semibold hover:underline">
             Política de privacidade
           </Link>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
 import { WaitlistForm } from "./waitlist-form";
 
 const benefits = [
@@ -82,6 +83,9 @@ const ListaDeEspera = () => {
         <span className="font-mono-brand text-[10px] tracking-[2px] uppercase text-ink-subtle">
           Agenda Bela · por Tudo Agenda
         </span>
+        <p className="mt-2 font-inter text-[10px] text-ink-subtle">
+          {COMPANY_LEGAL_IDENTIFICATION}
+        </p>
       </footer>
     </main>
   );
