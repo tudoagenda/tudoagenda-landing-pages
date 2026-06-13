@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -724,6 +725,9 @@ export function ReactivationFlow() {
         <p className="text-center font-inter text-[11px] text-ink-subtle mt-4">
           © {new Date().getFullYear()} Tudo Agenda. Todos os direitos
           reservados.
+        </p>
+        <p className="text-center font-inter text-[11px] text-ink-subtle mt-1">
+          {COMPANY_LEGAL_IDENTIFICATION}
         </p>
       </footer>
     </div>

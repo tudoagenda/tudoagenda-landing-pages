@@ -15,4 +15,13 @@ describe("FooterComponent", () => {
     expect(privacyLink).toBeInTheDocument();
     expect(privacyLink).toHaveAttribute("href", "/privacidade");
   });
+
+  it("should render the company legal identification", () => {
+    render(<FooterComponent />);
+
+    expect(
+      screen.getByText(/CODEVERSE SERVIÇOS DE TECNOLOGIA LTDA/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/CNPJ 59\.161\.274\/0001-05/i)).toBeInTheDocument();
+  });
 });
