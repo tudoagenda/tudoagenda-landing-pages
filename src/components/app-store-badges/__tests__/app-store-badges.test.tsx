@@ -24,7 +24,7 @@ describe("AppStoreBadges — device detection", () => {
       expect(googlePlayBadge).toBeInTheDocument();
       expect(googlePlayBadge.closest("a")).toHaveAttribute(
         "href",
-        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela",
+        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao",
       );
       expect(
         screen.queryByAltText("Baixar na App Store"),
