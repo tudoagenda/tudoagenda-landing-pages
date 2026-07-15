@@ -17,17 +17,15 @@ function detectPlatform(): Platform {
 }
 
 /**
- * URLs default — apontam pra TestFlight enquanto pré-launch. Quando o app
- * estiver listado nas lojas públicas, basta atualizar as env vars
- * `NEXT_PUBLIC_APP_STORE_URL` e `NEXT_PUBLIC_PLAY_STORE_URL` sem code
- * change.
+ * URLs default das lojas públicas. Env vars permitem override sem code
+ * change caso a URL da loja mude.
  */
 const DEFAULT_IOS_URL =
   process.env.NEXT_PUBLIC_APP_STORE_URL ??
-  "https://testflight.apple.com/join/PLACEHOLDER";
+  "https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB";
 const DEFAULT_ANDROID_URL =
   process.env.NEXT_PUBLIC_PLAY_STORE_URL ??
-  "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela";
+  "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao";
 
 interface AppStoreBadgesProps {
   /**

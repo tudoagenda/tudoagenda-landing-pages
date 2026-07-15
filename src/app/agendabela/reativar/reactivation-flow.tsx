@@ -515,7 +515,7 @@ export function ReactivationFlow() {
             {/* App store badges — reutilizando componente se existir, senão links simples */}
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                href="https://apps.apple.com/br/app/agenda-bela/id6742810003"
+                href="https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -523,7 +523,7 @@ export function ReactivationFlow() {
                 App Store (iOS)
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela"
+                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -560,7 +560,7 @@ export function ReactivationFlow() {
 
             <div className="flex flex-col gap-3">
               <a
-                href="https://apps.apple.com/br/app/agenda-bela/id6742810003"
+                href="https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -568,7 +568,7 @@ export function ReactivationFlow() {
                 Baixar app (iOS)
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela"
+                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
