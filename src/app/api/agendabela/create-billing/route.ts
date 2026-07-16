@@ -17,6 +17,10 @@ function sanitizePhone(value: unknown): string {
   return sanitizeString(value).replace(/\D/g, "").slice(0, 15);
 }
 
+function sanitizeTaxId(value: unknown): string {
+  return sanitizeString(value).replace(/\D/g, "");
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -25,12 +29,20 @@ export async function POST(req: Request) {
     const name = sanitizeString(body.name);
     const salonName = sanitizeString(body.salonName);
     const phone = sanitizePhone(body.phone);
+    const taxId = sanitizeTaxId(body.taxId);
 
     if (!email || !EMAIL_REGEX.test(email)) {
       return NextResponse.json({ error: "Email inválido" }, { status: 400 });
     }
 
-    if (!password || password.length < 8 || !name || !salonName || phone.length < 10) {
+    if (
+      !password ||
+      password.length < 8 ||
+      !name ||
+      !salonName ||
+      phone.length < 10 ||
+      (taxId.length !== 11 && taxId.length !== 14)
+    ) {
       return NextResponse.json(
         { error: "Dados de cadastro incompletos." },
         { status: 400 },
@@ -53,6 +65,7 @@ export async function POST(req: Request) {
         name,
         salonName,
         phone,
+        taxId,
       }),
     });
 

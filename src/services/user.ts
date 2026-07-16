@@ -12,6 +12,7 @@ export interface CreateBillingParams {
   salonName: string;
   name: string;
   phone: string;
+  taxId: string;
 }
 
 type CreateUserResponse = {

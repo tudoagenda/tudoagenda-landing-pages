@@ -22,8 +22,6 @@ const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
 const SESSION_PHONE_KEY = "agendabela_signup_phone";
 
-// Note: No CPF field needed — AbacatePay v2 only requires email for customer.
-
 interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,6 +36,26 @@ function formatPhone(value: string): string {
   if (digits.length <= 2) return digits;
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+/**
+ * Formata CPF (11 dígitos) ou CNPJ (12-14 dígitos) enquanto o usuário digita.
+ * Obrigatório pro checkout AbacatePay v2: sem taxId no customer, o checkout
+ * hospedado pede CPF/CNPJ na mão e o antifraude bloqueia até preencher —
+ * causa raiz de checkouts abandonados detectada em prod (2026-07-15/16).
+ */
+function formatTaxId(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    // CPF: 000.000.000-00
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9)
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+  // CNPJ: 00.000.000/0000-00
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
 /**
@@ -69,6 +87,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   const [name, setName] = useState("");
   const [salonName, setSalonName] = useState("");
   const [phone, setPhone] = useState("");
+  const [taxId, setTaxId] = useState("");
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -137,6 +156,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setName("");
       setSalonName("");
       setPhone("");
+      setTaxId("");
       setPassword("");
       setConfirmPassword("");
       setShowPassword(false);
@@ -162,6 +182,10 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 10) newErrors.phone = "Telefone inválido";
+
+    const taxIdDigits = taxId.replace(/\D/g, "");
+    if (taxIdDigits.length !== 11 && taxIdDigits.length !== 14)
+      newErrors.taxId = "CPF ou CNPJ inválido";
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       newErrors.email = "Email inválido";
@@ -205,6 +229,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
         name: name || sessionStorage.getItem(SESSION_NAME_KEY) || "",
         salonName,
         phone: phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "",
+        taxId: taxId.replace(/\D/g, ""),
       },
       {
         onSuccess: (data) => {
@@ -315,6 +340,23 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                 />
                 {errors.phone && (
                   <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+                )}
+              </div>
+
+              <div>
+                <Input
+                  placeholder="CPF ou CNPJ"
+                  inputMode="numeric"
+                  value={taxId}
+                  onChange={(e) => setTaxId(formatTaxId(e.target.value))}
+                  className={errors.taxId ? "border-red-500" : ""}
+                />
+                {errors.taxId ? (
+                  <p className="text-xs text-red-500 mt-1">{errors.taxId}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Exigido pela operadora de cartão para liberar o cadastro
+                  </p>
                 )}
               </div>
 
