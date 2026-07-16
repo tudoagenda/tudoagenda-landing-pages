@@ -34,6 +34,7 @@ describe("POST /api/agendabela/create-billing", () => {
     name: "Test User",
     salonName: "Test Salon",
     phone: "11999999999",
+    taxId: "12345678901",
   };
 
   test("delegates card-first pending signup checkout creation to backend", async () => {
@@ -69,6 +70,13 @@ describe("POST /api/agendabela/create-billing", () => {
 
   test("requires complete signup data", async () => {
     const response = await POST(makeRequest({ email: "test@example.com" }));
+    expect(response.status).toBe(400);
+  });
+
+  test("rejects invalid CPF/CNPJ length", async () => {
+    const response = await POST(
+      makeRequest({ ...validBody, taxId: "123" }),
+    );
     expect(response.status).toBe(400);
   });
 
