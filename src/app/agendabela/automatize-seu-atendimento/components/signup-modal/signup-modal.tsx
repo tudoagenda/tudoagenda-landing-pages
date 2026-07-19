@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { AppStoreBadges } from "@/components/app-store-badges/app-store-badges";
 import { useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
+import { useReactivationLookup } from "@/hooks/use-reactivation";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 import { Eye, EyeOff } from "lucide-react";
@@ -99,6 +100,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
 
   const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
   const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
+  const { mutate: lookupReactivation, isPending: checkingReentry } = useReactivationLookup();
   const [magicLinkError, setMagicLinkError] = useState(false);
   const [noPhone, setNoPhone] = useState(false);
   // Quando o backend devolve 409 "email já tem conta" sinalizamos com banner
@@ -106,6 +108,27 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   // vez de tentar novo cadastro. Mensagem do backend é estável (veja
   // `agendabela-backend-services/src/subscriptions/abacatepay.service.ts`).
   const [duplicateEmail, setDuplicateEmail] = useState(false);
+  // Reentrada silenciosa: se o email já tem um checkout card-first pendente
+  // (item 1/2 do plano de checkout abandonado — ADR 0009), o mesmo lookup
+  // de `/agendabela/reativar` (PR #69) já sabe disso. Reaproveitamos aqui
+  // pra não deixar a usuária duplicar o cadastro sem saber.
+  const [pendingCheckoutFound, setPendingCheckoutFound] = useState<{
+    checkoutUrl: string;
+    salonName?: string;
+  } | null>(null);
+  // Setado quando a usuária clica "Não é você?" no banner de reentrada —
+  // evita rodar o lookup de novo no próximo submit do step 1 (senão ela
+  // cai no mesmo banner em loop). Some do fluxo normal a partir daí, até
+  // que o email mude de novo.
+  const [skipReentryCheck, setSkipReentryCheck] = useState(false);
+  // Guarda contra respostas obsoletas do lookup de reentrada: cada chamada
+  // captura o valor atual antes de incrementar; o callback só age se ainda
+  // for o mais recente. Cobre dois casos — (1) usuária cancela/fecha o
+  // modal com o lookup em voo (fechar incrementa o ref, invalidando a
+  // resposta que chegar depois) e (2) duplo clique disparando duas
+  // chamadas em paralelo (só a última resposta relevante tem efeito,
+  // independente da ordem de chegada).
+  const reentryRequestIdRef = useRef(0);
   const { track } = useAmplitude();
 
   // Sync initialEmail when modal opens
@@ -151,6 +174,13 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       }
     }
     if (!nextOpen) {
+      // Invalida qualquer lookup de reentrada em voo — se a resposta
+      // chegar depois disso, o onSuccess/onError vai comparar o id
+      // capturado com este novo valor, ver que não bate, e descartar.
+      // Sem isso, cancelar/fechar o modal durante o lookup não impede
+      // que a resposta tardia sobrescreva sessionStorage já limpo ou
+      // reabra o banner de reentrada num modal "recém-aberto".
+      reentryRequestIdRef.current += 1;
       // Reset on close
       setStep(1);
       setName("");
@@ -167,6 +197,8 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       setMagicLinkError(false);
       setNoPhone(false);
       setDuplicateEmail(false);
+      setPendingCheckoutFound(null);
+      setSkipReentryCheck(false);
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(SESSION_NAME_KEY);
       sessionStorage.removeItem(SESSION_PHONE_KEY);
@@ -201,10 +233,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleStep1Submit = () => {
-    if (!validateStep1()) return;
-
-    setGeneralError(null);
+  const proceedToStep2 = () => {
     const phoneDigits = phone.replace(/\D/g, "");
 
     track("agendabela/signup-modal/step1_submit", { email });
@@ -215,6 +244,46 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     sessionStorage.setItem(SESSION_NAME_KEY, name);
     sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
     setStep(2);
+  };
+
+  const handleStep1Submit = () => {
+    if (!validateStep1()) return;
+
+    setGeneralError(null);
+
+    // Usuária já dispensou o banner de reentrada uma vez ("Não é você?
+    // Preencher cadastro novo mesmo assim") — não repete o lookup pra não
+    // cair no mesmo banner de novo a cada clique em Continuar.
+    if (skipReentryCheck) {
+      proceedToStep2();
+      return;
+    }
+
+    // Bônus de UX: verifica se esse email já tem um checkout card-first
+    // abandonado (mesmo lookup consumido em `/agendabela/reativar`, PR #69).
+    // Fail-open sempre — isso nunca pode travar o cadastro de quem nunca
+    // usou o produto, é o principal endpoint de aquisição paga da empresa.
+    const requestId = ++reentryRequestIdRef.current;
+    lookupReactivation(email, {
+      onSuccess: (data) => {
+        // Resposta obsoleta: modal foi fechado/cancelado, ou já saiu um
+        // clique mais recente disparando outro lookup. Ignora.
+        if (reentryRequestIdRef.current !== requestId) return;
+        if (data.status === "PENDING_CHECKOUT_FOUND" && data.checkoutUrl) {
+          track("agendabela/signup-modal/reentry_pending_checkout_found", { email });
+          setPendingCheckoutFound({
+            checkoutUrl: data.checkoutUrl,
+            salonName: data.salonName,
+          });
+          return;
+        }
+        proceedToStep2();
+      },
+      onError: () => {
+        if (reentryRequestIdRef.current !== requestId) return;
+        proceedToStep2();
+      },
+    });
   };
 
   const handlePayment = () => {
@@ -285,6 +354,42 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             </AlertDialogHeader>
 
             <div className="space-y-3 py-2">
+              {pendingCheckoutFound && (
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
+                  <p className="text-sm text-amber-900 font-semibold">
+                    Que bom te ver de novo{pendingCheckoutFound.salonName ? `, ${pendingCheckoutFound.salonName}` : ""}!
+                  </p>
+                  <p className="text-sm text-amber-800">
+                    Vimos que você já começou seu cadastro. Não precisa preencher tudo de novo — é só continuar de onde parou.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      track("agendabela/signup-modal/reentry_checkout_continue", { email });
+                      pushAgendaBelaMainEvent({
+                        event: "checkout_opened",
+                        flow: "new_signup",
+                        source: "lp_signup_modal_reentry",
+                      });
+                      window.location.href = pendingCheckoutFound.checkoutUrl;
+                    }}
+                    className="inline-flex items-center justify-center w-full h-10 px-4 rounded-full bg-brand-rosa hover:bg-brand-rosa-hover text-white font-inter font-semibold text-sm transition-colors"
+                  >
+                    Continuar meu cadastro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      track("agendabela/signup-modal/reentry_dismissed", { email });
+                      setPendingCheckoutFound(null);
+                      setSkipReentryCheck(true);
+                    }}
+                    className="w-full text-center text-xs text-amber-700 underline"
+                  >
+                    Não é você? Preencher cadastro novo mesmo assim
+                  </button>
+                </div>
+              )}
               {duplicateEmail && (
                 <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
                   <p className="text-sm text-amber-900 font-semibold">
@@ -301,7 +406,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                   </a>
                 </div>
               )}
-              {generalError && !duplicateEmail && (
+              {generalError && !duplicateEmail && !pendingCheckoutFound && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
                   {generalError}
                 </div>
@@ -365,7 +470,13 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                   placeholder="Seu e-mail"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    // Email mudou: qualquer decisão de reentrada anterior
+                    // (banner mostrado/dispensado) era pra outro endereço.
+                    setPendingCheckoutFound(null);
+                    setSkipReentryCheck(false);
+                  }}
                   className={errors.email ? "border-red-500" : ""}
                 />
                 {errors.email && (
@@ -460,9 +571,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
             <AlertDialogFooter className="flex-col gap-2">
               <Button
                 onClick={handleStep1Submit}
+                disabled={checkingReentry}
                 className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
                 Continuar
+                {checkingReentry && <Spinner size="sm" variant="primary" />}
               </Button>
               <Button
                 variant="outline"
