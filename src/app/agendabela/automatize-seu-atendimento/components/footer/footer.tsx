@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
+import { COMPANY_LEGAL_IDENTIFICATION, SUPPORT_WHATSAPP_URL } from "@/config/company";
 
 export const FooterComponent = () => {
   return (
@@ -37,6 +37,14 @@ export const FooterComponent = () => {
             className="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
           >
             contato@tudoagenda.com.br
+          </a>
+          <a
+            href={SUPPORT_WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          >
+            Falar com o suporte
           </a>
         </nav>
       </div>

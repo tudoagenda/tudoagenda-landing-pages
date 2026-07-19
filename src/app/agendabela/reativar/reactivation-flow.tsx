@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { COMPANY_LEGAL_IDENTIFICATION } from "@/config/company";
+import { COMPANY_LEGAL_IDENTIFICATION, SUPPORT_WHATSAPP_URL } from "@/config/company";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -827,6 +827,14 @@ export function ReactivationFlow() {
             className="font-inter text-[12px] text-ink-muted hover:text-brand-petroleo transition-colors"
           >
             contato@tudoagenda.com.br
+          </a>
+          <a
+            href={SUPPORT_WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-inter text-[12px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          >
+            Falar com o suporte
           </a>
         </nav>
         <p className="text-center font-inter text-[11px] text-ink-subtle mt-4">
