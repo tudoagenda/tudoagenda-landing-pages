@@ -15,13 +15,14 @@
 // ---------------------------------------------------------------------------
 
 export type ReactivationLookupStatus =
-  | "LEGACY_PROFILE_FOUND"  // Profile existente, inativo, sem gateway — fluxo desta LP
-  | "ALREADY_ACTIVE"        // Profile ACTIVE/TRIALING moderno — orientar login
-  | "NEW_SIGNUP_REQUIRED";  // Nenhum profile encontrado — encaminhar para cadastro novo
+  | "LEGACY_PROFILE_FOUND"       // Profile existente, inativo, sem gateway — fluxo desta LP
+  | "PENDING_CHECKOUT_FOUND"     // Cadastro card-first iniciado, checkout pronto mas não confirmado
+  | "ALREADY_ACTIVE"             // Profile ACTIVE/TRIALING moderno — orientar login
+  | "NEW_SIGNUP_REQUIRED";       // Nenhum profile encontrado — encaminhar para cadastro novo
 
 export interface ReactivationLookupResponse {
   status: ReactivationLookupStatus;
-  /** Presente quando status = LEGACY_PROFILE_FOUND */
+  /** Presente quando status = LEGACY_PROFILE_FOUND ou PENDING_CHECKOUT_FOUND */
   salonName?: string;
   /** Email mascarado: j***@example.com */
   maskedEmail?: string;
@@ -29,6 +30,8 @@ export interface ReactivationLookupResponse {
   maskedPhone?: string;
   /** JWT HS256, TTL 15min, payload `{ profileId, purpose: 'reactivation' }`. Presente em LEGACY_PROFILE_FOUND. */
   reactivationToken?: string;
+  /** Checkout já existente e pronto pra confirmação de cartão. Presente em PENDING_CHECKOUT_FOUND. */
+  checkoutUrl?: string;
 }
 
 export interface ReactivationStartPayload {
@@ -69,6 +72,15 @@ async function mockLookup(
   }
   if (identifier.includes("novo")) {
     return { status: "NEW_SIGNUP_REQUIRED" };
+  }
+  if (identifier.includes("pendente")) {
+    return {
+      status: "PENDING_CHECKOUT_FOUND",
+      salonName: "Salão da Julie",
+      maskedEmail: "j***@gmail.com",
+      maskedPhone: "(11) 9****-8821",
+      checkoutUrl: "https://pay.abacatepay.com/mock-checkout-pending",
+    };
   }
   // Padrão: base legado inativa
   return {

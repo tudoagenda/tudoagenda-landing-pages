@@ -33,6 +33,7 @@ function validatePassword(pw: string): string | null {
 type Step =
   | "lookup"        // Usuária informa email/WhatsApp
   | "confirm"       // Mostra dados mascarados e pede nova senha
+  | "pending_checkout_found" // Checkout card-first já existe, só falta confirmar cartão
   | "redirecting"   // Redirecionando para AbacatePay
   | "success"       // Tela pós-checkout (volta com ?reactivation=success)
   | "already_active"
@@ -100,6 +101,16 @@ export function ReactivationFlow() {
           return;
         }
 
+        if (data.status === "PENDING_CHECKOUT_FOUND") {
+          setStep("pending_checkout_found");
+          pushAgendaBelaReativacaoEvent({
+            event: "paywall_viewed",
+            flow: "reactivation",
+            landing_slug: "reativacao",
+          });
+          return;
+        }
+
         // LEGACY_PROFILE_FOUND — mostra confirmação + dispara paywall_viewed
         setStep("confirm");
         pushAgendaBelaReativacaoEvent({
@@ -162,6 +173,25 @@ export function ReactivationFlow() {
         },
       },
     );
+  }
+
+  function handlePendingCheckoutConfirm() {
+    if (!lookupResult?.checkoutUrl) {
+      setGeneralError("Sessão perdida. Reinicie o processo.");
+      setStep("lookup");
+      return;
+    }
+
+    // Dispara checkout_opened antes de redirecionar — source diferente do
+    // fluxo legado (lp_reactivation) pra distinguir na análise.
+    pushAgendaBelaReativacaoEvent({
+      event: "checkout_opened",
+      flow: "reactivation",
+      source: "lp_reactivation_pending_checkout",
+    });
+
+    setStep("redirecting");
+    window.location.href = lookupResult.checkoutUrl;
   }
 
   // ---------------------------------------------------------------------------
@@ -464,6 +494,83 @@ export function ReactivationFlow() {
                 Não é sua conta? Voltar
               </button>
             </form>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Step: pending_checkout_found                                         */}
+        {/* Checkout card-first já existe — só falta confirmar o cartão.         */}
+        {/* Sem segunda etapa: não pede senha nova, não chama /reactivation/start */}
+        {/* ------------------------------------------------------------------ */}
+        {step === "pending_checkout_found" && lookupResult && (
+          <div className="w-full space-y-6 pt-4">
+            <div className="space-y-2">
+              <span className="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho">
+                Encontramos seu cadastro
+              </span>
+              <h2 className="font-fraunces italic font-normal text-brand-petroleo text-[28px] leading-[32px] tracking-[-0.015em]">
+                {lookupResult.salonName
+                  ? `${lookupResult.salonName}`
+                  : "Seu cadastro está quase pronto"}
+              </h2>
+            </div>
+
+            {/* Card com dados mascarados */}
+            <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft p-4 space-y-2 font-inter text-[14px]">
+              {lookupResult.maskedEmail && (
+                <p>
+                  <span className="text-ink-muted">Email: </span>
+                  <span className="font-medium text-brand-petroleo">
+                    {lookupResult.maskedEmail}
+                  </span>
+                </p>
+              )}
+              {lookupResult.maskedPhone && (
+                <p>
+                  <span className="text-ink-muted">WhatsApp: </span>
+                  <span className="font-medium text-brand-petroleo">
+                    {lookupResult.maskedPhone}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            <p className="font-inter text-[14px] text-ink-muted leading-relaxed">
+              Você chegou até o pagamento mas não confirmou o cartão ainda.
+              Nada foi cobrado — é só confirmar agora pra liberar seu acesso
+              com 30 dias grátis.
+            </p>
+
+            {generalError && (
+              <div
+                role="alert"
+                className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3"
+              >
+                {generalError}
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="brand-primary"
+              size="lg"
+              onClick={handlePendingCheckoutConfirm}
+              className="w-full rounded-full font-inter font-semibold"
+            >
+              Confirmar cartão com 30 dias grátis
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStep("lookup");
+                setLookupResult(null);
+                setGeneralError(null);
+              }}
+              className="w-full text-center font-inter text-[13px] text-ink-muted hover:text-brand-petroleo underline"
+            >
+              Não é você? Voltar
+            </button>
           </div>
         )}
 
