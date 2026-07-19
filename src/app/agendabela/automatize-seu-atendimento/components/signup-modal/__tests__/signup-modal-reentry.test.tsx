@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { SignupModal } from "../signup-modal";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
@@ -221,5 +221,51 @@ describe("SignupModal step 1 — reentrada de checkout pendente (item 3, ADR 000
       expect(screen.getByRole("heading", { name: /Cadastre seu cartão/i })).toBeInTheDocument();
     });
     expect(mockLookupReactivation).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancelar durante o lookup em voo descarta a resposta tardia — sem sessionStorage nem banner poluídos", async () => {
+    let capturedCallbacks: {
+      onSuccess: (data: { status: string; salonName?: string; checkoutUrl?: string }) => void;
+      onError: (err: Error) => void;
+    } | null = null;
+
+    // Nunca resolve sozinho — guardamos os callbacks pra disparar a
+    // resposta manualmente DEPOIS do cancelamento, simulando o gap
+    // assíncrono real entre o clique em "Continuar" e a resposta do lookup.
+    mockLookupReactivation.mockImplementation((_email, callbacks) => {
+      capturedCallbacks = callbacks;
+    });
+
+    renderModal();
+    fillStep1Form("julie@example.com");
+    clickContinue();
+
+    expect(mockLookupReactivation).toHaveBeenCalledTimes(1);
+    expect(capturedCallbacks).not.toBeNull();
+
+    // Cancela antes da resposta do lookup chegar
+    fireEvent.click(screen.getByRole("button", { name: /Cancelar/i }));
+
+    // Reset de fechamento já limpou o sessionStorage
+    expect(sessionStorage.getItem("agendabela_signup_email")).toBeNull();
+
+    // Resposta tardia chega DEPOIS do cancelamento
+    act(() => {
+      capturedCallbacks!.onSuccess({
+        status: "PENDING_CHECKOUT_FOUND",
+        salonName: "Salão da Julie",
+        checkoutUrl: "https://pay.abacatepay.com/checkout-abc",
+      });
+    });
+
+    // Descartada: não reescreve sessionStorage nem reexibe o banner de
+    // reentrada num modal que a usuária já cancelou.
+    expect(sessionStorage.getItem("agendabela_signup_email")).toBeNull();
+    expect(
+      screen.queryByText(/Que bom te ver de novo/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /Cadastre seu cartão/i }),
+    ).not.toBeInTheDocument();
   });
 });

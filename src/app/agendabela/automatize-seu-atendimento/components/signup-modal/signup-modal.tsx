@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -121,6 +121,14 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
   // cai no mesmo banner em loop). Some do fluxo normal a partir daí, até
   // que o email mude de novo.
   const [skipReentryCheck, setSkipReentryCheck] = useState(false);
+  // Guarda contra respostas obsoletas do lookup de reentrada: cada chamada
+  // captura o valor atual antes de incrementar; o callback só age se ainda
+  // for o mais recente. Cobre dois casos — (1) usuária cancela/fecha o
+  // modal com o lookup em voo (fechar incrementa o ref, invalidando a
+  // resposta que chegar depois) e (2) duplo clique disparando duas
+  // chamadas em paralelo (só a última resposta relevante tem efeito,
+  // independente da ordem de chegada).
+  const reentryRequestIdRef = useRef(0);
   const { track } = useAmplitude();
 
   // Sync initialEmail when modal opens
@@ -166,6 +174,13 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
       }
     }
     if (!nextOpen) {
+      // Invalida qualquer lookup de reentrada em voo — se a resposta
+      // chegar depois disso, o onSuccess/onError vai comparar o id
+      // capturado com este novo valor, ver que não bate, e descartar.
+      // Sem isso, cancelar/fechar o modal durante o lookup não impede
+      // que a resposta tardia sobrescreva sessionStorage já limpo ou
+      // reabra o banner de reentrada num modal "recém-aberto".
+      reentryRequestIdRef.current += 1;
       // Reset on close
       setStep(1);
       setName("");
@@ -248,8 +263,12 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
     // abandonado (mesmo lookup consumido em `/agendabela/reativar`, PR #69).
     // Fail-open sempre — isso nunca pode travar o cadastro de quem nunca
     // usou o produto, é o principal endpoint de aquisição paga da empresa.
+    const requestId = ++reentryRequestIdRef.current;
     lookupReactivation(email, {
       onSuccess: (data) => {
+        // Resposta obsoleta: modal foi fechado/cancelado, ou já saiu um
+        // clique mais recente disparando outro lookup. Ignora.
+        if (reentryRequestIdRef.current !== requestId) return;
         if (data.status === "PENDING_CHECKOUT_FOUND" && data.checkoutUrl) {
           track("agendabela/signup-modal/reentry_pending_checkout_found", { email });
           setPendingCheckoutFound({
@@ -261,6 +280,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
         proceedToStep2();
       },
       onError: () => {
+        if (reentryRequestIdRef.current !== requestId) return;
         proceedToStep2();
       },
     });
