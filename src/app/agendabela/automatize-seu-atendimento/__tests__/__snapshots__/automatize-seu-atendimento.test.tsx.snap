@@ -1519,12 +1519,25 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         >
           contato@tudoagenda.com.br
         </a>
+        <a
+          class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
+          href="https://wa.me/5515998530159?text=Oi!%20Preciso%20de%20ajuda%20com%20o%20Agenda%20Bela"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Falar com o suporte
+        </a>
       </nav>
     </div>
     <p
       class="text-center md:text-left font-inter text-[11px] text-ink-subtle mt-8"
     >
       © 2026 Tudo Agenda. Todos os direitos reservados.
+    </p>
+    <p
+      class="text-center md:text-left font-inter text-[11px] text-ink-subtle mt-1"
+    >
+      CODEVERSE SERVIÇOS DE TECNOLOGIA LTDA · CNPJ 59.161.274/0001-05
     </p>
   </footer>
 </DocumentFragment>
