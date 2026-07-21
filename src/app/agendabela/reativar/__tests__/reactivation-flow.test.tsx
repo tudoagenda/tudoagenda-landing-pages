@@ -174,3 +174,139 @@ describe("ReactivationFlow — regressão dos fluxos já existentes", () => {
     );
   });
 });
+
+describe("ReactivationFlow — email obrigatório quando o Profile legado não tem nenhum (issue #128)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("nao mostra campo de email quando o lookup ja retorna maskedEmail", async () => {
+    mockLookup.mockResolvedValue({
+      status: "LEGACY_PROFILE_FOUND",
+      salonName: "Salão da Loide",
+      maskedEmail: "l***@hotmail.com",
+      maskedPhone: "(11) 9****-3421",
+      reactivationToken: "mock-token-abc123",
+    });
+
+    renderFlow();
+    submitLookup("loide@example.com");
+
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText(/Nova senha/i)).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByPlaceholderText(/Seu melhor email/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mostra o campo de email quando o lookup nao retorna maskedEmail", async () => {
+    mockLookup.mockResolvedValue({
+      status: "LEGACY_PROFILE_FOUND",
+      salonName: "Studio sem email",
+      maskedPhone: "(11) 9****-3421",
+      reactivationToken: "mock-token-sememail",
+    });
+
+    renderFlow();
+    submitLookup("(11) 98140-8870");
+
+    expect(
+      await screen.findByPlaceholderText(/Seu melhor email/i),
+    ).toBeInTheDocument();
+  });
+
+  it("bloqueia o submit com campo de email vazio", async () => {
+    mockLookup.mockResolvedValue({
+      status: "LEGACY_PROFILE_FOUND",
+      salonName: "Studio sem email",
+      maskedPhone: "(11) 9****-3421",
+      reactivationToken: "mock-token-sememail",
+    });
+
+    renderFlow();
+    submitLookup("(11) 98140-8870");
+    await screen.findByPlaceholderText(/Seu melhor email/i);
+
+    fireEvent.change(screen.getByPlaceholderText(/Nova senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Confirme a senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Informe um email\./i)).toBeInTheDocument(),
+    );
+    expect(mockStart).not.toHaveBeenCalled();
+  });
+
+  it("bloqueia o submit com email em formato invalido", async () => {
+    mockLookup.mockResolvedValue({
+      status: "LEGACY_PROFILE_FOUND",
+      salonName: "Studio sem email",
+      maskedPhone: "(11) 9****-3421",
+      reactivationToken: "mock-token-sememail",
+    });
+
+    renderFlow();
+    submitLookup("(11) 98140-8870");
+    await screen.findByPlaceholderText(/Seu melhor email/i);
+
+    fireEvent.change(screen.getByPlaceholderText(/Seu melhor email/i), {
+      target: { value: "naoehemail" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Nova senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Confirme a senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Email inválido\./i)).toBeInTheDocument(),
+    );
+    expect(mockStart).not.toHaveBeenCalled();
+  });
+
+  it("com email valido, chama start com o email no payload", async () => {
+    mockLookup.mockResolvedValue({
+      status: "LEGACY_PROFILE_FOUND",
+      salonName: "Studio sem email",
+      maskedPhone: "(11) 9****-3421",
+      reactivationToken: "mock-token-sememail",
+    });
+    mockStart.mockResolvedValue({
+      checkoutUrl: "https://pay.abacatepay.com/checkout-novo",
+    });
+
+    renderFlow();
+    submitLookup("(11) 98140-8870");
+    await screen.findByPlaceholderText(/Seu melhor email/i);
+
+    fireEvent.change(screen.getByPlaceholderText(/Seu melhor email/i), {
+      target: { value: "novo@example.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Nova senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Confirme a senha/i), {
+      target: { value: "Senha@Valida123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+    );
+
+    await waitFor(() =>
+      expect(mockStart).toHaveBeenCalledWith(
+        expect.objectContaining({ email: "novo@example.com" }),
+      ),
+    );
+  });
+});
