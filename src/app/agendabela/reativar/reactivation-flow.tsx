@@ -26,6 +26,14 @@ function validatePassword(pw: string): string | null {
   return null;
 }
 
+function validateEmail(email: string): string | null {
+  if (!email.trim()) return "Informe um email.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    return "Email inválido.";
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Tipos de step
 // ---------------------------------------------------------------------------
@@ -50,6 +58,8 @@ export function ReactivationFlow() {
   const [identifier, setIdentifier] = useState("");
   const [identifierError, setIdentifierError] = useState<string | null>(null);
   const [lookupResult, setLookupResult] = useState<ReactivationLookupResponse | null>(null);
+  const [billingEmail, setBillingEmail] = useState("");
+  const [billingEmailError, setBillingEmailError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -129,7 +139,20 @@ export function ReactivationFlow() {
     e.preventDefault();
     setPasswordError(null);
     setConfirmError(null);
+    setBillingEmailError(null);
     setGeneralError(null);
+
+    // Issue #128: ~5% dos perfis legados não têm nenhum email salvo (nem
+    // billingEmail, nem Cognito) — o lookup não retorna maskedEmail nesse
+    // caso, e é o único sinal que a LP tem pra saber que precisa perguntar.
+    const needsEmail = !lookupResult?.maskedEmail;
+    if (needsEmail) {
+      const emailErr = validateEmail(billingEmail);
+      if (emailErr) {
+        setBillingEmailError(emailErr);
+        return;
+      }
+    }
 
     const pwErr = validatePassword(password);
     if (pwErr) {
@@ -156,7 +179,11 @@ export function ReactivationFlow() {
     });
 
     startReactivation.mutate(
-      { reactivationToken: lookupResult.reactivationToken, password },
+      {
+        reactivationToken: lookupResult.reactivationToken,
+        password,
+        ...(needsEmail ? { email: billingEmail.trim().toLowerCase() } : {}),
+      },
       {
         onSuccess: (data) => {
           setStep("redirecting");
@@ -358,6 +385,37 @@ export function ReactivationFlow() {
             </p>
 
             <form onSubmit={handleConfirmSubmit} className="space-y-3">
+              {/* Email — só aparece quando o lookup não retornou maskedEmail
+                  (issue #128: Profile legado sem nenhum email salvo) */}
+              {!lookupResult.maskedEmail && (
+                <div>
+                  <Input
+                    type="text"
+                    inputMode="email"
+                    placeholder="Seu melhor email"
+                    value={billingEmail}
+                    onChange={(e) => setBillingEmail(e.target.value)}
+                    autoComplete="email"
+                    className={billingEmailError ? "border-red-500" : ""}
+                    aria-label="Email"
+                    aria-invalid={!!billingEmailError}
+                    aria-describedby={
+                      billingEmailError ? "billing-email-error" : "billing-email-hint"
+                    }
+                  />
+                  {billingEmailError ? (
+                    <p id="billing-email-error" className="text-xs text-red-500 mt-1">
+                      {billingEmailError}
+                    </p>
+                  ) : (
+                    <p id="billing-email-hint" className="text-xs text-ink-muted mt-1">
+                      Não encontramos um email salvo na sua conta antiga —
+                      precisamos de um pra continuar.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Senha */}
               <div>
                 <div className="relative">
@@ -485,6 +543,8 @@ export function ReactivationFlow() {
                 onClick={() => {
                   setStep("lookup");
                   setLookupResult(null);
+                  setBillingEmail("");
+                  setBillingEmailError(null);
                   setPassword("");
                   setConfirmPassword("");
                   setGeneralError(null);
@@ -768,6 +828,8 @@ export function ReactivationFlow() {
               onClick={() => {
                 setStep("lookup");
                 setLookupResult(null);
+                setBillingEmail("");
+                setBillingEmailError(null);
                 setPassword("");
                 setConfirmPassword("");
                 setGeneralError(null);

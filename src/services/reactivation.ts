@@ -37,6 +37,12 @@ export interface ReactivationLookupResponse {
 export interface ReactivationStartPayload {
   reactivationToken: string;
   password: string;
+  /**
+   * Obrigatório só quando o lookup não retornou `maskedEmail` (issue #128:
+   * Profile legado sem billingEmail salvo). A LP só pede esse campo quando
+   * necessário — a maioria já tem email e nunca vê essa pergunta.
+   */
+  email?: string;
 }
 
 export interface ReactivationStartResponse {
