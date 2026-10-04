@@ -61,7 +61,7 @@ export const FormComponent = () => {
           type="submit"
           className="rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
         >
-          Começar com 30 dias grátis
+          Começar com 7 dias grátis
         </Button>
       </form>
 

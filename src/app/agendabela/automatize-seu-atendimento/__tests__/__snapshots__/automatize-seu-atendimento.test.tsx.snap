@@ -133,7 +133,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
               <strong
                 class="font-inter font-semibold text-ink"
               >
-                30 dias grátis.
+                7 dias grátis.
               </strong>
                Cancela quando quiser.
             </p>
@@ -377,7 +377,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
         <strong
           class="font-inter font-semibold text-ink"
         >
-          30 dias grátis.
+          7 dias grátis.
         </strong>
          Cancela quando quiser.
       </p>
@@ -532,7 +532,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                 class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
                 type="submit"
               >
-                Começar com 30 dias grátis
+                Começar com 7 dias grátis
               </button>
             </form>
             <p
@@ -541,7 +541,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
               <strong
                 class="font-inter font-semibold text-ink"
               >
-                30 dias grátis.
+                7 dias grátis.
               </strong>
                Cancela quando quiser.
             </p>
@@ -783,7 +783,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
           type="submit"
         >
-          Começar com 30 dias grátis
+          Começar com 7 dias grátis
         </button>
       </form>
       <p
@@ -792,7 +792,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         <strong
           class="font-inter font-semibold text-ink"
         >
-          30 dias grátis.
+          7 dias grátis.
         </strong>
          Cancela quando quiser.
       </p>

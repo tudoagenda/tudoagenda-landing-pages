@@ -20,7 +20,7 @@ const FormComponent = dynamic(
 const positiveDisclaimer = (
   <>
     <strong className="font-inter font-semibold text-ink">
-      30 dias grátis.
+      7 dias grátis.
     </strong>{" "}
     Cancela quando quiser.
   </>

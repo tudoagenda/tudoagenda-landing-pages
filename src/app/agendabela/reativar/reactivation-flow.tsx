@@ -260,7 +260,7 @@ export function ReactivationFlow() {
               </h1>
               <p className="font-inter text-ink-muted text-[15px] leading-[22px]">
                 Mantenha seus dados antigos e reative cadastrando o cartão.
-                Teste grátis por 30 dias.
+                Teste grátis por 7 dias.
               </p>
             </div>
 
@@ -268,7 +268,7 @@ export function ReactivationFlow() {
             <ul className="space-y-2">
               {[
                 "Você não será cobrada hoje.",
-                "Depois dos 30 dias, R$59,90/mês.",
+                "Depois dos 7 dias, R$59,90/mês.",
                 "Pode cancelar quando quiser.",
               ].map((item) => (
                 <li
@@ -503,7 +503,7 @@ export function ReactivationFlow() {
               <ul className="space-y-1.5 pt-1">
                 {[
                   "Você não será cobrada hoje.",
-                  "Depois dos 30 dias, R$59,90/mês.",
+                  "Depois dos 7 dias, R$59,90/mês.",
                   "Pode cancelar quando quiser.",
                 ].map((item) => (
                   <li
@@ -534,7 +534,7 @@ export function ReactivationFlow() {
                     Abrindo pagamento...
                   </>
                 ) : (
-                  "Reativar com 30 dias grátis"
+                  "Reativar com 7 dias grátis"
                 )}
               </Button>
 
@@ -598,7 +598,7 @@ export function ReactivationFlow() {
             <p className="font-inter text-[14px] text-ink-muted leading-relaxed">
               Você chegou até o pagamento mas não confirmou o cartão ainda.
               Nada foi cobrado — é só confirmar agora pra liberar seu acesso
-              com 30 dias grátis.
+              com 7 dias grátis.
             </p>
 
             {generalError && (
@@ -617,7 +617,7 @@ export function ReactivationFlow() {
               onClick={handlePendingCheckoutConfirm}
               className="w-full rounded-full font-inter font-semibold"
             >
-              Confirmar cartão com 30 dias grátis
+              Confirmar cartão com 7 dias grátis
             </Button>
 
             <button
@@ -667,9 +667,9 @@ export function ReactivationFlow() {
             </div>
 
             <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft p-4 font-inter text-[14px] text-brand-petroleo space-y-1">
-              <p className="font-semibold">30 dias grátis começam agora.</p>
+              <p className="font-semibold">7 dias grátis começam agora.</p>
               <p className="text-ink-muted">
-                Primeira cobrança automática em 30 dias — R$59,90/mês. Cancele
+                Primeira cobrança automática em 7 dias — R$59,90/mês. Cancele
                 quando quiser.
               </p>
             </div>
@@ -774,7 +774,7 @@ export function ReactivationFlow() {
             >
               <p>
                 Não localizamos nenhuma conta com esse email ou WhatsApp. Se
-                você é nova por aqui, faça seu cadastro e ganhe 30 dias grátis.
+                você é nova por aqui, faça seu cadastro e ganhe 7 dias grátis.
               </p>
             </div>
 
@@ -782,7 +782,7 @@ export function ReactivationFlow() {
               href="/agendabela/automatize-seu-atendimento"
               className="inline-flex items-center justify-center w-full h-12 px-6 rounded-full bg-brand-rosa hover:bg-brand-rosa-hover text-white font-inter font-semibold text-[15px] transition-colors"
             >
-              Criar conta nova com 30 dias grátis
+              Criar conta nova com 7 dias grátis
             </Link>
 
             <button

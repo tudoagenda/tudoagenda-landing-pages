@@ -3,7 +3,7 @@ import { Metadata } from "next";
 const pageUrl = "https://tudoagenda.com.br/agendabela/reativar";
 const title = "Reative sua conta | Agenda Bela";
 const description =
-  "O Agenda Bela agora virou app. Reative sua conta, mantenha seus dados antigos e teste grátis por 30 dias. Você não será cobrada hoje.";
+  "O Agenda Bela agora virou app. Reative sua conta, mantenha seus dados antigos e teste grátis por 7 dias. Você não será cobrada hoje.";
 
 export const metadata: Metadata = {
   title,
