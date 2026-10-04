@@ -23,7 +23,7 @@ export default function TermosPage() {
     <LegalLayout
       pageTitle="Termos de Serviço"
       pageSubtitle="Condições gerais de uso da plataforma Agenda Bela, da assinatura ao cancelamento."
-      lastUpdated="18 de maio de 2026"
+      lastUpdated="4 de outubro de 2026"
       controllerName="Tudo Agenda"
       sections={sections}
     >
@@ -66,13 +66,8 @@ export default function TermosPage() {
           <p>
             O Agenda Bela é oferecido em modelo de assinatura mensal recorrente
             de R$ 59,90/mês, cobrada via cartão de crédito por intermédio do
-            processador AbacatePay. A primeira ativação inclui período de 30
-            dias gratuitos.
-          </p>
-          <p>
-            Reativações após cancelamento não recebem novo período gratuito —
-            a cobrança recorrente reinicia imediatamente conforme o plano
-            vigente.
+            processador AbacatePay. A primeira ativação e a reativação incluem
+            7 dias gratuitos.
           </p>
         </LegalSectionBlock>
 
