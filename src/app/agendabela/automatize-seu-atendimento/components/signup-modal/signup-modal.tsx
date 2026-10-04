@@ -60,7 +60,7 @@ function formatTaxId(value: string): string {
 }
 
 /**
- * Calcula a data de término do trial (now + 30 dias) e retorna formatada
+ * Calcula a data de término do trial (now + 7 dias) e retorna formatada
  * em pt-BR. O cálculo é feito no momento da renderização do step 3
  * (logo após o pagamento) — mesma janela do `trialEndsAt` que o backend
  * grava em Subscription. Aceitamos pequena divergência (segundos) entre
@@ -68,7 +68,7 @@ function formatTaxId(value: string): string {
  */
 function formatTrialEndDate(now: Date = new Date()): string {
   const end = new Date(now);
-  end.setDate(end.getDate() + 30);
+  end.setDate(end.getDate() + 7);
   const day = String(end.getDate()).padStart(2, "0");
   const month = String(end.getMonth() + 1).padStart(2, "0");
   return `${day}/${month}`;
@@ -597,12 +597,12 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <AlertDialogDescription asChild>
                 <div className="space-y-3 text-center">
                   <p>
-                    <strong>Trial gratuito de 30 dias.</strong> Cadastre seu
+                    <strong>Trial gratuito de 7 dias.</strong> Cadastre seu
                     cartão — você{" "}
                     <strong className="text-emerald-700">NÃO será cobrado agora</strong>.
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Após 30 dias: R$59,90/mês. Cancele quando quiser.
+                    Após 7 dias: R$59,90/mês. Cancele quando quiser.
                   </p>
                 </div>
               </AlertDialogDescription>
@@ -631,7 +631,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                 <div className="space-y-4 text-center">
                   <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft text-brand-petroleo text-sm p-4 text-left font-inter">
                     <p className="font-semibold">
-                      30 dias grátis começam agora.
+                      7 dias grátis começam agora.
                     </p>
                     <p className="mt-1 text-ink-muted">
                       Primeira cobrança automática em{" "}

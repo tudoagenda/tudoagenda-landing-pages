@@ -24,7 +24,7 @@ describe("FormComponent", () => {
       screen.getByPlaceholderText("Seu melhor email")
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Começar com 30 dias grátis/i })
+      screen.getByRole("button", { name: /Começar com 7 dias grátis/i })
     ).toBeInTheDocument();
   });
 
@@ -41,7 +41,7 @@ describe("FormComponent", () => {
       target: { value: "test@example.com" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /Começar com 30 dias grátis/i })
+      screen.getByRole("button", { name: /Começar com 7 dias grátis/i })
     );
 
     // The signup modal should appear with the step 1 form

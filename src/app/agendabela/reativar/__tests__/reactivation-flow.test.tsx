@@ -93,7 +93,7 @@ describe("ReactivationFlow — PENDING_CHECKOUT_FOUND (checkout card-first aband
     submitLookup("julie@example.com");
 
     const confirmButton = await screen.findByRole("button", {
-      name: /Confirmar cartão com 30 dias grátis/i,
+      name: /Confirmar cartão com 7 dias grátis/i,
     });
     fireEvent.click(confirmButton);
 
@@ -235,7 +235,7 @@ describe("ReactivationFlow — email obrigatório quando o Profile legado não t
       target: { value: "Senha@Valida123" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+      screen.getByRole("button", { name: /Reativar com 7 dias grátis/i }),
     );
 
     await waitFor(() =>
@@ -266,7 +266,7 @@ describe("ReactivationFlow — email obrigatório quando o Profile legado não t
       target: { value: "Senha@Valida123" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+      screen.getByRole("button", { name: /Reativar com 7 dias grátis/i }),
     );
 
     await waitFor(() =>
@@ -300,7 +300,7 @@ describe("ReactivationFlow — email obrigatório quando o Profile legado não t
       target: { value: "Senha@Valida123" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: /Reativar com 30 dias grátis/i }),
+      screen.getByRole("button", { name: /Reativar com 7 dias grátis/i }),
     );
 
     await waitFor(() =>
