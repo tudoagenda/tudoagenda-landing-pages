@@ -44,6 +44,43 @@ type LandingEvent =
       source: string;
     };
 
+/**
+ * Eventos do "Experimente o Agenda Bela" (/agendabela/experimente).
+ * São eventos de engajamento da landing: não mapear para Lead/CompleteRegistration
+ * da Meta nem ocupar vagas da lista de 8 eventos de iOS (medicao.md).
+ */
+type JourneyNumber = 1 | 2 | 3 | 4 | 5;
+type DeviceOs = "ios" | "android" | "desktop";
+
+export type ExperimenteEvent =
+  | {
+      event: "lp_view";
+      device_os: DeviceOs;
+    }
+  | {
+      event: "cta_click";
+      cta_location: string;
+    }
+  | {
+      event: "simulator_start";
+      journey_number: JourneyNumber | null;
+    }
+  | {
+      event: "journey_start";
+      journey_number: JourneyNumber;
+    }
+  | {
+      event: "journey_complete";
+      journey_number: JourneyNumber;
+      journeys_completed: number;
+    }
+  | {
+      event: "store_click";
+      store: "app_store" | "google_play";
+      cta_location: string;
+      device_os: DeviceOs;
+    };
+
 type LandingContext = {
   product: string;
   landing_type: "main" | "campaign";
@@ -103,11 +140,23 @@ export function pushAgendaBelaListaEsperaEvent(eventData: LandingEvent): void {
 }
 
 /**
+ * Faz push de um evento do "Experimente o Agenda Bela" (simulador do app).
+ * Contexto: campaign, slug = experimente.
+ */
+export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): void {
+  pushLandingEvent(eventData, {
+    product: "agendabela",
+    landing_type: "campaign",
+    landing_slug: "experimente",
+  });
+}
+
+/**
  * Push genérico — só usar em componentes que sabem o contexto deles.
  * Componentes da landing principal devem usar pushAgendaBelaMainEvent.
  */
 export function pushLandingEvent(
-  eventData: LandingEvent,
+  eventData: LandingEvent | ExperimenteEvent,
   context: LandingContext,
 ): void {
   if (typeof window === "undefined") return;
@@ -117,6 +166,15 @@ export function pushLandingEvent(
     ...getAttributionContext(),
     ...eventData,
   });
+}
+
+/**
+ * Atribuição da sessão (UTMs, gclid, fbclid), a mesma que vai em todo evento.
+ * Usada pelo Experimente para repassar a origem ao link da Google Play.
+ */
+export function getLandingAttribution(): AttributionContext {
+  if (typeof window === "undefined") return {};
+  return getAttributionContext();
 }
 
 function getAttributionContext(): AttributionContext {
