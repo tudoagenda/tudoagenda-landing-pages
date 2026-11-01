@@ -125,6 +125,14 @@ const J = {
     done:{title:'É assim que o dia fecha.', msg:'Os atendimentos feitos entram sozinhos. O que você esqueceu de anotar dá pra registrar depois, sem mandar mensagem pra cliente. E você só lança o que saiu do padrão.', next:null, cta:'Concluir'}},
 };
 const ORDER=['j1','j2','j3','j4','j5'];
+/* [prod] slugs estáveis dos passos (mesma ordem de J[j].steps, "passo X de N" do coach). Mudou o tour? Mantenha os slugs antigos. */
+const STEP_NAMES={
+  j1:['abrir_agenda','escolher_servicos','escolher_horario_e_criar','ver_celular_cliente','lembrete_do_dia'],
+  j2:['ligar_sinal','mandar_link','cliente_escolhe_horario','cliente_paga_sinal','receber_aviso_e_dinheiro'],
+  j3:['ver_sugestao','divulgar','abrir_novidades'],
+  j4:['marcar_veio','marcar_faltou','abrir_ficha','criar_pacote','usar_sessao'],
+  j5:['ver_saldo','anotar_atendimento_passado','lancar_saida'],
+};
 const completed=new Set();
 
 /* ================= estado ================= */
@@ -493,6 +501,7 @@ function render(){
   const c=S.client;
   clientEl.innerHTML = c==='idle'?idleClient(): c==='chat'?clientChat(): bookingScreen();
   const cs=$('#chatScroll'); if(cs) cs.scrollTop=cs.scrollHeight;
+  syncSteps();   /* [prod] toda ação termina em render(): é aqui que o avanço do passo é medido */
 }
 function setTab(t){ $('#toast').classList.remove('show'); S.tab=t; if(t==='client'){S.unread=0;S.seenClient=true;} else S.ownerUnread=0; render(); }
 function notifyOwner(p){ S.pushes.unshift(p); if(!isDesk()&&S.tab!=='owner') S.ownerUnread++; }
@@ -512,7 +521,32 @@ function openSim(j, entry, hash){
   if(isDesk()) $('#experimente').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   later(()=>{const f=sim.querySelector('.sair'); f&&f.focus({preventScroll:true});},50);
 }
-function startJourney(j, entry){
+/* [prod] medição por passo: journey_step ao concluir cada passo, journey_exit ao sair sem concluir */
+let run=null;   // {j, entry, done, at, finished}: a jornada em andamento
+function beginRun(j, entry){ run = j ? {j, entry, done:0, at:Date.now(), finished:false} : null; }
+/* reason: sair | voltar | menu | trocar_jornada | loja | pagina_fechada */
+function endRun(reason){
+  if(run && !run.finished){
+    const total=J[run.j].steps.length, cur=S.j===run.j ? S.step : run.done;   /* o passo em que ela estava, mesmo se voltou atrás */
+    const last=Math.min(cur+1,total);
+    track({event:'journey_exit', journey:JN(run.j), last_step:last, last_step_name:STEP_NAMES[run.j][last-1], step_total:total, exit_reason:reason, ...(run.entry&&{entry:run.entry})});
+  }
+  run=null;
+}
+function syncSteps(upto){
+  if(!run || run.j!==S.j || run.finished) return;
+  const total=J[run.j].steps.length, target=Math.min(upto==null?S.step:upto, total);
+  const t=Date.now(), first=run.done+1;
+  while(run.done<target){   /* só avança: re-render ou passo desfeito não repetem evento */
+    run.done++;
+    /* pulou passos (ex.: J3 tocando no sino antes de divulgar): os do meio saem com skipped e sem tempo */
+    const skipped=run.done!==target;
+    track({event:'journey_step', journey:JN(run.j), step:run.done, step_name:STEP_NAMES[run.j][run.done-1], step_total:total, duration_ms:skipped?0:Math.round(t-run.at), ...(skipped&&{skipped:true}), ...(run.entry&&{entry:run.entry})});
+  }
+  if(run.done>=first) run.at=t;
+}
+function startJourney(j, entry, reason){
+  endRun(reason || (j?'trocar_jornada':'menu')); beginRun(j, entry);
   $('#doneOv').innerHTML=''; S=fresh(j);
   if(entry!=='deep_link') clearDeepHash();   /* [prod] qualquer outra entrada substitui o link direto na URL */
   if(j){ track({event:'journey_start', journey_number:JN(j), ...(entry&&{entry})});
@@ -523,10 +557,12 @@ function startJourney(j, entry){
   }
   render();
 }
-function closeSim(){ clearDeepHash(); document.body.classList.remove('sim-open'); if(!isDesk()){S=fresh(null);render();} $('#doneOv').innerHTML=''; updateBar(); }
+let exitReason=null;   /* [prod] Sair/Esc no celular passam pelo history.back: o popstate herda o motivo */
+function closeSim(reason){ clearDeepHash(); document.body.classList.remove('sim-open'); if(!isDesk()){endRun(reason||'sair'); S=fresh(null);render();} $('#doneOv').innerHTML=''; updateBar(); }
 function finish(){
   $('#toast').classList.remove('show');
-  const j=S.j, jd=J[j]; completed.add(j); renderMenuLists(); updateBar();
+  const j=S.j, jd=J[j]; syncSteps(jd.steps.length); if(run) run.finished=true;   /* [prod] último passo concluído */
+  completed.add(j); renderMenuLists(); updateBar();
   track({event:'journey_complete', journey_number:JN(j), journeys_completed:completed.size});
   $('#doneOv').innerHTML=`<div class="done-ov" role="dialog" aria-modal="true" aria-labelledby="doneT"><div class="done-card">
     ${belaRow(`<h3 id="doneT" style="margin-top:2px">${jd.done.title}</h3>`)}<p>${jd.done.msg}</p>
@@ -540,7 +576,7 @@ function finish(){
 /* ================= ações ================= */
 const A={
   noop(){ toast('Neste teste, este toque não faz nada. Siga o que a Bela indicou em cima.'); },
-  exit(){ if(isDesk()) startJourney(null); else if(history.state&&history.state.sim) history.back(); else closeSim(); },
+  exit(){ if(isDesk()) startJourney(null,undefined,'sair'); else if(history.state&&history.state.sim){ exitReason='sair'; history.back(); } else closeSim('sair'); },
   menu(){ startJourney(null); }, next(el){ startJourney(el.dataset.v); }, finish(){ finish(); }, tab(el){ setTab(el.dataset.v); },
   'close-sheet'(el,ev){ if(el.dataset.self && ev.target!==el) return; S.sheet=null; render(); },
   'push-x'(el,ev){ ev.stopPropagation(); S.pushes.splice(Number(el.dataset.i),1); render(); },
@@ -624,10 +660,11 @@ on(document, 'click', ev=>{
   const go=ev.target.closest('[data-go="sim"]');
   if(go){ ev.preventDefault(); track({event:'cta_click', cta_location:ctaLocation(go)}); if(isDesk()) startJourney(null); $('#experimente').scrollIntoView(); return; }
   const st=ev.target.closest('[data-store]');
-  if(st){ track(storeEvent(st)); /* [prod] no desktop os links de baixar só rolam até os selos: cta_click, não store_click */ if(st.getAttribute('href')==='#baixar'){ ev.preventDefault(); if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim(); $('#doneOv').innerHTML=''; $('#baixar').scrollIntoView(); } }
+  if(st){ track(storeEvent(st)); /* [prod] no desktop os links de baixar só rolam até os selos: cta_click, não store_click */ if(st.getAttribute('href')==='#baixar'){ ev.preventDefault(); if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim('loja'); $('#doneOv').innerHTML=''; $('#baixar').scrollIntoView(); } }
 });
-on(window, 'popstate', ()=>{ if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim(); });
-on(document, 'keydown', e=>{ if(e.key==='Escape'){ if(S.sheet){S.sheet=null;render();} else if(document.body.classList.contains('sim-open')&&!isDesk()){ if(history.state&&history.state.sim) history.back(); else closeSim(); } }});   /* [prod] só volta o histórico se o simulador empilhou entrada */
+on(window, 'popstate', ()=>{ const r=exitReason||'voltar'; exitReason=null; if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim(r); });
+on(window, 'pagehide', ()=>endRun('pagina_fechada'));   /* [prod] fechar a aba/sair do site também é desistência */
+on(document, 'keydown', e=>{ if(e.key==='Escape'){ if(S.sheet){S.sheet=null;render();} else if(document.body.classList.contains('sim-open')&&!isDesk()){ if(history.state&&history.state.sim){ exitReason='sair'; history.back(); } else closeSim('sair'); } }});   /* [prod] só volta o histórico se o simulador empilhou entrada */
 let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=later(()=>t.classList.remove('show'),3200); }
 const bar=$('#bar'); let heroVisible=true;
 function updateBar(){
@@ -672,5 +709,5 @@ function openDeepLink(ev){
 on(window, 'hashchange', openDeepLink);
 later(openDeepLink, 0);   /* fora do ciclo de montagem do React, antes de mexer no histórico */
 let lastDesk=isDesk(); on(window, 'resize',()=>{ if(isDesk()!==lastDesk){ lastDesk=isDesk(); render(); } });   /* [prod] só re-renderiza ao trocar de layout (barra do navegador no celular dispara resize) */
-return () => { cleanups.forEach(fn => fn()); timers.forEach(clearTimeout); document.body.classList.remove('sim-open'); };
+return () => { endRun('pagina_fechada'); cleanups.forEach(fn => fn()); timers.forEach(clearTimeout); document.body.classList.remove('sim-open'); };
 }

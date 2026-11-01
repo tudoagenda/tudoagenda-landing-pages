@@ -241,3 +241,194 @@ describe("Experimente o Agenda Bela: simulador e links diretos", () => {
     expect(pushSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Experimente o Agenda Bela: medição por passo", () => {
+  let events: ExperimenteEvent[];
+  let cleanup: () => void;
+
+  /** Segue o destaque clicável da Bela como a usuária: alerta, folha, destaque, botão do coach. */
+  const nextAction = () =>
+    [
+      "#sim .ios-alert-bg .hint[data-a]",
+      "#sim .backdrop .hint[data-a]",
+      "#sim .hint[data-a]",
+      "#sim .coach .act .btn",
+    ]
+      .map((sel) => Array.from(document.querySelectorAll<HTMLElement>(sel)).at(-1))
+      .find(Boolean);
+
+  const play = (maxSteps = 40) => {
+    for (let i = 0; i < maxSteps; i++) {
+      if (document.querySelector("#doneOv .done-card")) return true;
+      const el = nextAction();
+      if (!el) return false;
+      el.click();
+      jest.advanceTimersByTime(1500);
+    }
+    return false;
+  };
+  const of = (name: string) => events.filter((e) => e.event === name);
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    window.matchMedia = jest.fn().mockReturnValue({ matches: true }); // desktop: os dois celulares visíveis
+    Element.prototype.scrollIntoView = jest.fn();
+    history.replaceState(null, "", "/agendabela/experimente");
+    document.body.className = "";
+    document.body.innerHTML = `<div class="ab-exp">${EXPERIMENTE_MARKUP}</div>`;
+    events = [];
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    jest.advanceTimersByTime(10);
+  });
+
+  afterEach(() => {
+    cleanup();
+    jest.useRealTimers();
+  });
+
+  it.each([
+    ["j1", 1, 5],
+    ["j2", 2, 5],
+    ["j3", 3, 3],
+    ["j4", 4, 5],
+    ["j5", 5, 3],
+  ])("%s completa gera os journey_step 1..N em ordem e nenhum journey_exit", (j, n, total) => {
+    document.querySelector<HTMLElement>(`#sim [data-open="${j}"]`)?.click();
+    expect(play()).toBe(true);
+    const steps = of("journey_step");
+    expect(steps.map((e) => (e as { step: number }).step)).toEqual(
+      Array.from({ length: total }, (_, i) => i + 1),
+    );
+    for (const e of steps) {
+      expect(e).toEqual(
+        expect.objectContaining({ journey: n, step_total: total, step_name: expect.stringMatching(/^[a-z_]+$/) }),
+      );
+      expect((e as { duration_ms: number }).duration_ms).toBeGreaterThanOrEqual(0);
+    }
+    // depois de concluir, abrir outra jornada não conta como desistência
+    document.querySelector<HTMLElement>("#doneOv .next-link")?.click();
+    expect(of("journey_exit")).toHaveLength(0);
+  });
+
+  it("sair no passo 2 gera 1 journey_exit com last_step=2", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j1"]')?.click();
+    nextAction()?.click(); // conclui o passo 1 (abrir a agenda)
+    expect(of("journey_step")).toHaveLength(1);
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(of("journey_exit")).toEqual([
+      {
+        event: "journey_exit",
+        journey: 1,
+        last_step: 2,
+        last_step_name: "escolher_servicos",
+        step_total: 5,
+        exit_reason: "sair",
+      },
+    ]);
+  });
+
+  it("trocar de jornada no meio gera journey_exit da anterior", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j4"]')?.click();
+    document.querySelector<HTMLElement>('#sim [data-a="menu"]')?.click();
+    document.querySelector<HTMLElement>('#sim [data-open="j5"]')?.click();
+    expect(of("journey_exit")).toEqual([
+      {
+        event: "journey_exit",
+        journey: 4,
+        last_step: 1,
+        last_step_name: "marcar_veio",
+        step_total: 5,
+        exit_reason: "menu",
+      },
+    ]);
+    expect(of("journey_start").map((e) => (e as { journey_number: number }).journey_number)).toEqual([4, 5]);
+  });
+
+  it("CTA da página para outra jornada no meio gera journey_exit trocar_jornada", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j1"]')?.click();
+    nextAction()?.click();
+    document.querySelector<HTMLElement>('[data-local="beneficios"][data-open="j5"]')?.click();
+    expect(of("journey_exit")).toEqual([
+      expect.objectContaining({ journey: 1, last_step: 2, exit_reason: "trocar_jornada" }),
+    ]);
+  });
+
+  it("passo pulado sai marcado como skipped, sem tempo", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j3"]')?.click();
+    jest.advanceTimersByTime(3000);
+    document.querySelector<HTMLElement>('#sim [data-a="j3-bell"]')?.click(); // abre as novidades antes de divulgar
+    const steps = of("journey_step") as Array<Record<string, unknown>>;
+    expect(steps.map((e) => [e.step, e.skipped ?? false])).toEqual([
+      [1, true],
+      [2, false],
+    ]);
+    expect(steps[0].duration_ms).toBe(0);
+    expect(steps[1].duration_ms).toBeGreaterThanOrEqual(3000);
+  });
+
+  it("voltar a um passo anterior e sair reporta o passo em que ela estava", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j1"]')?.click();
+    nextAction()?.click(); // passo 1 concluído, abre o formulário
+    document.querySelector<HTMLElement>('#sim [data-a="form-cancel"]')?.click(); // volta para a agenda
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(of("journey_exit")).toEqual([
+      expect.objectContaining({ last_step: 1, last_step_name: "abrir_agenda" }),
+    ]);
+  });
+
+  it("re-render não repete journey_step e o tempo do passo é medido", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j1"]')?.click();
+    jest.advanceTimersByTime(4000);
+    nextAction()?.click();
+    document.querySelector<HTMLElement>('#sim [data-a="tab"][data-v="client"]')?.click();
+    expect(of("journey_step")).toHaveLength(1);
+    expect((of("journey_step")[0] as { duration_ms: number }).duration_ms).toBeGreaterThanOrEqual(4000);
+  });
+});
+
+describe("Experimente o Agenda Bela: medição por passo no celular", () => {
+  let events: ExperimenteEvent[];
+  let cleanup: () => void;
+  const of = (name: string) => events.filter((e) => e.event === name);
+
+  beforeEach(() => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: false });
+    Element.prototype.scrollIntoView = jest.fn();
+    document.body.className = "";
+    document.body.innerHTML = `<div class="ab-exp">${EXPERIMENTE_MARKUP}</div>`;
+    events = [];
+  });
+  afterEach(() => cleanup());
+
+  it("link direto marca entry nos passos e Sair (voltar do histórico) gera 1 journey_exit", async () => {
+    history.replaceState(null, "", "/agendabela/experimente#sinal-pix");
+    const backSpy = jest.spyOn(history, "back").mockImplementation(() => {
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+    });
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    await new Promise((r) => setTimeout(r, 5));
+    document.querySelector<HTMLElement>('#sim [data-a="j2-dep"]')?.click();
+    document.querySelector<HTMLElement>('#sim [data-a="j2-depval"]')?.click();
+    document.querySelector<HTMLElement>('#sim [data-a="j2-save-svc"]')?.click();
+    expect(of("journey_step")).toEqual([
+      expect.objectContaining({ journey: 2, step: 1, step_name: "ligar_sinal", entry: "deep_link" }),
+    ]);
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(of("journey_exit")).toEqual([
+      expect.objectContaining({ journey: 2, last_step: 2, exit_reason: "sair", entry: "deep_link" }),
+    ]);
+    backSpy.mockRestore();
+  });
+
+  it("fechar a página no meio da jornada gera journey_exit pagina_fechada uma vez", () => {
+    history.replaceState(null, "", "/agendabela/experimente");
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    (document.getElementById("heroCta") as HTMLButtonElement).click();
+    window.dispatchEvent(new Event("pagehide"));
+    cleanup();
+    cleanup = () => {};
+    expect(of("journey_exit")).toEqual([
+      expect.objectContaining({ journey: 1, last_step: 1, exit_reason: "pagina_fechada" }),
+    ]);
+  });
+});

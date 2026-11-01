@@ -77,6 +77,34 @@ export type ExperimenteEvent =
       journeys_completed: number;
     }
   | {
+      /** Passo do tour concluído (ação que avança o destaque da Bela). */
+      event: "journey_step";
+      journey: JourneyNumber;
+      step: number;
+      step_name: string;
+      step_total: number;
+      duration_ms: number;
+      /** Passo pulado (ação de um passo seguinte feita antes): sai com duration_ms 0. */
+      skipped?: true;
+      entry?: "deep_link";
+    }
+  | {
+      /** Saiu do simulador ou trocou de jornada sem concluir a atual. */
+      event: "journey_exit";
+      journey: JourneyNumber;
+      last_step: number;
+      last_step_name: string;
+      step_total: number;
+      exit_reason:
+        | "sair"
+        | "voltar"
+        | "menu"
+        | "trocar_jornada"
+        | "loja"
+        | "pagina_fechada";
+      entry?: "deep_link";
+    }
+  | {
       event: "store_click";
       store: "app_store" | "google_play";
       cta_location: string;
