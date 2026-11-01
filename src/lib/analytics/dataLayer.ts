@@ -68,6 +68,8 @@ export type ExperimenteEvent =
   | {
       event: "journey_start";
       journey_number: JourneyNumber;
+      /** Só presente quando a jornada foi aberta por link direto (#sinal-pix etc.). */
+      entry?: "deep_link";
     }
   | {
       event: "journey_complete";

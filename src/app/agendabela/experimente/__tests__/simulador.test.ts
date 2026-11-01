@@ -106,3 +106,138 @@ describe("Experimente o Agenda Bela: medição", () => {
     expect(events.filter((e) => e.event === "cta_click")).toHaveLength(1);
   });
 });
+
+describe("Experimente o Agenda Bela: simulador e links diretos", () => {
+  let events: ExperimenteEvent[];
+  let cleanup: (() => void) | null;
+  let pushSpy: jest.SpyInstance;
+
+  const mount = () => {
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+  };
+  const flush = () => new Promise((r) => setTimeout(r, 5));
+  const starts = () => events.filter((e) => e.event === "journey_start");
+
+  beforeEach(() => {
+    // celular (< 900px): o simulador abre em tela cheia e empilha histórico
+    window.matchMedia = jest.fn().mockReturnValue({ matches: false });
+    Element.prototype.scrollIntoView = jest.fn();
+    history.replaceState(null, "", "/agendabela/experimente?utm_source=suporte");
+    document.body.className = "";
+    document.body.innerHTML = `<div class="ab-exp">${EXPERIMENTE_MARKUP}</div>`;
+    events = [];
+    cleanup = null;
+    pushSpy = jest.spyOn(history, "pushState");
+  });
+
+  afterEach(() => {
+    cleanup?.();
+    pushSpy.mockRestore();
+  });
+
+  it("card do menu dentro do simulador mede 1 journey_start e não empilha histórico extra", async () => {
+    mount();
+    (document.getElementById("heroCta") as HTMLButtonElement).click();
+    document.querySelector<HTMLElement>('#sim [data-a="menu"]')?.click();
+    pushSpy.mockClear();
+    events = [];
+    document.querySelector<HTMLElement>('#sim [data-open="j2"]')?.click();
+    expect(starts()).toEqual([{ event: "journey_start", journey_number: 2 }]);
+    expect(events.filter((e) => e.event === "simulator_start")).toHaveLength(0);
+    expect(pushSpy).not.toHaveBeenCalled();
+  });
+
+  it("simulator_start conta 1 vez por visita", () => {
+    mount();
+    const hero = document.getElementById("heroCta") as HTMLButtonElement;
+    hero.click();
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    document.body.classList.remove("sim-open");
+    hero.click();
+    expect(events.filter((e) => e.event === "simulator_start")).toHaveLength(1);
+    expect(starts()).toHaveLength(2);
+  });
+
+  it.each([
+    ["marcar-cliente", 1],
+    ["sinal-pix", 2],
+    ["bela", 3],
+    ["clientes", 4],
+    ["caixa", 5],
+  ])("#%s abre a jornada %i com entry deep_link", async (hash, n) => {
+    history.replaceState(null, "", `/agendabela/experimente?utm_source=suporte#${hash}`);
+    mount();
+    await flush();
+    expect(starts()).toEqual([
+      { event: "journey_start", journey_number: n, entry: "deep_link" },
+    ]);
+    expect(document.body.classList.contains("sim-open")).toBe(true);
+    // a entrada da página fica sem hash e o simulador ganha a sua, com as UTMs intactas
+    expect(pushSpy).toHaveBeenCalledTimes(1);
+    expect(location.search).toBe("?utm_source=suporte");
+    expect(location.hash).toBe(`#${hash}`);
+  });
+
+  it("hash desconhecido não faz nada", async () => {
+    for (const hash of ["loja", "xyz", "%3Cimg%20src%3Dx%3E", "constructor"]) {
+      history.replaceState(null, "", `/agendabela/experimente#${hash}`);
+      mount();
+      await flush();
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      expect(starts()).toHaveLength(0);
+      expect(document.body.classList.contains("sim-open")).toBe(false);
+      cleanup?.();
+      cleanup = null;
+    }
+  });
+
+  it("link direto aceita maiúsculas e parâmetros depois do hash", async () => {
+    history.replaceState(null, "", "/agendabela/experimente#Sinal-Pix&utm_content=x");
+    mount();
+    await flush();
+    expect(starts()).toEqual([
+      { event: "journey_start", journey_number: 2, entry: "deep_link" },
+    ]);
+  });
+
+  it("celular: link direto → card do menu → sair mantém o voltar funcionando", async () => {
+    const backSpy = jest.spyOn(history, "back").mockImplementation(() => {});
+    history.replaceState(null, "", "/agendabela/experimente#sinal-pix");
+    mount();
+    await flush();
+    document.querySelector<HTMLElement>('#sim [data-a="menu"]')?.click();
+    document.querySelector<HTMLElement>('#sim [data-open="j3"]')?.click();
+    // a URL deixa de apontar para a J2, mas a entrada continua sendo a do simulador
+    expect(location.hash).toBe("#experimente");
+    expect((history.state as { sim?: number }).sim).toBe(1);
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(backSpy).toHaveBeenCalledTimes(1);
+    expect(pushSpy).toHaveBeenCalledTimes(1);
+    backSpy.mockRestore();
+  });
+
+  it("desktop: link direto abre inline e sair limpa o hash sem recarregar", async () => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: true });
+    history.replaceState(null, "", "/agendabela/experimente?utm_source=suporte#caixa");
+    mount();
+    await flush();
+    expect(starts()).toEqual([
+      { event: "journey_start", journey_number: 5, entry: "deep_link" },
+    ]);
+    expect(pushSpy).not.toHaveBeenCalled();
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(location.hash).toBe("");
+    expect(location.search).toBe("?utm_source=suporte");
+  });
+
+  it("hashchange repetido para a jornada aberta não duplica eventos", async () => {
+    history.replaceState(null, "", "/agendabela/experimente#sinal-pix");
+    mount();
+    await flush();
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(starts()).toHaveLength(1);
+    expect(events.filter((e) => e.event === "simulator_start")).toHaveLength(1);
+    expect(pushSpy).toHaveBeenCalledTimes(1);
+  });
+});

@@ -500,17 +500,22 @@ function notifyClient(){ if(!isDesk()&&S.tab!=='client') S.unread=1; }
 let toastT; function phoneToast(m){ S.toast=m; render(); clearTimeout(toastT); toastT=later(()=>{S.toast=null;render();},2600); }
 
 /* ================= abrir / sair / concluir ================= */
-function openSim(j){
+/* [prod] simulator_start conta 1 vez por visita; as outras jornadas medem por journey_start/complete */
+let simStarted=false;
+function trackSimStart(j){ if(simStarted) return; simStarted=true; track({event:'simulator_start', journey_number:j?JN(j):null}); }
+function openSim(j, entry, hash){
   document.body.classList.add('sim-open');
-  if(!isDesk()) history.pushState({sim:1},'','#experimente');
-  track({event:'simulator_start', journey_number:j?JN(j):null});   /* [prod] antes do journey_start */
-  startJourney(j);
+  /* [prod] no celular empilha uma entrada para o voltar fechar; não empilha de novo se já estamos nela (avançar do navegador) */
+  if(!isDesk() && !(history.state&&history.state.sim)) history.pushState({sim:1},'',hash||'#experimente');
+  trackSimStart(j);   /* [prod] antes do journey_start */
+  startJourney(j, entry);
   if(isDesk()) $('#experimente').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   later(()=>{const f=sim.querySelector('.sair'); f&&f.focus({preventScroll:true});},50);
 }
-function startJourney(j){
+function startJourney(j, entry){
   $('#doneOv').innerHTML=''; S=fresh(j);
-  if(j){ track({event:'journey_start', journey_number:JN(j)});
+  if(entry!=='deep_link') clearDeepHash();   /* [prod] qualquer outra entrada substitui o link direto na URL */
+  if(j){ track({event:'journey_start', journey_number:JN(j), ...(entry&&{entry})});
     if(j==='j2'){ S.owner='svcform'; }
     if(j==='j3'){ S.homeMode='j3'; }
     if(j==='j4'){ S.homeMode='j4'; }
@@ -518,7 +523,7 @@ function startJourney(j){
   }
   render();
 }
-function closeSim(){ document.body.classList.remove('sim-open'); if(!isDesk()){S=fresh(null);render();} $('#doneOv').innerHTML=''; updateBar(); }
+function closeSim(){ clearDeepHash(); document.body.classList.remove('sim-open'); if(!isDesk()){S=fresh(null);render();} $('#doneOv').innerHTML=''; updateBar(); }
 function finish(){
   $('#toast').classList.remove('show');
   const j=S.j, jd=J[j]; completed.add(j); renderMenuLists(); updateBar();
@@ -604,7 +609,7 @@ const A={
   'j5-save'(){ if(!(S.outDesc&&S.outVal)) return; S.sheet=null; S.outSaved=true; render(); },
 };
 on(sim, 'click', ev=>{
-  const op=ev.target.closest('[data-open]'); if(op&&sim.contains(op)){ /* [prod] menu dentro do simulador (sempre visível no desktop) também mede */ track({event:'cta_click', cta_location:'menu_simulador'}); track({event:'simulator_start', journey_number:JN(op.dataset.open)}); startJourney(op.dataset.open); return; }
+  const op=ev.target.closest('[data-open]'); if(op&&sim.contains(op)){ track({event:'cta_click', cta_location:'menu_simulador'}); trackSimStart(op.dataset.open); startJourney(op.dataset.open); return; }
   const el=ev.target.closest('[data-a]'); if(!el||!sim.contains(el)) return;
   const fn=A[el.dataset.a]; if(fn){ ev.preventDefault(); fn(el,ev); }
 });
@@ -613,6 +618,8 @@ on(sim, 'keydown', ev=>{ if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches(
 /* ================= página ================= */
 on(document, 'click', ev=>{
   const op=ev.target.closest('[data-open]');
+  /* [prod] card do menu interno já tratado pelo #sim e removido no re-render: não é CTA da página (evita medição dupla e pushState órfão) */
+  if(op&&!op.isConnected) return;
   if(op&&!sim.contains(op)){ ev.preventDefault(); track({event:'cta_click', cta_location:ctaLocation(op)}); openSim(op.dataset.open); return; }
   const go=ev.target.closest('[data-go="sim"]');
   if(go){ ev.preventDefault(); track({event:'cta_click', cta_location:ctaLocation(go)}); if(isDesk()) startJourney(null); $('#experimente').scrollIntoView(); return; }
@@ -643,6 +650,27 @@ $('#heroBubble').innerHTML=confirmMsg('Marina',addDays(now,1),'14:00','Escova e 
 document.querySelectorAll('[data-store]').forEach(a=>{ if(!/badge/.test(a.dataset.store)) a.setAttribute('href',storeHref()); });
 document.querySelectorAll('[data-stores]').forEach(el=>{ el.innerHTML=storeBadges()+(OS==='desktop'&&QR_SRC?`<span class="qr-final"><img src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="96" height="96"><small>Aponte a câmera do celular</small></span>`:''); });
 renderMenuLists(); render();
+/* [prod] link direto por jornada (suporte e marketing). O hash só é comparado com esta lista fixa. */
+const DEEP={'marcar-cliente':'j1','sinal-pix':'j2','bela':'j3','clientes':'j4','caixa':'j5'};
+const deepJourney=()=>{ const h=location.hash.slice(1).toLowerCase().split(/[?&]/)[0]; return Object.prototype.hasOwnProperty.call(DEEP,h)?DEEP[h]:null; };
+/* troca o hash sem recarregar e sem perder a marca {sim:1} da entrada do simulador no celular */
+function clearDeepHash(){
+  if(!deepJourney()) return;
+  const onSim=!!(history.state&&history.state.sim);
+  history.replaceState(onSim?{sim:1}:null,'',location.pathname+location.search+(onSim?'#experimente':''));
+}
+function openDeepLink(ev){
+  const j=deepJourney(); if(!j) return;
+  if(document.body.classList.contains('sim-open') && S.j===j) return;   /* já aberta: sem evento duplicado */
+  const hash=location.hash;
+  if(!isDesk() && !(history.state&&history.state.sim)){
+    if(ev&&ev.type==='hashchange') history.replaceState({sim:1},'',location.href);   /* o navegador já criou a entrada: só marca como do simulador */
+    else history.replaceState(null,'',location.pathname+location.search);          /* ao carregar: a entrada vira a página sem hash e o simulador ganha a sua */
+  }
+  openSim(j,'deep_link',hash);
+}
+on(window, 'hashchange', openDeepLink);
+later(openDeepLink, 0);   /* fora do ciclo de montagem do React, antes de mexer no histórico */
 let lastDesk=isDesk(); on(window, 'resize',()=>{ if(isDesk()!==lastDesk){ lastDesk=isDesk(); render(); } });   /* [prod] só re-renderiza ao trocar de layout (barra do navegador no celular dispara resize) */
 return () => { cleanups.forEach(fn => fn()); timers.forEach(clearTimeout); document.body.classList.remove('sim-open'); };
 }
