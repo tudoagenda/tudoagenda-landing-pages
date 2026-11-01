@@ -399,7 +399,7 @@ function bookingScreen(){
     const days=[];for(let i=1;i<=9;i++){const d=addDays(now,i); if(d.getDay()!==0) days.push(d);}
     body=prog(1)+`<h1 class="bk-h1">Escolha a data</h1><p class="bk-p">Escolha o dia pra marcar com a equipe do ${SALON}.</p><div class="daychips">${days.slice(0,8).map((d,i)=>`<button class="daychip${hint(i===1)}" data-a="bk-date" data-v="${d.toISOString()}"><small>${DOW[d.getDay()]}</small><b>${d.getDate()}</b></button>`).join('')}</div><p class="bk-p" style="font-size:13px;margin-top:10px">No link de verdade, aqui é um calendário do mês.</p>`;
   } else if(st==='bk-svc'){
-    body=prog(2)+`<h1 class="bk-h1">Escolha o serviço</h1><p class="bk-p">Escolha um ou mais serviços</p>`+SERVICES.slice(0,3).map((s,i)=>`<button class="bk-card${hint(i===0)}" data-a="bk-svc" data-v="${s.id}"><span class="bk-ic">${ic('scissors','#FF5B8E',20)}</span><span><b>${s.name}</b><small>${brl(s.price)} · ${dur(s.min)}</small>${s.id==='s1'?`<br><span class="dep-badge">Sinal de ${brl(dep)}</span>`:''}</span></button>`).join('');
+    body=prog(2)+`<h1 class="bk-h1">Escolha o serviço</h1><p class="bk-p">Escolha um ou mais serviços</p>`+SERVICES.slice(0,3).map((s,i)=>`${s.id==='s1'?`<button class="bk-card${hint(i===0)}" data-a="bk-svc" data-v="${s.id}">`:`<button class="bk-card" aria-disabled="true" tabindex="-1" data-a="noop" data-v="${s.id}">`/* [prod] só a Escova (com sinal) é tocável: o tour nunca pula o pagamento; tocar nos outros mostra o aviso padrão do teste */}<span class="bk-ic">${ic('scissors','#FF5B8E',20)}</span><span><b>${s.name}</b><small>${brl(s.price)} · ${dur(s.min)}</small>${s.id==='s1'?`<br><span class="dep-badge">Sinal de ${brl(dep)}</span>`:''}</span></button>`).join('');
   } else if(st==='bk-form'){
     const s=svc(S.bkSvc);
     body=prog(3)+`<h1 class="bk-h1">Escolha o horário</h1><p class="bk-p">Selecione o melhor horário para você</p><p class="bk-p" style="margin-top:-8px;font-size:14px">${DOWL[S.bkDate.getDay()]}, ${dd(S.bkDate)} · ${s.name}</p><div class="slots">${['09:00','10:00','11:00','14:00','15:30','17:00'].map(t=>`<button class="slot${hint(!S.bkTime&&t==='10:00')}" aria-pressed="${S.bkTime===t}" data-a="bk-time" data-v="${t}">${t}</button>`).join('')}</div>
@@ -529,7 +529,7 @@ function endRun(reason){
   if(run && !run.finished){
     const total=J[run.j].steps.length, cur=S.j===run.j ? S.step : run.done;   /* o passo em que ela estava, mesmo se voltou atrás */
     const last=Math.min(cur+1,total);
-    track({event:'journey_exit', journey:JN(run.j), last_step:last, last_step_name:STEP_NAMES[run.j][last-1], step_total:total, exit_reason:reason, ...(run.entry&&{entry:run.entry})});
+    track({event:'journey_exit', journey_number:JN(run.j), last_step:last, last_step_name:STEP_NAMES[run.j][last-1], step_total:total, exit_reason:reason, ...(run.entry&&{entry:run.entry})});
   }
   run=null;
 }
@@ -541,7 +541,7 @@ function syncSteps(upto){
     run.done++;
     /* pulou passos (ex.: J3 tocando no sino antes de divulgar): os do meio saem com skipped e sem tempo */
     const skipped=run.done!==target;
-    track({event:'journey_step', journey:JN(run.j), step:run.done, step_name:STEP_NAMES[run.j][run.done-1], step_total:total, duration_ms:skipped?0:Math.round(t-run.at), ...(skipped&&{skipped:true}), ...(run.entry&&{entry:run.entry})});
+    track({event:'journey_step', journey_number:JN(run.j), step:run.done, step_name:STEP_NAMES[run.j][run.done-1], step_total:total, duration_ms:skipped?0:Math.round(t-run.at), ...(skipped&&{skipped:true}), ...(run.entry&&{entry:run.entry})});
   }
   if(run.done>=first) run.at=t;
 }
@@ -616,7 +616,7 @@ const A={
   'bk-date'(el){ S.bkDate=new Date(el.dataset.v); S.client='bk-svc'; render(); },
   'bk-svc'(el){ S.bkSvc=el.dataset.v; S.client='bk-form'; render(); },
   'bk-time'(el){ S.bkTime=el.dataset.v; render(); },
-  'bk-confirm'(){ if(!S.bkTime) return; if(S.bkSvc==='s1'){ S.client='bk-pay'; S.step=3; } else { S.client='bk-done'; S.step=4; } render(); },
+  'bk-confirm'(){ if(!S.bkTime) return; /* [prod] o else ficou inalcançável: só a Escova (s1) é tocável */ if(S.bkSvc==='s1'){ S.client='bk-pay'; S.step=3; } else { S.client='bk-done'; S.step=4; } render(); },
   'bk-pay'(){ S.paid=true; S.client='bk-done'; S.step=4; const dep=S.depVal||2000;
     const gw=Math.min(Math.max(Math.round(dep*80/10000),50),500), pf=Math.round(dep*149/10000); S.balance=dep-gw-pf;
     const diff=Math.round((new Date(S.bkDate.toDateString())-new Date(now.toDateString()))/864e5);

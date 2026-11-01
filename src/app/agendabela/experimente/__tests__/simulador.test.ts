@@ -301,13 +301,63 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     );
     for (const e of steps) {
       expect(e).toEqual(
-        expect.objectContaining({ journey: n, step_total: total, step_name: expect.stringMatching(/^[a-z_]+$/) }),
+        expect.objectContaining({ journey_number: n, step_total: total, step_name: expect.stringMatching(/^[a-z_]+$/) }),
       );
       expect((e as { duration_ms: number }).duration_ms).toBeGreaterThanOrEqual(0);
     }
+    expect(events.some((e) => "journey" in e)).toBe(false);
     // depois de concluir, abrir outra jornada não conta como desistência
     document.querySelector<HTMLElement>("#doneOv .next-link")?.click();
     expect(of("journey_exit")).toHaveLength(0);
+  });
+
+  it("J2: só a Escova é tocável no link da cliente; os outros serviços não mudam nada", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j2"]')?.click();
+    for (let i = 0; i < 20 && !document.querySelector('#sim [data-a="bk-svc"]'); i++) {
+      nextAction()?.click();
+      jest.advanceTimersByTime(1500);
+    }
+    const cards = Array.from(document.querySelectorAll<HTMLElement>("#sim .bk-card[data-v]"));
+    expect(cards.map((c) => [c.dataset.v, c.getAttribute("aria-disabled")])).toEqual([
+      ["s1", null],
+      ["s2", "true"],
+      ["s3", "true"],
+    ]);
+    const escova = cards[0];
+    expect(escova.classList.contains("hint")).toBe(true);
+    expect(escova.textContent).toContain("Sinal de R$ 20,00");
+    const before = document.getElementById("clientScreen")?.innerHTML;
+    const n = events.length;
+    for (const c of cards.slice(1)) {
+      expect(c.getAttribute("tabindex")).toBe("-1");
+      c.click();
+    }
+    expect(document.getElementById("clientScreen")?.innerHTML).toBe(before);
+    expect(events).toHaveLength(n);
+    // o toque mostra o aviso padrão do teste, sem texto novo
+    expect(document.getElementById("toast")?.textContent).toContain("Neste teste, este toque não faz nada.");
+  });
+
+  it("J2 completa sempre passa por cliente_paga_sinal, sem passo pulado", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j2"]')?.click();
+    expect(play()).toBe(true);
+    const steps = of("journey_step") as Array<Record<string, unknown>>;
+    expect(steps.map((e) => e.step_name)).toEqual([
+      "ligar_sinal",
+      "mandar_link",
+      "cliente_escolhe_horario",
+      "cliente_paga_sinal",
+      "receber_aviso_e_dinheiro",
+    ]);
+    expect(steps.some((e) => e.skipped)).toBe(false);
+  });
+
+  it("nenhum evento usa o parâmetro journey (padrão é journey_number)", () => {
+    document.querySelector<HTMLElement>('#sim [data-open="j1"]')?.click();
+    nextAction()?.click();
+    document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
+    expect(events.length).toBeGreaterThan(3);
+    expect(events.some((e) => "journey" in e)).toBe(false);
   });
 
   it("sair no passo 2 gera 1 journey_exit com last_step=2", () => {
@@ -318,7 +368,7 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     expect(of("journey_exit")).toEqual([
       {
         event: "journey_exit",
-        journey: 1,
+        journey_number: 1,
         last_step: 2,
         last_step_name: "escolher_servicos",
         step_total: 5,
@@ -334,7 +384,7 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     expect(of("journey_exit")).toEqual([
       {
         event: "journey_exit",
-        journey: 4,
+        journey_number: 4,
         last_step: 1,
         last_step_name: "marcar_veio",
         step_total: 5,
@@ -349,7 +399,7 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     nextAction()?.click();
     document.querySelector<HTMLElement>('[data-local="beneficios"][data-open="j5"]')?.click();
     expect(of("journey_exit")).toEqual([
-      expect.objectContaining({ journey: 1, last_step: 2, exit_reason: "trocar_jornada" }),
+      expect.objectContaining({ journey_number: 1, last_step: 2, exit_reason: "trocar_jornada" }),
     ]);
   });
 
@@ -411,11 +461,11 @@ describe("Experimente o Agenda Bela: medição por passo no celular", () => {
     document.querySelector<HTMLElement>('#sim [data-a="j2-depval"]')?.click();
     document.querySelector<HTMLElement>('#sim [data-a="j2-save-svc"]')?.click();
     expect(of("journey_step")).toEqual([
-      expect.objectContaining({ journey: 2, step: 1, step_name: "ligar_sinal", entry: "deep_link" }),
+      expect.objectContaining({ journey_number: 2, step: 1, step_name: "ligar_sinal", entry: "deep_link" }),
     ]);
     document.querySelector<HTMLElement>('#sim [data-a="exit"]')?.click();
     expect(of("journey_exit")).toEqual([
-      expect.objectContaining({ journey: 2, last_step: 2, exit_reason: "sair", entry: "deep_link" }),
+      expect.objectContaining({ journey_number: 2, last_step: 2, exit_reason: "sair", entry: "deep_link" }),
     ]);
     backSpy.mockRestore();
   });
@@ -428,7 +478,7 @@ describe("Experimente o Agenda Bela: medição por passo no celular", () => {
     cleanup();
     cleanup = () => {};
     expect(of("journey_exit")).toEqual([
-      expect.objectContaining({ journey: 1, last_step: 1, exit_reason: "pagina_fechada" }),
+      expect.objectContaining({ journey_number: 1, last_step: 1, exit_reason: "pagina_fechada" }),
     ]);
   });
 });

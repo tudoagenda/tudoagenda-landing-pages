@@ -79,7 +79,7 @@ export type ExperimenteEvent =
   | {
       /** Passo do tour concluído (ação que avança o destaque da Bela). */
       event: "journey_step";
-      journey: JourneyNumber;
+      journey_number: JourneyNumber;
       step: number;
       step_name: string;
       step_total: number;
@@ -91,7 +91,7 @@ export type ExperimenteEvent =
   | {
       /** Saiu do simulador ou trocou de jornada sem concluir a atual. */
       event: "journey_exit";
-      journey: JourneyNumber;
+      journey_number: JourneyNumber;
       last_step: number;
       last_step_name: string;
       step_total: number;
