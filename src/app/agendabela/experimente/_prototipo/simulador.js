@@ -521,7 +521,8 @@ function openSim(j, entry, hash){
   if(isDesk()) $('#experimente').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   later(()=>{const f=sim.querySelector('.sair'); f&&f.focus({preventScroll:true});},50);
 }
-/* [prod] medição por passo: journey_step ao concluir cada passo, journey_exit ao sair sem concluir */
+/* [prod] medição por passo: journey_step ao concluir cada passo, journey_exit ao sair sem concluir.
+   Parâmetros que não se aplicam vão undefined; pushAgendaBelaExperimenteEvent ainda zera todos a cada push (o GTM mescla ao modelo anterior). */
 let run=null;   // {j, entry, done, at, finished}: a jornada em andamento
 function beginRun(j, entry){ run = j ? {j, entry, done:0, at:Date.now(), finished:false} : null; }
 /* reason: sair | voltar | menu | trocar_jornada | loja | pagina_fechada */
@@ -529,7 +530,7 @@ function endRun(reason){
   if(run && !run.finished){
     const total=J[run.j].steps.length, cur=S.j===run.j ? S.step : run.done;   /* o passo em que ela estava, mesmo se voltou atrás */
     const last=Math.min(cur+1,total);
-    track({event:'journey_exit', journey_number:JN(run.j), last_step:last, last_step_name:STEP_NAMES[run.j][last-1], step_total:total, exit_reason:reason, ...(run.entry&&{entry:run.entry})});
+    track({event:'journey_exit', journey_number:JN(run.j), last_step:last, last_step_name:STEP_NAMES[run.j][last-1], step_total:total, exit_reason:reason, entry:run.entry});
   }
   run=null;
 }
@@ -541,7 +542,7 @@ function syncSteps(upto){
     run.done++;
     /* pulou passos (ex.: J3 tocando no sino antes de divulgar): os do meio saem com skipped e sem tempo */
     const skipped=run.done!==target;
-    track({event:'journey_step', journey_number:JN(run.j), step:run.done, step_name:STEP_NAMES[run.j][run.done-1], step_total:total, duration_ms:skipped?0:Math.round(t-run.at), ...(skipped&&{skipped:true}), ...(run.entry&&{entry:run.entry})});
+    track({event:'journey_step', journey_number:JN(run.j), step:run.done, step_name:STEP_NAMES[run.j][run.done-1], step_total:total, duration_ms:skipped?0:Math.round(t-run.at), skipped:skipped||undefined, entry:run.entry});
   }
   if(run.done>=first) run.at=t;
 }
@@ -549,7 +550,7 @@ function startJourney(j, entry, reason){
   endRun(reason || (j?'trocar_jornada':'menu')); beginRun(j, entry);
   $('#doneOv').innerHTML=''; S=fresh(j);
   if(entry!=='deep_link') clearDeepHash();   /* [prod] qualquer outra entrada substitui o link direto na URL */
-  if(j){ track({event:'journey_start', journey_number:JN(j), ...(entry&&{entry})});
+  if(j){ track({event:'journey_start', journey_number:JN(j), entry});
     if(j==='j2'){ S.owner='svcform'; }
     if(j==='j3'){ S.homeMode='j3'; }
     if(j==='j4'){ S.homeMode='j4'; }
@@ -662,7 +663,20 @@ on(document, 'click', ev=>{
   const st=ev.target.closest('[data-store]');
   if(st){ track(storeEvent(st)); /* [prod] no desktop os links de baixar só rolam até os selos: cta_click, não store_click */ if(st.getAttribute('href')==='#baixar'){ ev.preventDefault(); if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim('loja'); $('#doneOv').innerHTML=''; $('#baixar').scrollIntoView(); } }
 });
-on(window, 'popstate', ()=>{ const r=exitReason||'voltar'; exitReason=null; if(document.body.classList.contains('sim-open')&&!isDesk()) closeSim(r); });
+let skipStale=false;
+on(window, 'popstate', ()=>{ const r=exitReason; exitReason=null;
+  if(skipStale){   /* pulando entradas que sobraram do simulador até a página */
+    if(history.state&&history.state.sim){ history.back(); return; }
+    skipStale=false; return;
+  }
+  /* [prod] fragmento de jornada (sem ser Sair/Esc): troca a jornada aqui mesmo (journey_exit 'trocar_jornada');
+     o hashchange que vem depois encontra a jornada aberta e não faz nada */
+  if(!r && deepJourney() && document.body.classList.contains('sim-open')){ openDeepLink({type:'hashchange'}); return; }   /* a entrada já existe: só marca */
+  if(document.body.classList.contains('sim-open')&&!isDesk()){
+    closeSim(r||'voltar');
+    /* [prod] voltou para outra entrada do simulador (sobra de uma troca por fragmento): pula para a página, sem voltar morto */
+    if(history.state&&history.state.sim){ skipStale=true; history.back(); }
+  } });
 on(window, 'pagehide', ()=>endRun('pagina_fechada'));   /* [prod] fechar a aba/sair do site também é desistência */
 on(document, 'keydown', e=>{ if(e.key==='Escape'){ if(S.sheet){S.sheet=null;render();} else if(document.body.classList.contains('sim-open')&&!isDesk()){ if(history.state&&history.state.sim){ exitReason='sair'; history.back(); } else closeSim('sair'); } }});   /* [prod] só volta o histórico se o simulador empilhou entrada */
 let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=later(()=>t.classList.remove('show'),3200); }

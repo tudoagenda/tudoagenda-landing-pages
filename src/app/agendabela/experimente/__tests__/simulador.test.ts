@@ -2,7 +2,10 @@ import fs from "fs";
 import path from "path";
 import { EXPERIMENTE_MARKUP } from "../_prototipo/markup";
 import { initExperimente } from "../_prototipo/simulador";
-import type { ExperimenteEvent } from "@/lib/analytics/dataLayer";
+import {
+  pushAgendaBelaExperimenteEvent,
+  type ExperimenteEvent,
+} from "@/lib/analytics/dataLayer";
 
 const source = fs.readFileSync(
   path.join(__dirname, "../_prototipo/simulador.js"),
@@ -453,6 +456,8 @@ describe("Experimente o Agenda Bela: medição por passo no celular", () => {
   it("link direto marca entry nos passos e Sair (voltar do histórico) gera 1 journey_exit", async () => {
     history.replaceState(null, "", "/agendabela/experimente#sinal-pix");
     const backSpy = jest.spyOn(history, "back").mockImplementation(() => {
+      // como o navegador: volta para a entrada da página (sem hash) e dispara popstate
+      history.replaceState(null, "", "/agendabela/experimente");
       window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
     });
     cleanup = initExperimente({ track: (e) => events.push(e) });
@@ -480,5 +485,88 @@ describe("Experimente o Agenda Bela: medição por passo no celular", () => {
     expect(of("journey_exit")).toEqual([
       expect.objectContaining({ journey_number: 1, last_step: 1, exit_reason: "pagina_fechada" }),
     ]);
+  });
+});
+
+describe("Experimente o Agenda Bela: chaves estáveis no GTM e troca por fragmento", () => {
+  let events: ExperimenteEvent[];
+  let cleanup: () => void;
+  const of = (name: string) => events.filter((e) => e.event === name) as Array<Record<string, unknown>>;
+  const nextAction = () =>
+    ["#sim .ios-alert-bg .hint[data-a]", "#sim .backdrop .hint[data-a]", "#sim .hint[data-a]", "#sim .coach .act .btn"]
+      .map((sel) => Array.from(document.querySelectorAll<HTMLElement>(sel)).at(-1))
+      .find(Boolean);
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    Element.prototype.scrollIntoView = jest.fn();
+    document.body.className = "";
+    document.body.innerHTML = `<div class="ab-exp">${EXPERIMENTE_MARKUP}</div>`;
+    events = [];
+  });
+  afterEach(() => {
+    cleanup();
+    jest.useRealTimers();
+  });
+
+  it("depois de uma jornada por link direto, a próxima manda entry presente e undefined", () => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: true });
+    history.replaceState(null, "", "/agendabela/experimente#sinal-pix");
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    jest.advanceTimersByTime(10);
+    for (let i = 0; i < 40 && !document.querySelector("#doneOv .done-card"); i++) {
+      nextAction()?.click();
+      jest.advanceTimersByTime(1500);
+    }
+    document.querySelector<HTMLElement>("#doneOv .next-link")?.click(); // Ver a próxima (J3)
+    const [first, second] = of("journey_start");
+    expect(first.entry).toBe("deep_link");
+    expect(second.journey_number).toBe(3);
+    expect("entry" in second).toBe(true);
+    expect(second.entry).toBeUndefined();
+    // os passos também mandam sempre as chaves opcionais
+    for (const e of of("journey_step")) {
+      expect("skipped" in e && "entry" in e).toBe(true);
+    }
+  });
+
+  it("celular: trocar o fragmento para #caixa com o simulador aberto abre a J5, sem exit 'voltar'", () => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: false });
+    history.replaceState(null, "", "/agendabela/experimente");
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    (document.getElementById("heroCta") as HTMLButtonElement).click(); // J1 aberta em tela cheia
+    // navegação por fragmento: o navegador cria a entrada e dispara popstate antes do hashchange
+    history.pushState(null, "", "/agendabela/experimente#caixa");
+    window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+    expect(document.body.classList.contains("sim-open")).toBe(true);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(document.body.classList.contains("sim-open")).toBe(true);
+    expect(location.hash).toBe("#caixa");
+    expect(of("journey_exit")).toEqual([
+      expect.objectContaining({ journey_number: 1, exit_reason: "trocar_jornada" }),
+    ]);
+    expect(of("journey_start").map((e) => [e.journey_number, e.entry])).toEqual([
+      [1, undefined],
+      [5, "deep_link"],
+    ]);
+    expect(document.querySelector("#coach .jt")?.textContent).toContain("Feche o caixa");
+  });
+});
+
+describe("pushAgendaBelaExperimenteEvent: modelo do GTM sem valor velho", () => {
+  it("cada push zera os parâmetros do Experimente e a atribuição antes de aplicar os do evento", () => {
+    window.dataLayer = [];
+    history.replaceState(null, "", "/agendabela/experimente?utm_source=a&utm_campaign=x");
+    pushAgendaBelaExperimenteEvent({ event: "journey_start", journey_number: 2, entry: "deep_link" });
+    history.replaceState(null, "", "/agendabela/experimente?utm_source=b");
+    pushAgendaBelaExperimenteEvent({ event: "cta_click", cta_location: "hero" });
+    const second = window.dataLayer[1];
+    for (const k of ["entry", "journey_number", "exit_reason", "skipped", "utm_campaign"]) {
+      expect(k in second).toBe(true);
+      expect(second[k]).toBeUndefined();
+    }
+    expect(second).toEqual(
+      expect.objectContaining({ event: "cta_click", cta_location: "hero", utm_source: "b", landing_slug: "experimente" }),
+    );
   });
 });

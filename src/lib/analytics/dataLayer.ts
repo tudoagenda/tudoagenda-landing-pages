@@ -48,6 +48,8 @@ type LandingEvent =
  * Eventos do "Experimente o Agenda Bela" (/agendabela/experimente).
  * São eventos de engajamento da landing: não mapear para Lead/CompleteRegistration
  * da Meta nem ocupar vagas da lista de 8 eventos de iOS (medicao.md).
+ * Parâmetro que não se aplica vai como undefined explícito, nunca omitido: o GTM
+ * mescla cada push ao modelo anterior e uma chave omitida herdaria o valor velho.
  */
 type JourneyNumber = 1 | 2 | 3 | 4 | 5;
 type DeviceOs = "ios" | "android" | "desktop";
@@ -68,8 +70,8 @@ export type ExperimenteEvent =
   | {
       event: "journey_start";
       journey_number: JourneyNumber;
-      /** Só presente quando a jornada foi aberta por link direto (#sinal-pix etc.). */
-      entry?: "deep_link";
+      /** "deep_link" quando aberta por link direto (#sinal-pix etc.); senão undefined explícito. */
+      entry: "deep_link" | undefined;
     }
   | {
       event: "journey_complete";
@@ -85,8 +87,8 @@ export type ExperimenteEvent =
       step_total: number;
       duration_ms: number;
       /** Passo pulado (ação de um passo seguinte feita antes): sai com duration_ms 0. */
-      skipped?: true;
-      entry?: "deep_link";
+      skipped: true | undefined;
+      entry: "deep_link" | undefined;
     }
   | {
       /** Saiu do simulador ou trocou de jornada sem concluir a atual. */
@@ -102,7 +104,7 @@ export type ExperimenteEvent =
         | "trocar_jornada"
         | "loja"
         | "pagina_fechada";
-      entry?: "deep_link";
+      entry: "deep_link" | undefined;
     }
   | {
       event: "store_click";
@@ -174,12 +176,39 @@ export function pushAgendaBelaListaEsperaEvent(eventData: LandingEvent): void {
  * Contexto: campaign, slug = experimente.
  */
 export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): void {
-  pushLandingEvent(eventData, {
-    product: "agendabela",
-    landing_type: "campaign",
-    landing_slug: "experimente",
-  });
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "campaign",
+      landing_slug: "experimente",
+    },
+    EXPERIMENTE_RESET_KEYS,
+  );
 }
+
+/**
+ * Todo parâmetro que algum evento do Experimente usa. Cada push zera todos eles
+ * (undefined explícito) antes de aplicar os do evento: o GTM mescla cada push ao
+ * modelo anterior, e uma chave omitida herdaria o valor do evento anterior
+ * (ex.: entry=deep_link grudando na jornada seguinte). Parâmetro novo entra aqui.
+ */
+const EXPERIMENTE_RESET_KEYS = [
+  "journey_number",
+  "journeys_completed",
+  "entry",
+  "step",
+  "step_name",
+  "step_total",
+  "duration_ms",
+  "skipped",
+  "last_step",
+  "last_step_name",
+  "exit_reason",
+  "cta_location",
+  "store",
+  "device_os",
+] as const;
 
 /**
  * Push genérico — só usar em componentes que sabem o contexto deles.
@@ -188,11 +217,20 @@ export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): voi
 export function pushLandingEvent(
   eventData: LandingEvent | ExperimenteEvent,
   context: LandingContext,
+  resetKeys: readonly string[] = [],
 ): void {
   if (typeof window === "undefined") return;
   window.dataLayer = window.dataLayer || [];
+  // Com resetKeys, a atribuição também é zerada antes: UTM ausente nesta visita
+  // não herda a da anterior no modelo do GTM.
+  const reset = resetKeys.length
+    ? Object.fromEntries(
+        [...resetKeys, ...ATTRIBUTION_KEYS].map((k) => [k, undefined]),
+      )
+    : {};
   window.dataLayer.push({
     ...context,
+    ...reset,
     ...getAttributionContext(),
     ...eventData,
   });
