@@ -18,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${siteUrl}/agendabela/experimente`,
+      lastModified: new Date("2026-10-31"),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       url: `${siteUrl}/privacidade`,
       lastModified,
       changeFrequency: "yearly",
