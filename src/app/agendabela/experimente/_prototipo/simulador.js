@@ -108,21 +108,21 @@ const reminderMsg=(first,date,time,svcLabel)=>`Oi, ${first}! Lembrete do seu hor
 
 /* ================= jornadas ================= */
 const J = {
-  j1:{ title:'Marque uma cliente', sub:'Vários serviços de uma vez, a mensagem que ela recebe e o lembrete do dia, nas duas pontas.', client:true,
-    steps:['Abra a agenda','Escolha os serviços','Escolha o horário e crie','Veja o que a Marina recebeu','No dia: lembrete pra ela, aviso pra você'],
+  j1:{ title:'Marca uma cliente', sub:'Marca vários serviços de uma vez e vê a confirmação e o lembrete que ela recebe, no celular dela e no seu.', client:true,
+    steps:['Abre a agenda','Escolhe os serviços','Escolhe o horário e toca em Criar','Vê o que a Marina recebeu','No dia: lembrete pra ela, aviso pra você'],
     done:{title:'Marcado!', msg:'Mandei a confirmação pra Marina na hora e, no dia, lembrei ela de manhã. Ela tocou em Confirmar e eu te contei no mesmo minuto. Você não escreveu nenhuma mensagem.', next:'j2', chip:'Próximo: a cliente marca sozinha e paga o sinal', cta:'Ver a próxima'}},
-  j2:{ title:'Ela marca sozinha e paga o sinal', sub:'Ligue o sinal, mande seu link e veja a cliente pagar o Pix. O dinheiro cai na sua conta.', client:true, deposit:true,
-    steps:['Ligue o sinal no serviço','Mande seu link','A Marina escolhe o horário','Ela paga o sinal no Pix','O aviso e o dinheiro chegam pra você'],
+  j2:{ title:'Ela marca sozinha e paga o sinal', sub:'Liga o sinal, manda seu link e vê a cliente pagar o Pix. O dinheiro cai na sua Conta Agenda Bela.', client:true, deposit:true,
+    steps:['Liga o sinal no serviço','Manda seu link','A Marina escolhe o horário','Ela paga o sinal no Pix','O aviso e o dinheiro chegam pra você'],
     done:{title:'Ela marcou e pagou sozinha.', msg:'A Marina escolheu o horário pelo seu link e pagou o sinal no Pix. O horário já está na sua agenda e o dinheiro, no seu saldo. Você não parou o atendimento.', next:'j3', chip:'Próximo: tudo o que eu te conto', cta:'Ver a próxima'}},
-  j3:{ title:'A Bela te conta tudo', sub:'O que eu fiz e o que suas clientes fizeram, e uma ajuda quando sobra horário.', client:false,
-    steps:['Veja minha sugestão','Divulgue em um toque','Abra as novidades'],
-    done:{title:'Eu te conto tudo.', msg:'Quem marcou, quem confirmou e o que eu mandei fica guardado nas novidades. Quando a tarde está livre no app, eu deixo a mensagem pronta pra você divulgar.', next:'j4', chip:'Próximo: cuide das suas clientes', cta:'Ver a próxima'}},
-  j4:{ title:'Cuide das suas clientes', sub:'Veio ou não veio, a ficha da cliente e um pacote de sessões.', client:false,
-    steps:['Marque quem veio','Marque quem faltou','Abra a ficha da cliente','Crie um pacote','Use uma sessão'],
-    done:{title:'Ficha em dia.', msg:'Quem veio entra no caixa e quem faltou fica anotado na ficha. O pacote da Juliana fica contado: cada sessão usada sai do saldo dela.', next:'j5', chip:'Próximo: feche o caixa', cta:'Ver a próxima'}},
-  j5:{ title:'Feche o caixa do dia', sub:'O que entrou, o que saiu, e o atendimento que você esqueceu de anotar.', client:false,
-    steps:['Veja o saldo do dia','Anote o que já aconteceu','Lance uma saída'],
-    done:{title:'É assim que o dia fecha.', msg:'Os atendimentos feitos entram sozinhos. O que você esqueceu de anotar dá pra registrar depois, sem mandar mensagem pra cliente. E você só lança o que saiu do padrão.', next:null, cta:'Concluir'}},
+  j3:{ title:'A Bela te conta tudo', sub:'O que eu fiz e o que suas clientes fizeram, e uma mensagem pronta para divulgar quando sobra horário.', client:false,
+    steps:['Vê minha sugestão','Divulga em um toque','Abre as novidades'],
+    done:{title:'Eu te conto tudo.', msg:'Quem marcou, quem confirmou e o que eu mandei fica guardado nas novidades. Quando sua tarde está livre na agenda, eu deixo a mensagem pronta pra você divulgar.', next:'j4', chip:'Próximo: cuida das suas clientes', cta:'Ver a próxima'}},
+  j4:{ title:'Cuida das suas clientes', sub:'Marca quem veio e quem faltou, abre a ficha da cliente e vende um pacote de sessões.', client:false,
+    steps:['Marca quem veio','Marca quem faltou','Abre a ficha da cliente','Cria um pacote','Usa uma sessão'],
+    done:{title:'Ficha em dia.', msg:'Quem veio entra no caixa e quem faltou fica anotado na ficha. O pacote da Juliana fica em dia: eu vou contando as sessões que ela usa.', next:'j5', chip:'Próximo: fecha o caixa', cta:'Ver a próxima'}},
+  j5:{ title:'Fecha o caixa do dia', sub:'O que entrou, o que saiu, e o atendimento que você esqueceu de anotar.', client:false,
+    steps:['Vê o saldo do dia','Anota um atendimento que já aconteceu','Anota uma saída'],
+    done:{title:'É assim que o dia fecha.', msg:'Os atendimentos feitos entram sozinhos. O que você esqueceu de anotar dá pra registrar depois, sem mandar mensagem pra cliente. E você só anota o que não é atendimento, como a compra de material.', next:null, cta:'Concluir'}},
 };
 const ORDER=['j1','j2','j3','j4','j5'];
 /* [prod] slugs estáveis dos passos (mesma ordem de J[j].steps, "passo X de N" do coach). Mudou o tour? Mantenha os slugs antigos. */
@@ -201,7 +201,7 @@ function homeScreen(){
     cards=`<div class="hcard"><div class="a-eyebrow" style="margin-bottom:6px">Hoje</div><div class="a-section">3 horários · 2 confirmaram</div>${todayRows([['09:00','Juliana · Mão e pé','ok'],['10:30','Camila · Escova','ok'],['11:30','Paula · Escova','rem']])}</div>`+
       (!S.percebeDone ? `<div class="hcard"><div class="a-eyebrow" style="margin-bottom:6px">Percebi</div><div style="font-weight:600;font-size:15px">Hoje, das 14h às 17h, está livre no app.</div><div class="a-body" style="margin-top:4px">Quer que eu prepare a mensagem pra divulgar?</div>
         <div style="display:flex;gap:8px;margin-top:10px"><button class="hbtn${hint(S.step===0)}" style="margin:0;flex:1" data-a="j3-prep">Preparar mensagem</button><button class="hghost" data-a="noop">Agora não</button></div>
-        <p class="info-note"><span aria-hidden="true">ⓘ</span> aparece quando sua agenda estiver no app</p></div>` : '');
+        <p class="info-note"><span aria-hidden="true">ⓘ</span> esse aviso aparece quando você usa a agenda no app</p></div>` : '');
   } else if(m==='j4'){
     status='Hoje eu lembrei 3 clientes e 2 já confirmaram'; bell=1;
     const rows=[]; if(S.jf.a==='pending')rows.push(['a','09:00','Juliana Reis','Mão e pé']); if(S.jf.b==='pending')rows.push(['b','10:30','Camila Torres','Escova']);
@@ -276,7 +276,7 @@ function svcFormScreen(){
         <div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1"><div class="flabel">Preço</div><div class="field locked">${brl(s.price)}</div></div><div style="flex:1"><div class="flabel">Duração</div><div class="field locked">${dur(s.min)}</div></div></div></div>
       <div class="fcard"><button class="ab-switch${hint(!S.depOn)}" role="switch" aria-checked="${S.depOn}" aria-label="Exigir sinal" data-a="j2-dep"><span class="tx"><b style="font-size:18px;font-weight:700">Exigir sinal</b><small>A cliente paga um sinal por PIX no link para confirmar o horário.</small></span><span class="track"></span></button>
         ${S.depOn?`<div style="margin-top:16px"><div class="flabel">Valor do sinal (R$) *</div><div class="chips">${vals.map(v=>`<button class="chip${hint(!S.depVal&&v===2000)}" aria-pressed="${S.depVal===v}" data-a="j2-depval" data-v="${v}">${brl(v)}</button>`).join('')}</div><p class="a-body" style="margin:8px 0 0">No app você digita o valor.</p>${prev}</div>`:''}
-        <p class="info-note"><span aria-hidden="true">ⓘ</span> Vale para quem marca pelo seu link, em serviço avulso. Precisa da sua chave Pix no perfil.</p></div>
+        <p class="info-note"><span aria-hidden="true">ⓘ</span> Vale para quem marca pelo seu link, em serviço simples (não vale para combo). Precisa da sua chave Pix no perfil.</p></div>
     </div></div><div class="ffoot"><button class="cancel" data-a="noop">Cancelar</button><button class="create${hint(S.depOn&&S.depVal)}" data-a="j2-save-svc">${ic('save','#fff',20)}Salvar</button></div></div>${overlays()}</div>`;
 }
 function shareSheet(kind){
@@ -284,7 +284,7 @@ function shareSheet(kind){
   return ()=>sheetWrap('Mensagem pronta', `<p class="a-body" style="margin:0 0 10px;font-size:14px">É só escolher pra onde mandar.</p>
     <div class="bubble from-salon" style="max-width:100%;border:1px solid var(--line)">${text}\n${LINK_VAR}</div>
     <div style="display:flex;gap:8px;margin-top:12px"><button class="hbtn${hint(kind==='dia')}" style="margin:0;flex:1" data-a="${kind==='dia'?'j3-status':'noop'}">Pôr no meu status</button><button class="hbtn${hint(kind!=='dia')}" style="margin:0;flex:1" data-a="${kind==='dia'?'noop':'j2-send'}">Mandar pra cliente</button></div>
-    <p class="a-body" style="margin:10px 0 0">${kind==='dia'?'No app, você troca o texto ou escreve do seu jeito.':'Neste teste, ela vai só pra Marina, que é de exemplo.'}</p>`);
+    <p class="a-body" style="margin:10px 0 0">${kind==='dia'?'No app, você troca o texto ou escreve do seu jeito.':'Neste teste, a mensagem vai só pra Marina, que é cliente de exemplo.'}</p>`);
 }
 function contaScreen(){
   return `<div class="app"><div class="cx-head"><button class="back" data-a="noop" aria-label="Voltar">${ic('back','#213745',22)}</button><h4>Conta Agenda Bela</h4></div>
@@ -432,11 +432,11 @@ function coachText(){
   const goClient='Toca em <b>Celular da Marina</b> pra ver.', goOwner='Toca em <b>Seu celular</b> pra ver.';
   if(j==='j1'){
     if(st===0) return ['Vamos marcar a Marina? Toca em <b>Marcar um horário</b>.'];
-    if(st===1) return [!S.svcs.length?'Escolhe o serviço. A Marina já está preenchida, ela é de exemplo.':'Ela vai fazer mais de uma coisa? Toca em <b>+ Adicionar serviço</b> e põe <b>Mão e pé</b>. Eu somo o tempo e o valor.'];
+    if(st===1) return [!S.svcs.length?'Escolhe o serviço. Os dados da Marina já estão preenchidos, ela é cliente de exemplo.':'Ela vai fazer mais de um serviço? Toca em <b>+ Adicionar serviço</b> e põe <b>Mão e pé</b>. Eu somo o tempo e o valor.'];
     if(st===2) return [!S.time?'Agora o horário. Eu só mostro o que está livre.':'Tudo certo. Toca em <b>Criar</b>.'];
     if(st===3) return [cc?'Essa mensagem eu mandei sozinha, direto pro WhatsApp da Marina, no instante em que você criou.':'Prontinho, está na agenda. '+goClient, cc?{label:'Avançar para o dia do atendimento', a:'j1-dayof'}:null];
     if(st===4){
-      if(!S.confirmed) return [cc?'É o dia. Às 7h eu lembrei a Marina, e às 7h30 te mandei o bom-dia. Toca em <b>Confirmar</b>, como se fosse ela.':'É o dia. Às 7h30 te mandei o bom-dia com a agenda. Agora '+goClient.toLowerCase()];
+      if(!S.confirmed) return [cc?'É o dia. Às 7h eu lembrei a Marina, e às 7h30 te mandei o bom-dia. Toca em <b>Confirmar</b>, como se fosse ela.':'É o dia. Às 7h30 te mandei o bom-dia com a agenda. Agora '+goClient.replace(/^T/,'t')];
       return [oc?'Ela confirmou e eu te avisei no mesmo minuto. Agora é só atender tranquila.':'Ela confirmou. '+goOwner, oc?{label:'Concluir', a:'finish'}:null];
     }
   }
@@ -448,7 +448,7 @@ function coachText(){
     if(st===4) return [oc?(S.owner==='conta'?'Olha o sinal da Marina, já sem as taxas. Você saca pra sua chave Pix quando quiser.':'Chegaram dois avisos. Toca no do <b>sinal</b>.'):'Ela pagou. '+goOwner, oc&&S.owner==='conta'?{label:'Concluir', a:'finish'}:null];
   }
   if(j==='j3'){
-    if(st===0) return ['De manhã eu lembrei suas clientes e te conto ali em cima. Vê o <b>Percebi</b>? A tarde está livre no app. Toca em <b>Preparar mensagem</b>.'];
+    if(st===0) return ['De manhã eu lembrei suas clientes e te contei ali em cima. Olha o <b>Percebi</b>: sua tarde está livre. Toca em <b>Preparar mensagem</b>.'];
     if(st===1) return [S.sheet?'Deixei o texto pronto. Toca em <b>Pôr no meu status</b>.':'Combinado. Agora toca no <b>sino</b>: lá fica guardado tudo o que eu fiz.'];
     if(st===2) return ['Aqui fica tudo dos últimos 30 dias: quem confirmou, quem eu lembrei, quem marcou e quem pagou.', {label:'Concluir', a:'finish'}];
   }
@@ -457,7 +457,7 @@ function coachText(){
     if(st===1) return ['A Camila não apareceu. Toca em <b>Não veio</b>. Eu anoto a falta na ficha dela.'];
     if(st===2) return ['A Juliana vem todo mês. Que tal vender um pacote pra ela?', {label:'Abrir a ficha da Juliana', a:'j4-ficha'}];
     if(st===3) return [S.owner==='pkform'?'Escolhe o nome, as sessões e quanto ela pagou. Depois, <b>Criar pacote</b>.':'Toca em <b>+ Novo pacote</b>.'];
-    if(st===4) return [S.pkUsed?'Uma sessão usada, eu conto o resto.':'Pacote criado e o valor já entrou no caixa. Toca em <b>Usar 1 sessão</b> pra marcar a de hoje.', S.pkUsed?{label:'Concluir', a:'finish'}:null];
+    if(st===4) return [S.pkUsed?'Pronto, uma sessão usada. Eu conto quantas faltam.':'Pacote criado e o valor já entrou no caixa. Toca em <b>Usar 1 sessão</b> pra marcar a de hoje.', S.pkUsed?{label:'Concluir', a:'finish'}:null];
   }
   if(j==='j5'){
     if(st===0) return ['Esse é o saldo do dia. Os atendimentos feitos entraram sozinhos, e o pacote da Juliana também.', {label:'Entendi', a:'j5-next'}];
@@ -465,7 +465,7 @@ function coachText(){
       if(S.owner==='caixa') return ['Atendeu alguém e esqueceu de anotar? Dá pra registrar depois.', {label:'Registrar atendimento que já aconteceu', a:'j5-past'}];
       return [!S.past?'Liga o <b>Esse atendimento já aconteceu</b>.':!S.time?'Escolhe o horário em que você atendeu. A cliente não recebe mensagem.':'Toca em <b>Criar</b>.'];
     }
-    if(st===2) return [S.outSaved?'Saída lançada. O saldo já mudou.':'Comprou material? Toca em <b>− Saída</b>.', S.outSaved?{label:'Concluir', a:'finish'}:null];
+    if(st===2) return [S.outSaved?'Saída anotada. O saldo já mudou.':'Comprou material? Toca em <b>− Saída</b>.', S.outSaved?{label:'Concluir', a:'finish'}:null];
   }
   return [''];
 }
@@ -473,7 +473,7 @@ function coachText(){
 /* ================= render ================= */
 function jcards(){ return ORDER.map((k,i)=>`<li><button class="jcard${completed.has(k)?' done':''}${i===0&&!completed.has(k)?' first':''}" data-open="${k}">${i===0&&!completed.has(k)?'<span class="tag">Comece por aqui</span>':''}<b>${J[k].title}</b><span>${J[k].sub}</span>${completed.has(k)?'<span class="sr">Concluída</span>':''}</button></li>`).join(''); }
 function renderMenuLists(){ $('#jlistMobile').innerHTML=jcards(); $('#countMobile').textContent=completed.size+' de 5'; }
-function qrHtml(){ return `<div class="qrbox"><img class="qr-img" src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="84" height="84"><div><b style="color:var(--petroleo)">Abra no celular</b> para a experiência completa.</div></div>`; }
+function qrHtml(){ return `<div class="qrbox"><img class="qr-img" src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="84" height="84"><div><b style="color:var(--petroleo)">Abra no celular</b> para testar do jeito que você vai usar.</div></div>`; }
 const belaRow = inner => `<div class="bela-row"><span class="bela-av" aria-hidden="true">A</span><div class="bela-say"><div class="bela-name">Bela</div>${inner}</div></div>`;
 function render(){
   sim.classList.toggle('menu-mode', !S.j);
@@ -485,7 +485,7 @@ function render(){
       <ul class="jlist">${jcards()}</ul>${completed.size>=3?'<p style="margin:14px 0 0;color:var(--petroleo);font-weight:600">Você já viu o essencial. Falta só colocar as suas clientes.</p>':''}</div>${qrHtml()}`;
   } else {
     const [txt,act]=coachText(), jd=J[S.j];
-    coach.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="jt" style="flex:1">${jd.title} · passo ${S.step+1} de ${jd.steps.length}</div><button class="jbtn" data-a="menu">Jornadas</button></div>
+    coach.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="jt" style="flex:1">${jd.title} · passo ${S.step+1} de ${jd.steps.length}</div><button class="jbtn" data-a="menu">Menu</button></div>
       <div style="margin-top:8px">${belaRow(`<p class="instr" style="margin:0">${txt}</p>`)}</div>
       ${act?`<div class="act"><button class="btn btn-primary" data-a="${act.a}">${act.label}</button></div>`:''}
       <div class="dots" aria-hidden="true">${jd.steps.map((_,i)=>`<i class="${i<=S.step?'on':''}"></i>`).join('')}</div>
@@ -570,13 +570,13 @@ function finish(){
     <div class="storetile" style="margin:0 0 12px"><img class="appicon" src="${ASSET.icon}" alt="" width="44" height="44"><div><b>Agenda Bela</b><small>${completed.size>=3?'Você já viu o essencial. ':''}iPhone e Android · 7 dias grátis</small></div></div>
     <a class="btn btn-primary btn-block" href="${storeHref()}" data-store="conclusao" data-dl>Baixar e começar meus 7 dias grátis</a>
     <div class="stores-row small">${storeBadges()}</div>
-    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver a próxima jornada →':'Ver todas as jornadas →'}</button></div></div>`;
+    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver o próximo teste →':'Ver tudo o que dá para testar →'}</button></div></div>`;
   later(()=>{const b=$('#doneOv .btn'); b&&b.focus({preventScroll:true});},30);
 }
 
 /* ================= ações ================= */
 const A={
-  noop(){ toast('Neste teste, este toque não faz nada. Siga o que a Bela indicou em cima.'); },
+  noop(){ toast('Neste teste, esse toque não faz nada. Siga o que a Bela mostrou lá em cima.'); },
   exit(){ if(isDesk()) startJourney(null,undefined,'sair'); else if(history.state&&history.state.sim){ exitReason='sair'; history.back(); } else closeSim('sair'); },
   menu(){ startJourney(null); }, next(el){ startJourney(el.dataset.v); }, finish(){ finish(); }, tab(el){ setTab(el.dataset.v); },
   'close-sheet'(el,ev){ if(el.dataset.self && ev.target!==el) return; S.sheet=null; render(); },
@@ -636,7 +636,7 @@ const A={
   'j4-newpk'(){ if(S.pkCreated) return; S.owner='pkform'; render(); },
   'j4-backficha'(){ S.owner='ficha'; render(); },
   'j4-f'(el){ const k=el.dataset.k, v=el.dataset.v; S[k]= (k==='pkSess'||k==='pkPaid')?Number(v):v; render(); },
-  'j4-createpk'(){ if(!S.pkName||!S.pkSess){ toast('Escolhe o nome e as sessões.'); return; } if(S.pkPaid&&!S.pkMethod){ toast('Escolha cartão, Pix ou dinheiro'); return; } S.pkCreated=true; S.owner='ficha'; S.step=4; render(); },
+  'j4-createpk'(){ if(!S.pkName||!S.pkSess){ toast('Escolhe o nome e as sessões.'); return; } if(S.pkPaid&&!S.pkMethod){ toast('Escolhe cartão, Pix ou dinheiro.'); return; } S.pkCreated=true; S.owner='ficha'; S.step=4; render(); },
   'j4-use'(){ if(S.pkUsed<S.pkSess) S.pkUsed++; render(); },
   /* J5 */
   'j5-next'(){ S.step=1; render(); },

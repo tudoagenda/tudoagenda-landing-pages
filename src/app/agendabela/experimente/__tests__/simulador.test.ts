@@ -338,7 +338,7 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     expect(document.getElementById("clientScreen")?.innerHTML).toBe(before);
     expect(events).toHaveLength(n);
     // o toque mostra o aviso padrão do teste, sem texto novo
-    expect(document.getElementById("toast")?.textContent).toContain("Neste teste, este toque não faz nada.");
+    expect(document.getElementById("toast")?.textContent).toContain("Neste teste, esse toque não faz nada.");
   });
 
   it("J2 completa sempre passa por cliente_paga_sinal, sem passo pulado", () => {
@@ -549,7 +549,7 @@ describe("Experimente o Agenda Bela: chaves estáveis no GTM e troca por fragmen
       [1, undefined],
       [5, "deep_link"],
     ]);
-    expect(document.querySelector("#coach .jt")?.textContent).toContain("Feche o caixa");
+    expect(document.querySelector("#coach .jt")?.textContent).toContain("Fecha o caixa");
   });
 });
 

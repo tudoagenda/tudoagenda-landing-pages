@@ -31,7 +31,7 @@ const spaceMono = Space_Mono({
 const pageUrl = "https://tudoagenda.com.br/agendabela/experimente";
 const title = "Experimente o Agenda Bela";
 const description =
-  "Experimente o Agenda Bela: teste as telas do app com clientes de exemplo, sem criar conta. Nada é enviado.";
+  "Teste o Agenda Bela no celular, sem criar conta. Marque uma cliente de exemplo e veja a confirmação e o lembrete que ela recebe no WhatsApp. Nada é enviado de verdade.";
 
 export const metadata: Metadata = {
   title: { absolute: title },
