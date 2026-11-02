@@ -115,8 +115,8 @@ const J = {
     steps:['Liga o sinal no serviço','Manda seu link','A Marina escolhe o horário','Ela paga o sinal no Pix','O aviso e o dinheiro chegam pra você'],
     done:{title:'Ela marcou e pagou sozinha.', msg:'A Marina escolheu o horário pelo seu link e pagou o sinal no Pix. O horário já está na sua agenda e o dinheiro, no seu saldo. Você não parou o atendimento.', next:'j3', chip:'Próximo: tudo o que eu te conto', cta:'Ver a próxima'}},
   j3:{ title:'A Bela te conta tudo', sub:'O que eu fiz e o que suas clientes fizeram, e uma mensagem pronta para divulgar quando sobra horário.', client:false,
-    steps:['Vê minha sugestão','Divulga em um toque','Abre as novidades'],
-    done:{title:'Eu te conto tudo.', msg:'Quem marcou, quem confirmou e o que eu mandei fica guardado nas novidades. Quando sua tarde está livre na agenda, eu deixo a mensagem pronta pra você divulgar.', next:'j4', chip:'Próximo: cuida das suas clientes', cta:'Ver a próxima'}},
+    steps:['Vê minha sugestão','Divulga em um toque','Abre as Novidades'],
+    done:{title:'Eu te conto tudo.', msg:'Quem marcou, quem confirmou e o que eu mandei fica guardado nas Novidades. Quando sua tarde está livre na agenda, eu deixo a mensagem pronta pra você divulgar.', next:'j4', chip:'Próximo: cuida das suas clientes', cta:'Ver a próxima'}},
   j4:{ title:'Cuida das suas clientes', sub:'Marca quem veio e quem faltou, abre a ficha da cliente e vende um pacote de sessões.', client:false,
     steps:['Marca quem veio','Marca quem faltou','Abre a ficha da cliente','Cria um pacote','Usa uma sessão'],
     done:{title:'Ficha em dia.', msg:'Quem veio entra no caixa e quem faltou fica anotado na ficha. O pacote da Juliana fica em dia: eu vou contando as sessões que ela usa.', next:'j5', chip:'Próximo: fecha o caixa', cta:'Ver a próxima'}},
@@ -199,9 +199,9 @@ function homeScreen(){
   } else if(m==='j3'){
     status='Hoje eu lembrei 3 clientes e 2 já confirmaram'; bell=S.step>=2?0:3;
     cards=`<div class="hcard"><div class="a-eyebrow" style="margin-bottom:6px">Hoje</div><div class="a-section">3 horários · 2 confirmaram</div>${todayRows([['09:00','Juliana · Mão e pé','ok'],['10:30','Camila · Escova','ok'],['11:30','Paula · Escova','rem']])}</div>`+
-      (!S.percebeDone ? `<div class="hcard"><div class="a-eyebrow" style="margin-bottom:6px">Percebi</div><div style="font-weight:600;font-size:15px">Hoje, das 14h às 17h, está livre no app.</div><div class="a-body" style="margin-top:4px">Quer que eu prepare a mensagem pra divulgar?</div>
+      (!S.percebeDone ? `<div class="hcard"><div class="a-eyebrow" style="margin-bottom:6px">Percebi</div><div style="font-weight:600;font-size:15px">Hoje, das 14h às 17h, sua agenda está livre.</div><div class="a-body" style="margin-top:4px">Quer que eu prepare a mensagem pra divulgar?</div>
         <div style="display:flex;gap:8px;margin-top:10px"><button class="hbtn${hint(S.step===0)}" style="margin:0;flex:1" data-a="j3-prep">Preparar mensagem</button><button class="hghost" data-a="noop">Agora não</button></div>
-        <p class="info-note"><span aria-hidden="true">ⓘ</span> esse aviso aparece quando você usa a agenda no app</p></div>` : '');
+        <p class="info-note"><span aria-hidden="true">ⓘ</span> Esse aviso aparece quando você usa a agenda no app.</p></div>` : '');
   } else if(m==='j4'){
     status='Hoje eu lembrei 3 clientes e 2 já confirmaram'; bell=1;
     const rows=[]; if(S.jf.a==='pending')rows.push(['a','09:00','Juliana Reis','Mão e pé']); if(S.jf.b==='pending')rows.push(['b','10:30','Camila Torres','Escova']);
@@ -432,7 +432,7 @@ function coachText(){
   const goClient='Toca em <b>Celular da Marina</b> pra ver.', goOwner='Toca em <b>Seu celular</b> pra ver.';
   if(j==='j1'){
     if(st===0) return ['Vamos marcar a Marina? Toca em <b>Marcar um horário</b>.'];
-    if(st===1) return [!S.svcs.length?'Escolhe o serviço. Os dados da Marina já estão preenchidos, ela é cliente de exemplo.':'Ela vai fazer mais de um serviço? Toca em <b>+ Adicionar serviço</b> e põe <b>Mão e pé</b>. Eu somo o tempo e o valor.'];
+    if(st===1) return [!S.svcs.length?'Escolhe o serviço. Os dados da Marina já estão preenchidos. Ela é cliente de exemplo.':'Ela vai fazer mais de um serviço? Toca em <b>+ Adicionar serviço</b> e põe <b>Mão e pé</b>. Eu somo o tempo e o valor.'];
     if(st===2) return [!S.time?'Agora o horário. Eu só mostro o que está livre.':'Tudo certo. Toca em <b>Criar</b>.'];
     if(st===3) return [cc?'Essa mensagem eu mandei sozinha, direto pro WhatsApp da Marina, no instante em que você criou.':'Prontinho, está na agenda. '+goClient, cc?{label:'Avançar para o dia do atendimento', a:'j1-dayof'}:null];
     if(st===4){
@@ -473,7 +473,7 @@ function coachText(){
 /* ================= render ================= */
 function jcards(){ return ORDER.map((k,i)=>`<li><button class="jcard${completed.has(k)?' done':''}${i===0&&!completed.has(k)?' first':''}" data-open="${k}">${i===0&&!completed.has(k)?'<span class="tag">Comece por aqui</span>':''}<b>${J[k].title}</b><span>${J[k].sub}</span>${completed.has(k)?'<span class="sr">Concluída</span>':''}</button></li>`).join(''); }
 function renderMenuLists(){ $('#jlistMobile').innerHTML=jcards(); $('#countMobile').textContent=completed.size+' de 5'; }
-function qrHtml(){ return `<div class="qrbox"><img class="qr-img" src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="84" height="84"><div><b style="color:var(--petroleo)">Abra no celular</b> para testar do jeito que você vai usar.</div></div>`; }
+function qrHtml(){ return `<div class="qrbox"><img class="qr-img" src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="84" height="84"><div><b style="color:var(--petroleo)">Abre no celular</b> para testar do jeito que você vai usar.</div></div>`; }
 const belaRow = inner => `<div class="bela-row"><span class="bela-av" aria-hidden="true">A</span><div class="bela-say"><div class="bela-name">Bela</div>${inner}</div></div>`;
 function render(){
   sim.classList.toggle('menu-mode', !S.j);
@@ -576,7 +576,7 @@ function finish(){
 
 /* ================= ações ================= */
 const A={
-  noop(){ toast('Neste teste, esse toque não faz nada. Siga o que a Bela mostrou lá em cima.'); },
+  noop(){ toast('Neste teste, esse toque não faz nada. Segue o que a Bela mostrou lá em cima.'); },
   exit(){ if(isDesk()) startJourney(null,undefined,'sair'); else if(history.state&&history.state.sim){ exitReason='sair'; history.back(); } else closeSim('sair'); },
   menu(){ startJourney(null); }, next(el){ startJourney(el.dataset.v); }, finish(){ finish(); }, tab(el){ setTab(el.dataset.v); },
   'close-sheet'(el,ev){ if(el.dataset.self && ev.target!==el) return; S.sheet=null; render(); },
