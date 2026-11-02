@@ -15,7 +15,7 @@ describe("HeroComponent", () => {
       </QueryClientProvider>
     );
     expect(
-      screen.getByText("Tem alguém cuidando da sua agenda agora.")
+      screen.getByText("A Bela cuida da sua agenda enquanto você atende.")
     ).toBeInTheDocument();
   });
 });

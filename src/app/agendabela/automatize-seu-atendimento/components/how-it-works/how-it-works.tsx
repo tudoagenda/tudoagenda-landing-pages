@@ -15,21 +15,21 @@ interface Step {
 const steps: Step[] = [
   {
     number: "1",
-    title: "Cadastra seu salão em 5 minutos",
+    title: "Cadastre seu salão",
     description:
-      "Pelo celular, sem complicação. Você cria os profissionais, os serviços com preço e duração, e pronto — tá no ar.",
+      "Pelo celular. Você cadastra as profissionais, os serviços com preço e duração, e seu link de agendamento já fica pronto.",
   },
   {
     number: "2",
-    title: "Marca agendamentos no app",
+    title: "Você marca, ou sua cliente marca pelo seu link",
     description:
-      "Toda vez que você marca um horário, o cliente recebe a confirmação no WhatsApp dele. Sem você apertar nada.",
+      "Assim que o horário é marcado, sua cliente recebe a confirmação no WhatsApp. Você não precisa mandar mensagem.",
   },
   {
     number: "3",
-    title: "A gente cuida do dia a dia",
+    title: "A Bela lembra sua cliente e avisa você",
     description:
-      "Toda manhã, seu cliente recebe o lembrete do horário do dia. Você acorda com a agenda pronta no celular.",
+      "No dia do horário, sua cliente recebe o lembrete e pode confirmar, remarcar ou cancelar. Você recebe a agenda do dia e é avisada de cada resposta.",
   },
 ];
 
@@ -42,7 +42,7 @@ export const HowItWorksComponent = () => {
             Sem complicação
           </span>
           <h2 className="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[34px] md:text-[44px] md:leading-[46px] tracking-[-0.025em] max-w-[18ch]">
-            Em 5 minutos a sua secretária tá trabalhando.
+            Em poucos minutos a Bela já está trabalhando para você.
           </h2>
         </div>
 

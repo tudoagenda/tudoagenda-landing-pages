@@ -1,20 +1,23 @@
 "use client";
 
 import { ReactNode } from "react";
+import { WhatsAppQuickReplies } from "./client-reminder";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // <WhatsAppCard />
 //
 // Versão configurável e mais compacta do WhatsAppPreview pra usar dentro dos
 // cards de feature. Aceita props pra customizar contato, avatar e mensagens.
-// Mensagens são SEMPRE recebidas (bubble branca à esquerda) — fluxo unilateral
-// do produto. Sem input no rodapé (não cabe no card pequeno).
+// Mensagens são recebidas (bubble branca à esquerda); `buttons` mostra os
+// botões de resposta rápida abaixo da mensagem (ex.: lembrete da cliente).
+// Sem input no rodapé (não cabe no card pequeno).
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface WhatsAppMessage {
   text: ReactNode;
   time: string;
   delay?: string;
+  buttons?: string[];
 }
 
 interface WhatsAppCardProps {
@@ -64,18 +67,23 @@ export function WhatsAppCard({
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
-            style={{
-              animationDelay: msg.delay ?? `${0.3 + idx * 0.6}s`,
-              boxShadow: "0 1px 0.5px rgba(11,20,26,0.13)",
-            }}
+            className="wa-msg-in self-start max-w-[90%] flex flex-col gap-1"
+            style={{ animationDelay: msg.delay ?? `${0.3 + idx * 0.6}s` }}
           >
-            <div className="font-inter text-[10.5px] leading-[14px] text-[#111B21]">
-              {msg.text}
+            <div
+              className="rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+              style={{ boxShadow: "0 1px 0.5px rgba(11,20,26,0.13)" }}
+            >
+              <div className="font-inter text-[10.5px] leading-[14px] text-[#111B21]">
+                {msg.text}
+              </div>
+              <span className="block text-right font-inter text-[8px] text-[#667781] mt-0.5">
+                {msg.time}
+              </span>
             </div>
-            <span className="block text-right font-inter text-[8px] text-[#667781] mt-0.5">
-              {msg.time}
-            </span>
+            {msg.buttons && msg.buttons.length > 0 && (
+              <WhatsAppQuickReplies buttons={msg.buttons} size="sm" />
+            )}
           </div>
         ))}
       </div>

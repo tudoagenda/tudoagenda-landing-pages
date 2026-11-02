@@ -5,7 +5,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
   <script
     type="application/ld+json"
   >
-    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/brand/agenda-bela/social-preview.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
+    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/brand/agenda-bela/social-preview.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
   </script>
   <main
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
@@ -56,18 +56,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
           <h1
             class="font-fraunces italic font-normal text-brand-petroleo text-[38px] leading-[40px] md:text-[60px] md:leading-[62px] lg:text-[68px] lg:leading-[68px] tracking-[-0.035em] max-w-[18ch]"
           >
-            Tem alguém cuidando da sua agenda agora.
+            A Bela cuida da sua agenda enquanto você atende.
           </h1>
           <p
             class="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]"
           >
-            A gente avisa seu cliente no WhatsApp toda vez que ele agenda, e lembra ele no dia. Você recebe a agenda do dia direto no celular. Você fica com o que faz melhor: 
+            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou remarca com um toque, e você é avisada. 
             <span
               class="text-brand-petroleo font-medium"
             >
-              atender bem
+              Tranquilidade para você atender.
             </span>
-            .
           </p>
           <ul
             class="flex flex-col gap-2.5 -mt-1"
@@ -81,7 +80,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                 ✓
               </span>
               <span>
-                Confirmação automática no WhatsApp do cliente
+                Sua cliente recebe a confirmação no WhatsApp assim que você marca
               </span>
             </li>
             <li
@@ -93,7 +92,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                 ✓
               </span>
               <span>
-                Lembrete pro cliente no dia do horário
+                No dia, ela recebe o lembrete com botões para confirmar, remarcar ou cancelar
               </span>
             </li>
             <li
@@ -105,7 +104,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                 ✓
               </span>
               <span>
-                Agenda do dia direto no seu celular toda manhã
+                Toda manhã você recebe a agenda do dia no celular, e um aviso quando uma cliente confirma
               </span>
             </li>
           </ul>
@@ -115,7 +114,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
             <span
               class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-ink-muted"
             >
-              Comece em 30 segundos
+              Comece agora, é rápido
             </span>
             <div
               class="flex flex-col md:flex-row gap-2 w-full"
@@ -135,7 +134,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
               >
                 7 dias grátis.
               </strong>
-               Cancela quando quiser.
+               Cancele quando quiser.
             </p>
           </div>
         </div>
@@ -307,28 +306,52 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                   </span>
                 </div>
                 <div
-                  class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                  style="animation-delay: 1.6s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                  class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
+                  style="animation-delay: 1.6s;"
                 >
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                  <div
+                    class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
+                    style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                   >
-                    🔔 Bom dia, Camila!
-                  </p>
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21] mt-1"
+                    <p
+                      class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                    >
+                      🔔 Bom dia, Camila!
+                      <br />
+                      Lembrando que hoje você tem horário às 
+                      <strong>
+                        15h
+                      </strong>
+                       com a Paula 💜
+                    </p>
+                    <span
+                      class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
+                    >
+                      07:00
+                    </span>
+                  </div>
+                  <div
+                    class="flex flex-col gap-1 w-full"
                   >
-                    Lembrando que hoje você tem horário às 
-                    <strong>
-                      15h
-                    </strong>
-                     com a Paula.
-                  </p>
-                  <span
-                    class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
-                  >
-                    07:00
-                  </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Confirmar
+                    </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Remarcar
+                    </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Cancelar
+                    </span>
+                  </div>
                 </div>
               </div>
               <div
@@ -379,7 +402,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
         >
           7 dias grátis.
         </strong>
-         Cancela quando quiser.
+         Cancele quando quiser.
       </p>
     </div>
   </div>
@@ -406,7 +429,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
   <script
     type="application/ld+json"
   >
-    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/brand/agenda-bela/social-preview.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
+    {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://tudoagenda.com.br/#organization","name":"Tudo Agenda","url":"https://tudoagenda.com.br","logo":"https://tudoagenda.com.br/brand/tudo-agenda/favicon.png"},{"@type":"SoftwareApplication","@id":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software","name":"Agenda Bela","alternateName":"AgendaBela","applicationCategory":"BusinessApplication","operatingSystem":"iOS, Android","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento","image":"https://tudoagenda.com.br/brand/agenda-bela/social-preview.png","description":"Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.","featureList":["Confirmação automática de agendamentos no WhatsApp","Lembretes automáticos para clientes","Agenda diária enviada para a profissional","Cadastro de profissionais, serviços e horários","Relatórios de faturamento e serviços"],"audience":{"@type":"Audience","audienceType":"Profissionais de beleza feminina, manicures, cabeleireiras, esteticistas e salões pequenos"},"brand":{"@type":"Brand","name":"Agenda Bela"},"publisher":{"@id":"https://tudoagenda.com.br/#organization"},"offers":{"@type":"Offer","price":"59.90","priceCurrency":"BRL","availability":"https://schema.org/InStock","url":"https://tudoagenda.com.br/agendabela/automatize-seu-atendimento"}}]}
   </script>
   <main
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pt-6 md:pt-10 pb-32 md:pb-20"
@@ -457,18 +480,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <h1
             class="font-fraunces italic font-normal text-brand-petroleo text-[38px] leading-[40px] md:text-[60px] md:leading-[62px] lg:text-[68px] lg:leading-[68px] tracking-[-0.035em] max-w-[18ch]"
           >
-            Tem alguém cuidando da sua agenda agora.
+            A Bela cuida da sua agenda enquanto você atende.
           </h1>
           <p
             class="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]"
           >
-            A gente avisa seu cliente no WhatsApp toda vez que ele agenda, e lembra ele no dia. Você recebe a agenda do dia direto no celular. Você fica com o que faz melhor: 
+            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou remarca com um toque, e você é avisada. 
             <span
               class="text-brand-petroleo font-medium"
             >
-              atender bem
+              Tranquilidade para você atender.
             </span>
-            .
           </p>
           <ul
             class="flex flex-col gap-2.5 -mt-1"
@@ -482,7 +504,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                 ✓
               </span>
               <span>
-                Confirmação automática no WhatsApp do cliente
+                Sua cliente recebe a confirmação no WhatsApp assim que você marca
               </span>
             </li>
             <li
@@ -494,7 +516,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                 ✓
               </span>
               <span>
-                Lembrete pro cliente no dia do horário
+                No dia, ela recebe o lembrete com botões para confirmar, remarcar ou cancelar
               </span>
             </li>
             <li
@@ -506,7 +528,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                 ✓
               </span>
               <span>
-                Agenda do dia direto no seu celular toda manhã
+                Toda manhã você recebe a agenda do dia no celular, e um aviso quando uma cliente confirma
               </span>
             </li>
           </ul>
@@ -516,7 +538,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <span
               class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-ink-muted"
             >
-              Comece em 30 segundos
+              Comece agora, é rápido
             </span>
             <form
               class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
@@ -543,7 +565,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
               >
                 7 dias grátis.
               </strong>
-               Cancela quando quiser.
+               Cancele quando quiser.
             </p>
           </div>
         </div>
@@ -715,28 +737,52 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                   </span>
                 </div>
                 <div
-                  class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                  style="animation-delay: 1.6s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                  class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
+                  style="animation-delay: 1.6s;"
                 >
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                  <div
+                    class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
+                    style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                   >
-                    🔔 Bom dia, Camila!
-                  </p>
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21] mt-1"
+                    <p
+                      class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                    >
+                      🔔 Bom dia, Camila!
+                      <br />
+                      Lembrando que hoje você tem horário às 
+                      <strong>
+                        15h
+                      </strong>
+                       com a Paula 💜
+                    </p>
+                    <span
+                      class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
+                    >
+                      07:00
+                    </span>
+                  </div>
+                  <div
+                    class="flex flex-col gap-1 w-full"
                   >
-                    Lembrando que hoje você tem horário às 
-                    <strong>
-                      15h
-                    </strong>
-                     com a Paula.
-                  </p>
-                  <span
-                    class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
-                  >
-                    07:00
-                  </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Confirmar
+                    </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Remarcar
+                    </span>
+                    <span
+                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    >
+                      Cancelar
+                    </span>
+                  </div>
                 </div>
               </div>
               <div
@@ -794,7 +840,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         >
           7 dias grátis.
         </strong>
-         Cancela quando quiser.
+         Cancele quando quiser.
       </p>
     </div>
   </div>
@@ -815,7 +861,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         <h2
           class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[34px] md:text-[44px] md:leading-[46px] tracking-[-0.025em] max-w-[18ch]"
         >
-          Em 5 minutos a sua secretária tá trabalhando.
+          Em poucos minutos a Bela já está trabalhando para você.
         </h2>
       </div>
       <div
@@ -832,12 +878,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <h3
             class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
           >
-            Cadastra seu salão em 5 minutos
+            Cadastre seu salão
           </h3>
           <p
             class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
           >
-            Pelo celular, sem complicação. Você cria os profissionais, os serviços com preço e duração, e pronto — tá no ar.
+            Pelo celular. Você cadastra as profissionais, os serviços com preço e duração, e seu link de agendamento já fica pronto.
           </p>
         </div>
         <div
@@ -851,12 +897,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <h3
             class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
           >
-            Marca agendamentos no app
+            Você marca, ou sua cliente marca pelo seu link
           </h3>
           <p
             class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
           >
-            Toda vez que você marca um horário, o cliente recebe a confirmação no WhatsApp dele. Sem você apertar nada.
+            Assim que o horário é marcado, sua cliente recebe a confirmação no WhatsApp. Você não precisa mandar mensagem.
           </p>
         </div>
         <div
@@ -870,12 +916,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <h3
             class="font-fraunces italic font-normal text-brand-petroleo text-[22px] leading-[26px] tracking-[-0.015em]"
           >
-            A gente cuida do dia a dia
+            A Bela lembra sua cliente e avisa você
           </h3>
           <p
             class="font-inter text-ink-muted text-[14.5px] leading-[22px]"
           >
-            Toda manhã, seu cliente recebe o lembrete do horário do dia. Você acorda com a agenda pronta no celular.
+            No dia do horário, sua cliente recebe o lembrete e pode confirmar, remarcar ou cancelar. Você recebe a agenda do dia e é avisada de cada resposta.
           </p>
         </div>
       </div>
@@ -893,7 +939,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         <span
           class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
         >
-          O que sua secretária faz
+          O que a Bela faz por você
         </span>
         <h2
           class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[40px] md:text-[44px] md:leading-[52px] tracking-[-0.025em]"
@@ -901,7 +947,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <span
             class="block"
           >
-            Cuida das mensagens
+            Avisa suas clientes
           </span>
           <span
             class="block"
@@ -911,7 +957,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <span
             class="block"
           >
-            Mostra o que importa
+            Mostra seu dia e seu caixa
           </span>
         </h2>
       </div>
@@ -931,17 +977,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <span
               class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
             >
-              Confirmação automática
+              Na hora que você marca
             </span>
             <h3
               class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
             >
-              Avisa seu cliente no WhatsApp
+              Sua cliente recebe a confirmação no WhatsApp
             </h3>
             <p
               class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
             >
-              Cada agendamento que você marca, a gente envia uma mensagem no WhatsApp do cliente confirmando. Sem ligar, sem digitar.
+              Toda vez que você marca, a Bela manda a confirmação no WhatsApp da sua cliente. Você não liga e não digita.
             </p>
             <div
               class="mt-2 flex justify-center md:justify-start"
@@ -983,25 +1029,30 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                   style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
                 >
                   <div
-                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
-                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    class="wa-msg-in self-start max-w-[90%] flex flex-col gap-1"
+                    style="animation-delay: 0.4s;"
                   >
                     <div
-                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      class="rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                     >
-                      Oi Camila! ✨ Seu agendamento foi confirmado:
-                      <br />
-                      <strong>
-                        Manicure com Paula
-                      </strong>
-                      <br />
-                      amanhã (sex), 15h
+                      <div
+                        class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      >
+                        Oi Camila! ✨ Seu agendamento foi confirmado:
+                        <br />
+                        <strong>
+                          Manicure com Paula
+                        </strong>
+                        <br />
+                        amanhã (sex), 15h
+                      </div>
+                      <span
+                        class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                      >
+                        14:32
+                      </span>
                     </div>
-                    <span
-                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
-                    >
-                      14:32
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1021,144 +1072,217 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <span
               class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
             >
-              Toda manhã, sem você lembrar
+              Toda manhã, sem você precisar lembrar
             </span>
             <h3
               class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
             >
-              Você recebe a agenda do dia. Seu cliente recebe o lembrete dele.
+              Você recebe a agenda do dia. Sua cliente recebe o lembrete e responde com um toque.
             </h3>
             <p
               class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
             >
-              Cedinho, antes do salão abrir, a gente manda no WhatsApp todos os horários do dia pra você — e lembra cada cliente do horário que ele marcou.
+              Cedinho, antes do salão abrir, você recebe no celular os horários do dia. E cada cliente recebe o lembrete do horário dela. Quando ela confirma, você é avisada.
             </p>
             <div
-              class="mt-2 flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center md:justify-start"
+              class="mt-2 flex flex-col sm:flex-row gap-4 sm:gap-3 items-center sm:items-start justify-center md:justify-start"
             >
               <div
-                class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
-                style="width: 232px;"
+                class="flex flex-col gap-2"
               >
-                <div
-                  class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                <span
+                  class="font-mono-brand text-[9.5px] tracking-[1.5px] uppercase text-ink-muted"
                 >
-                  <span
-                    class="text-white text-[13px] leading-none"
-                  >
-                    ‹
-                  </span>
-                  <div
-                    class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
-                  >
-                    SE
-                  </div>
-                  <div
-                    class="flex-1 min-w-0"
-                  >
-                    <p
-                      class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
-                    >
-                      Salão Estilo · Você
-                    </p>
-                    <p
-                      class="font-inter text-[8.5px] text-white/70 leading-tight"
-                    >
-                      online
-                    </p>
-                  </div>
-                </div>
+                  No seu celular
+                </span>
                 <div
-                  class="px-2.5 py-3 flex flex-col gap-1.5"
-                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
+                  class="flex flex-col gap-2"
+                  style="width: 232px;"
                 >
                   <div
-                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
-                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    class="wa-msg-in flex gap-2 rounded-[14px] bg-white/95 px-2.5 py-2 shadow-brand-md"
+                    style="animation-delay: 0.4s;"
                   >
+                    <img
+                      alt=""
+                      class="h-7 w-7 shrink-0 rounded-[7px]"
+                      data-nimg="1"
+                      decoding="async"
+                      height="28"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fbrand%2Flogo-app.png&w=64&q=75"
+                      srcset="/_next/image?url=%2Fbrand%2Flogo-app.png&w=32&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-app.png&w=64&q=75 2x"
+                      style="color: transparent;"
+                      width="28"
+                    />
                     <div
-                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      class="min-w-0 flex-1"
                     >
-                      🌅 Bom dia, Salão Estilo!
-                      <br />
-                      <strong>
-                        Sua agenda hoje (5 horários):
-                      </strong>
-                      <br />
-                      • 09:00 — Maria · Manicure
-                      <br />
-                      • 10:30 — Joana · Sobrancelha
-                      <br />
-                      • 13:00 — Camila · Pedicure
-                      <br />
-                      • 15:00 — Luzinete · Manicure e pedicure
-                      <br />
-                      • 16:30 — Megui · Banho de petróleo
+                      <div
+                        class="flex items-center justify-between gap-2"
+                      >
+                        <span
+                          class="font-inter text-[9px] font-semibold uppercase tracking-[0.4px] text-[#667781]"
+                        >
+                          Agendabela
+                        </span>
+                        <span
+                          class="font-inter text-[9px] text-[#667781]"
+                        >
+                          07:30
+                        </span>
+                      </div>
+                      <p
+                        class="font-inter text-[11px] font-semibold leading-[14px] text-[#111B21]"
+                      >
+                        Bom dia, Paula! Hoje são 5 horários
+                      </p>
+                      <p
+                        class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      >
+                        Já lembrei as 5 clientes do horário. A primeira é Maria, às 9h. Bom trabalho 💜
+                      </p>
                     </div>
-                    <span
-                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                  </div>
+                  <div
+                    class="wa-msg-in flex gap-2 rounded-[14px] bg-white/95 px-2.5 py-2 shadow-brand-md"
+                    style="animation-delay: 1.2000000000000002s;"
+                  >
+                    <img
+                      alt=""
+                      class="h-7 w-7 shrink-0 rounded-[7px]"
+                      data-nimg="1"
+                      decoding="async"
+                      height="28"
+                      loading="lazy"
+                      src="/_next/image?url=%2Fbrand%2Flogo-app.png&w=64&q=75"
+                      srcset="/_next/image?url=%2Fbrand%2Flogo-app.png&w=32&q=75 1x, /_next/image?url=%2Fbrand%2Flogo-app.png&w=64&q=75 2x"
+                      style="color: transparent;"
+                      width="28"
+                    />
+                    <div
+                      class="min-w-0 flex-1"
                     >
-                      07:00
-                    </span>
+                      <div
+                        class="flex items-center justify-between gap-2"
+                      >
+                        <span
+                          class="font-inter text-[9px] font-semibold uppercase tracking-[0.4px] text-[#667781]"
+                        >
+                          Agendabela
+                        </span>
+                        <span
+                          class="font-inter text-[9px] text-[#667781]"
+                        >
+                          08:12
+                        </span>
+                      </div>
+                      <p
+                        class="font-inter text-[11px] font-semibold leading-[14px] text-[#111B21]"
+                      >
+                        Camila confirmou ✅
+                      </p>
+                      <p
+                        class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      >
+                        Manicure hoje às 15h. Pode atender tranquila.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
               <div
-                class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
-                style="width: 232px;"
+                class="flex flex-col gap-2"
               >
-                <div
-                  class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                <span
+                  class="font-mono-brand text-[9.5px] tracking-[1.5px] uppercase text-ink-muted"
                 >
-                  <span
-                    class="text-white text-[13px] leading-none"
-                  >
-                    ‹
-                  </span>
-                  <div
-                    class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
-                  >
-                    CA
-                  </div>
-                  <div
-                    class="flex-1 min-w-0"
-                  >
-                    <p
-                      class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
-                    >
-                      Camila · Cliente
-                    </p>
-                    <p
-                      class="font-inter text-[8.5px] text-white/70 leading-tight"
-                    >
-                      online
-                    </p>
-                  </div>
-                </div>
+                  No WhatsApp da cliente
+                </span>
                 <div
-                  class="px-2.5 py-3 flex flex-col gap-1.5"
-                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
+                  class="rounded-[14px] overflow-hidden shadow-brand-md bg-white"
+                  style="width: 232px;"
                 >
                   <div
-                    class="wa-msg-in self-start max-w-[90%] rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
-                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    class="flex items-center gap-2 bg-[#075E54] px-2.5 py-2"
+                  >
+                    <span
+                      class="text-white text-[13px] leading-none"
+                    >
+                      ‹
+                    </span>
+                    <div
+                      class="h-6 w-6 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[10px] font-semibold"
+                    >
+                      SE
+                    </div>
+                    <div
+                      class="flex-1 min-w-0"
+                    >
+                      <p
+                        class="font-inter text-[11px] font-semibold text-white leading-tight truncate"
+                      >
+                        Salão Estilo
+                      </p>
+                      <p
+                        class="font-inter text-[8.5px] text-white/70 leading-tight"
+                      >
+                        online
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="px-2.5 py-3 flex flex-col gap-1.5"
+                    style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 28px 28px;"
                   >
                     <div
-                      class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                      class="wa-msg-in self-start max-w-[90%] flex flex-col gap-1"
+                      style="animation-delay: 0.4s;"
                     >
-                      🔔 Bom dia, Camila!
-                      <br />
-                      Hoje você tem horário às 
-                      <strong>
-                        15h
-                      </strong>
-                       com a Paula 💜
+                      <div
+                        class="rounded-[7px] rounded-tl-[2px] bg-white px-2 py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        <div
+                          class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
+                        >
+                          🔔 Bom dia, Camila!
+                          <br />
+                          Lembrando que hoje você tem horário às 
+                          <strong>
+                            15h
+                          </strong>
+                           com a Paula 💜
+                        </div>
+                        <span
+                          class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
+                        >
+                          07:00
+                        </span>
+                      </div>
+                      <div
+                        class="flex flex-col gap-1 w-full"
+                      >
+                        <span
+                          class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[10.5px] py-1"
+                          style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                        >
+                          Confirmar
+                        </span>
+                        <span
+                          class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[10.5px] py-1"
+                          style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                        >
+                          Remarcar
+                        </span>
+                        <span
+                          class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[10.5px] py-1"
+                          style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                        >
+                          Cancelar
+                        </span>
+                      </div>
                     </div>
-                    <span
-                      class="block text-right font-inter text-[8px] text-[#667781] mt-0.5"
-                    >
-                      07:00
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1183,12 +1307,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <h3
               class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
             >
-              Te entrega o dia pronto, no celular
+              Seu dia pronto no celular
             </h3>
             <p
               class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
             >
-              Você acorda e abre o app: aparece quanto vai entrar hoje, quantos clientes tem, quem é o próximo. Sem caderno, sem planilha.
+              Abra o app e veja quanto deve entrar hoje, quantas clientes você atende e quem é a próxima. Sem caderno, sem planilha.
             </p>
             <div
               class="mt-2 flex justify-center md:justify-start"
@@ -1233,12 +1357,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <h3
               class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
             >
-              Mostra o que importa do salão
+              Quanto você faturou
             </h3>
             <p
               class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
             >
-              Faturamento do mês, dias mais movimentados, serviços que mais saem, ranking dos profissionais. Tudo num toque.
+              Faturamento do mês, dias mais cheios, serviços que mais saem e ranking das profissionais.
             </p>
             <div
               class="mt-2 flex justify-center md:justify-start"
@@ -1269,6 +1393,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
     </div>
   </section>
   <section
+    aria-labelledby="avaliacoes-titulo"
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-16 md:py-24"
   >
     <div
@@ -1280,18 +1405,19 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
         <span
           class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
         >
-          Quem já tem secretária
+          Quem já usa a Bela
         </span>
         <h2
           class="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[36px] md:text-[44px] md:leading-[48px] tracking-[-0.025em] max-w-[22ch]"
+          id="avaliacoes-titulo"
         >
-          Donas de salão que dormem mais tranquilas.
+          Avaliações de quem já usa
         </h2>
       </div>
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 max-w-4xl mx-auto"
       >
-        <article
+        <figure
           class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
         >
           <span
@@ -1303,29 +1429,24 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <blockquote
             class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
           >
-            Antes vivia esquecendo de confirmar horário com cliente. Agora chega tudo no WhatsApp delas automático. Meu no-show caiu pela metade no primeiro mês.
+            Sou manicure e estava procurando uma forma mais prática de organizar meus horários. Está facilitando bastante minha rotina, principalmente nos dias mais corridos. Fácil de usar e bem organizado…
           </blockquote>
-          <div
+          <figcaption
             class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
           >
-            <p
-              class="font-semibold text-ink"
+            <span
+              class="block font-semibold text-ink"
             >
-              Mariana Helena
-            </p>
-            <p
-              class="text-ink-muted"
+              Cintia
+            </span>
+            <span
+              class="block text-ink-muted"
             >
-              Salão Bela Mari
-            </p>
-            <p
-              class="text-ink-subtle text-[12px] mt-0.5"
-            >
-              Sorocaba — SP
-            </p>
-          </div>
-        </article>
-        <article
+              App Store · set/2026
+            </span>
+          </figcaption>
+        </figure>
+        <figure
           class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
         >
           <span
@@ -1337,96 +1458,23 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <blockquote
             class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
           >
-            Comecei usando só pra receber lembrete da agenda do dia. Em uma semana já tava economizando uma hora por dia que eu gastava respondendo WhatsApp.
+            Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos. É simples de mexer, rápido e tem tudo bem explicado…
           </blockquote>
-          <div
+          <figcaption
             class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
           >
-            <p
-              class="font-semibold text-ink"
+            <span
+              class="block font-semibold text-ink"
             >
-              Carla Andrade
-            </p>
-            <p
-              class="text-ink-muted"
+              Tatiane C.
+            </span>
+            <span
+              class="block text-ink-muted"
             >
-              Studio Carla
-            </p>
-            <p
-              class="text-ink-subtle text-[12px] mt-0.5"
-            >
-              Ribeirão Preto — SP
-            </p>
-          </div>
-        </article>
-        <article
-          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
-        >
-          <span
-            aria-hidden="true"
-            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
-          >
-            “
-          </span>
-          <blockquote
-            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
-          >
-            Eu não sabia exatamente quanto faturava no dia. Hoje abro o app de manhã, vejo o número e a agenda pronta. Mudou minha cabeça sobre o negócio.
-          </blockquote>
-          <div
-            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
-          >
-            <p
-              class="font-semibold text-ink"
-            >
-              Patrícia Ramos
-            </p>
-            <p
-              class="text-ink-muted"
-            >
-              Espaço Patty
-            </p>
-            <p
-              class="text-ink-subtle text-[12px] mt-0.5"
-            >
-              Curitiba — PR
-            </p>
-          </div>
-        </article>
-        <article
-          class="flex flex-col gap-4 bg-surface-alt-card rounded-app-lg shadow-brand-xs p-6 border border-surface-alt-border"
-        >
-          <span
-            aria-hidden="true"
-            class="font-fraunces italic text-brand-rosa text-[40px] leading-none -mb-2 -ml-1"
-          >
-            “
-          </span>
-          <blockquote
-            class="font-fraunces italic text-brand-petroleo text-[16px] leading-[24px] tracking-[-0.005em] flex-1"
-          >
-            O cadastro do salão levou uns 5 minutos mesmo. Cadastrei minha filha como profissional e os serviços, e no mesmo dia já tava marcando agendamento.
-          </blockquote>
-          <div
-            class="font-inter text-[13px] leading-[18px] border-t border-surface-alt-border pt-3"
-          >
-            <p
-              class="font-semibold text-ink"
-            >
-              Juliana Costa
-            </p>
-            <p
-              class="text-ink-muted"
-            >
-              Beleza & Cia
-            </p>
-            <p
-              class="text-ink-subtle text-[12px] mt-0.5"
-            >
-              Campinas — SP
-            </p>
-          </div>
-        </article>
+              Google Play · set/2026
+            </span>
+          </figcaption>
+        </figure>
       </div>
     </div>
   </section>

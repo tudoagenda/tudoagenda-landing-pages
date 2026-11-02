@@ -2,16 +2,22 @@
 
 import Image from "next/image";
 import { WhatsAppCard } from "@/components/brand/whatsapp-card";
+import {
+  CLIENT_REMINDER_BUTTONS,
+  CLIENT_REMINDER_TIME,
+  ClientReminderText,
+} from "@/components/brand/client-reminder";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // <FeaturesComponent />
 //
-// "Tudo que sua secretária faz por você" — 4 cards com features reais.
+// "O que a Bela faz por você" — 4 cards com features reais.
 // Mobile-first: stack vertical, cards full-width. Desktop 2x2.
 //
 // Mockups variam por feature:
-//   - Confirmação no WhatsApp: simulação real da mensagem que cliente recebe
-//   - Lembrete do dia: 2 mockups (cliente + dono do salão) — foco no dono
+//   - Confirmação no WhatsApp: simulação da mensagem que a cliente recebe
+//   - Toda manhã: push da dona (bom-dia 07:30 + "{nome} confirmou ✅") e o
+//     lembrete da cliente (07:00) com os botões Confirmar/Remarcar/Cancelar
 //   - Agenda do dia: phone com dashboard real do app (sem zoom/desfoque)
 //   - Painel completo: phone com tela financeira
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,36 +40,66 @@ const confirmacaoCliente = [
 
 const lembreteCliente = [
   {
-    text: (
-      <>
-        🔔 Bom dia, Camila!
-        <br />
-        Hoje você tem horário às <strong>15h</strong> com a Paula 💜
-      </>
-    ),
-    time: "07:00",
+    text: <ClientReminderText />,
+    time: CLIENT_REMINDER_TIME,
     delay: "0.4s",
+    buttons: CLIENT_REMINDER_BUTTONS,
   },
 ];
 
-const lembreteSalao = [
+// Push que a dona recebe no celular. Textos no formato do backend
+// (push-messages.ts: bom-dia das 07:30 e CLIENT_CONFIRMED), com nomes de
+// exemplo.
+const avisosDona = [
   {
-    text: (
-      <>
-        🌅 Bom dia, Salão Estilo!
-        <br />
-        <strong>Sua agenda hoje (5 horários):</strong>
-        <br />• 09:00 — Maria · Manicure
-        <br />• 10:30 — Joana · Sobrancelha
-        <br />• 13:00 — Camila · Pedicure
-        <br />• 15:00 — Luzinete · Manicure e pedicure
-        <br />• 16:30 — Megui · Banho de petróleo
-      </>
-    ),
-    time: "07:00",
-    delay: "0.4s",
+    time: "07:30",
+    title: "Bom dia, Paula! Hoje são 5 horários",
+    body: "Já lembrei as 5 clientes do horário. A primeira é Maria, às 9h. Bom trabalho 💜",
+  },
+  {
+    time: "08:12",
+    title: "Camila confirmou ✅",
+    body: "Manicure hoje às 15h. Pode atender tranquila.",
   },
 ];
+
+function PushNotificationStack({ width = 232 }: { width?: number }) {
+  return (
+    <div className="flex flex-col gap-2" style={{ width }}>
+      {avisosDona.map((n, idx) => (
+        <div
+          key={n.title}
+          className="wa-msg-in flex gap-2 rounded-[14px] bg-white/95 px-2.5 py-2 shadow-brand-md"
+          style={{ animationDelay: `${0.4 + idx * 0.8}s` }}
+        >
+          <Image
+            src="/brand/logo-app.png"
+            alt=""
+            width={28}
+            height={28}
+            className="h-7 w-7 shrink-0 rounded-[7px]"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-inter text-[9px] font-semibold uppercase tracking-[0.4px] text-[#667781]">
+                Agendabela
+              </span>
+              <span className="font-inter text-[9px] text-[#667781]">
+                {n.time}
+              </span>
+            </div>
+            <p className="font-inter text-[11px] font-semibold leading-[14px] text-[#111B21]">
+              {n.title}
+            </p>
+            <p className="font-inter text-[10.5px] leading-[14px] text-[#111B21]">
+              {n.body}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export const FeaturesComponent = () => {
   return (
@@ -71,17 +107,17 @@ export const FeaturesComponent = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center gap-3 mb-10 md:mb-14 text-center">
           <span className="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho">
-            O que sua secretária faz
+            O que a Bela faz por você
           </span>
           <h2 className="font-fraunces italic font-normal text-brand-petroleo text-[32px] leading-[40px] md:text-[44px] md:leading-[52px] tracking-[-0.025em]">
-            <span className="block">Cuida das mensagens</span>
+            <span className="block">Avisa suas clientes</span>
             <span className="block">Lembra dos horários</span>
-            <span className="block">Mostra o que importa</span>
+            <span className="block">Mostra seu dia e seu caixa</span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
-          {/* Card 1 — Avisa cliente no WhatsApp */}
+          {/* Card 1 — Avisa a cliente no WhatsApp */}
           <article className="relative overflow-hidden rounded-app-xl bg-brand-creme shadow-brand-sm">
             <div
               aria-hidden
@@ -89,14 +125,14 @@ export const FeaturesComponent = () => {
             />
             <div className="relative flex flex-col gap-5 p-6 md:p-8">
               <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho">
-                Confirmação automática
+                Na hora que você marca
               </span>
               <h3 className="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]">
-                Avisa seu cliente no WhatsApp
+                Sua cliente recebe a confirmação no WhatsApp
               </h3>
               <p className="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]">
-                Cada agendamento que você marca, a gente envia uma mensagem no
-                WhatsApp do cliente confirmando. Sem ligar, sem digitar.
+                Toda vez que você marca, a Bela manda a confirmação no WhatsApp
+                da sua cliente. Você não liga e não digita.
               </p>
               <div className="mt-2 flex justify-center md:justify-start">
                 <WhatsAppCard
@@ -108,7 +144,7 @@ export const FeaturesComponent = () => {
             </div>
           </article>
 
-          {/* Card 2 — Lembrete do dia (foco no salão + cliente) */}
+          {/* Card 2 — Toda manhã (push da dona + lembrete da cliente) */}
           <article className="relative overflow-hidden rounded-app-xl bg-brand-creme-soft shadow-brand-sm">
             <div
               aria-hidden
@@ -116,29 +152,34 @@ export const FeaturesComponent = () => {
             />
             <div className="relative flex flex-col gap-5 p-6 md:p-8">
               <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho">
-                Toda manhã, sem você lembrar
+                Toda manhã, sem você precisar lembrar
               </span>
               <h3 className="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]">
-                Você recebe a agenda do dia. Seu cliente recebe o lembrete dele.
+                Você recebe a agenda do dia. Sua cliente recebe o lembrete e responde com um toque.
               </h3>
               <p className="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]">
-                Cedinho, antes do salão abrir, a gente manda no WhatsApp todos
-                os horários do dia pra você — e lembra cada cliente do horário
-                que ele marcou.
+                Cedinho, antes do salão abrir, você recebe no celular os
+                horários do dia. E cada cliente recebe o lembrete do horário
+                dela. Quando ela confirma, você é avisada.
               </p>
-              <div className="mt-2 flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center md:justify-start">
-                <WhatsAppCard
-                  contact="Salão Estilo · Você"
-                  avatarInitial="SE"
-                  messages={lembreteSalao}
-                  width={232}
-                />
-                <WhatsAppCard
-                  contact="Camila · Cliente"
-                  avatarInitial="CA"
-                  messages={lembreteCliente}
-                  width={232}
-                />
+              <div className="mt-2 flex flex-col sm:flex-row gap-4 sm:gap-3 items-center sm:items-start justify-center md:justify-start">
+                <div className="flex flex-col gap-2">
+                  <span className="font-mono-brand text-[9.5px] tracking-[1.5px] uppercase text-ink-muted">
+                    No seu celular
+                  </span>
+                  <PushNotificationStack width={232} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="font-mono-brand text-[9.5px] tracking-[1.5px] uppercase text-ink-muted">
+                    No WhatsApp da cliente
+                  </span>
+                  <WhatsAppCard
+                    contact="Salão Estilo"
+                    avatarInitial="SE"
+                    messages={lembreteCliente}
+                    width={232}
+                  />
+                </div>
               </div>
             </div>
           </article>
@@ -154,12 +195,11 @@ export const FeaturesComponent = () => {
                 Tela inicial do app
               </span>
               <h3 className="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]">
-                Te entrega o dia pronto, no celular
+                Seu dia pronto no celular
               </h3>
               <p className="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]">
-                Você acorda e abre o app: aparece quanto vai entrar hoje,
-                quantos clientes tem, quem é o próximo. Sem caderno, sem
-                planilha.
+                Abra o app e veja quanto deve entrar hoje, quantas clientes você
+                atende e quem é a próxima. Sem caderno, sem planilha.
               </p>
               <div className="mt-2 flex justify-center md:justify-start">
                 <div className="relative w-[180px] md:w-[200px] aspect-[9/19.5] rounded-[28px] bg-brand-petroleo shadow-brand-md p-2">
@@ -189,11 +229,11 @@ export const FeaturesComponent = () => {
                 Painel completo
               </span>
               <h3 className="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]">
-                Mostra o que importa do salão
+                Quanto você faturou
               </h3>
               <p className="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]">
-                Faturamento do mês, dias mais movimentados, serviços que mais
-                saem, ranking dos profissionais. Tudo num toque.
+                Faturamento do mês, dias mais cheios, serviços que mais saem e
+                ranking das profissionais.
               </p>
               <div className="mt-2 flex justify-center md:justify-start">
                 <div className="relative w-[160px] md:w-[180px] aspect-[9/19] rounded-[24px] bg-brand-petroleo shadow-brand-md p-1.5">

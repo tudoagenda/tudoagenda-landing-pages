@@ -1,11 +1,19 @@
 "use client";
 
+import {
+  CLIENT_REMINDER_BUTTONS,
+  CLIENT_REMINDER_TIME,
+  ClientReminderText,
+  WhatsAppQuickReplies,
+} from "./client-reminder";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // <WhatsAppPreview />
 //
-// Chat WhatsApp aberto do CLIENTE recebendo mensagens do salão. Apenas
-// mensagens RECEBIDAS (bubbles brancas à esquerda) — fiel ao produto real:
-// o cliente só recebe avisos, não responde nada.
+// Chat WhatsApp aberto da CLIENTE recebendo mensagens do salão: a confirmação
+// na hora do agendamento e o lembrete das 07:00 com os botões Confirmar /
+// Remarcar / Cancelar (fiel ao produto real). Texto do lembrete vem de
+// ./client-reminder pra ficar igual ao card "Toda manhã".
 //
 // Cores oficiais WhatsApp: header #075E54, bg #ECE5DD com pattern,
 // bubbles incoming brancas. Animação: mensagens entram em sequência.
@@ -72,24 +80,23 @@ export function WhatsAppPreview() {
           </span>
         </div>
 
-        {/* Bubble 2 — lembrete no dia */}
+        {/* Bubble 2 — lembrete no dia, com os botões de resposta */}
         <div
-          className="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-          style={{
-            animationDelay: "1.6s",
-            boxShadow: "0 1px 0.5px rgba(11,20,26,0.13)",
-          }}
+          className="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
+          style={{ animationDelay: "1.6s" }}
         >
-          <p className="font-inter text-[12px] leading-[17px] text-[#111B21]">
-            🔔 Bom dia, Camila!
-          </p>
-          <p className="font-inter text-[12px] leading-[17px] text-[#111B21] mt-1">
-            Lembrando que hoje você tem horário às <strong>15h</strong> com a
-            Paula.
-          </p>
-          <span className="block text-right font-inter text-[9px] text-[#667781] mt-0.5">
-            07:00
-          </span>
+          <div
+            className="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
+            style={{ boxShadow: "0 1px 0.5px rgba(11,20,26,0.13)" }}
+          >
+            <p className="font-inter text-[12px] leading-[17px] text-[#111B21]">
+              <ClientReminderText />
+            </p>
+            <span className="block text-right font-inter text-[9px] text-[#667781] mt-0.5">
+              {CLIENT_REMINDER_TIME}
+            </span>
+          </div>
+          <WhatsAppQuickReplies buttons={CLIENT_REMINDER_BUTTONS} />
         </div>
       </div>
 
