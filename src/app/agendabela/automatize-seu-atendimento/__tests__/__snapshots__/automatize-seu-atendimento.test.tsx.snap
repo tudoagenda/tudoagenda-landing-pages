@@ -1135,12 +1135,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                       <p
                         class="font-inter text-[11px] font-semibold leading-[14px] text-[#111B21]"
                       >
-                        Bom dia, Paula! Hoje são 5 horários
+                        Bom dia, Paula! Hoje são 5 atendimentos
                       </p>
                       <p
                         class="font-inter text-[10.5px] leading-[14px] text-[#111B21]"
                       >
-                        Já lembrei as 5 clientes do horário. A primeira é Maria, às 9h. Bom trabalho 💜
+                        Já lembrei as 5 clientes. A primeira é Maria, às 9h. Bom trabalho 💜
                       </p>
                     </div>
                   </div>

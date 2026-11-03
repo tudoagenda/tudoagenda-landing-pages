@@ -48,13 +48,13 @@ const lembreteCliente = [
 ];
 
 // Push que a dona recebe no celular. Textos no formato do backend
-// (push-messages.ts: bom-dia das 07:30 e CLIENT_CONFIRMED), com nomes de
-// exemplo.
+// (push-messages.ts: bom-dia V1, de 4+ horários, das 07:30 e
+// CLIENT_CONFIRMED), com nomes de exemplo.
 const avisosDona = [
   {
     time: "07:30",
-    title: "Bom dia, Paula! Hoje são 5 horários",
-    body: "Já lembrei as 5 clientes do horário. A primeira é Maria, às 9h. Bom trabalho 💜",
+    title: "Bom dia, Paula! Hoje são 5 atendimentos",
+    body: "Já lembrei as 5 clientes. A primeira é Maria, às 9h. Bom trabalho 💜",
   },
   {
     time: "08:12",
