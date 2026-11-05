@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/brand/agenda-bela/social-preview.png",
+        url: "/brand/agenda-bela/social-preview-demo.png",
         width: 1200,
         height: 630,
         alt: "Logo do Agenda Bela e telas atuais do app",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/brand/agenda-bela/social-preview.png"],
+    images: ["/brand/agenda-bela/social-preview-demo.png"],
   },
 };
 
