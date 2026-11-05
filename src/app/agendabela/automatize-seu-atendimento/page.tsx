@@ -17,9 +17,9 @@ const structuredData = {
       name: "Agenda Bela",
       alternateName: "AgendaBela",
       applicationCategory: "BusinessApplication",
-      operatingSystem: "Web, iOS, Android",
+      operatingSystem: "iOS, Android",
       url: "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento",
-      image: "https://tudoagenda.com.br/brand/agenda-bela/social-preview.png",
+      image: "https://tudoagenda.com.br/brand/agenda-bela/social-preview-demo.png",
       description:
         "Secretária digital para salões de beleza que confirma agendamentos no WhatsApp, envia lembretes e organiza a agenda do dia.",
       featureList: [

@@ -44,7 +44,7 @@ function PhoneFrame({
                 fill
                 sizes="(max-width: 768px) 220px, 280px"
                 className="object-cover object-top !h-auto"
-                style={{ aspectRatio: "626/1685" }}
+                style={{ aspectRatio: "990/2667" }}
                 priority
               />
             </div>
@@ -80,8 +80,8 @@ export function AppScreenStack() {
         }
       >
         <PhoneFrame
-          src="/app-screens/agenda-dia.jpeg"
-          alt="Tela de agenda do dia com horários"
+          src="/app-screens/agenda-dia-demo.jpeg"
+          alt="Tela inicial com os horários de hoje e quem já confirmou"
           imageHeight="natural"
           className="h-full"
         />
@@ -90,7 +90,7 @@ export function AppScreenStack() {
       {/* Phone central — dashboard completo com scroll vertical (peça-chave) */}
       <div className="relative z-20 w-[200px] sm:w-[240px] lg:w-[260px] aspect-[9/19.5]">
         <PhoneFrame
-          src="/app-screens/dashboard-full.jpeg"
+          src="/app-screens/dashboard-demo.jpeg"
           alt="Tela inicial do Agenda Bela com agenda do dia e estatísticas"
           imageHeight="tall"
           className="h-full"

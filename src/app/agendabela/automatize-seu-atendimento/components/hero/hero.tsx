@@ -22,14 +22,14 @@ const positiveDisclaimer = (
     <strong className="font-inter font-semibold text-ink">
       7 dias grátis.
     </strong>{" "}
-    Cancela quando quiser.
+    Cancele quando quiser.
   </>
 );
 
 const features = [
-  "Confirmação automática no WhatsApp do cliente",
-  "Lembrete pro cliente no dia do horário",
-  "Agenda do dia direto no seu celular toda manhã",
+  "Sua cliente recebe a confirmação no WhatsApp assim que você marca",
+  "No dia, ela recebe o lembrete com botões para confirmar, remarcar ou cancelar",
+  "Toda manhã você recebe a agenda do dia no celular, e um aviso quando uma cliente confirma",
 ];
 
 export const HeroComponent = () => {
@@ -74,20 +74,19 @@ export const HeroComponent = () => {
               </span>
 
               <h1 className="font-fraunces italic font-normal text-brand-petroleo text-[38px] leading-[40px] md:text-[60px] md:leading-[62px] lg:text-[68px] lg:leading-[68px] tracking-[-0.035em] max-w-[18ch]">
-                Tem alguém cuidando da sua agenda agora.
+                A Bela cuida da sua agenda enquanto você atende.
               </h1>
 
               <p className="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]">
-                A gente avisa seu cliente no WhatsApp toda vez que ele agenda, e
-                lembra ele no dia. Você recebe a agenda do dia direto no
-                celular. Você fica com o que faz melhor:{" "}
+                Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no
+                dia do horário. Ela confirma ou pede para remarcar com um
+                toque, e você é avisada.{" "}
                 <span className="text-brand-petroleo font-medium">
-                  atender bem
+                  Tranquilidade para você atender.
                 </span>
-                .
               </p>
 
-              {/* Bullets de features — fluxo de notificação real (unilateral) */}
+              {/* Bullets de features — fluxo real: confirmação, lembrete com botões e aviso à dona */}
               <ul className="flex flex-col gap-2.5 -mt-1">
                 {features.map((feature) => (
                   <li
@@ -105,7 +104,7 @@ export const HeroComponent = () => {
               {/* Form desktop only — mobile usa sticky */}
               <div className="hidden md:flex flex-col gap-3 bg-white rounded-app-lg shadow-brand-md p-5 max-w-xl">
                 <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-ink-muted">
-                  Comece em 30 segundos
+                  Comece agora, é rápido
                 </span>
                 <FormComponent />
                 <p className="font-inter text-[12px] leading-[18px] text-ink-muted">
@@ -123,19 +122,24 @@ export const HeroComponent = () => {
                 <AppScreenStack />
               </div>
 
-              {/* Chat WhatsApp do CLIENTE recebendo confirmação + lembrete.
+              {/* Chat WhatsApp da CLIENTE recebendo confirmação + lembrete com botões.
                   z-10 = ATRÁS do phone central (z-20 no AppScreenStack) pra
-                  não tapar o dashboard. Mobile com scale menor. */}
-              <div
-                className="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
-                style={
-                  {
-                    "--card-rotate": "-3deg",
-                    animationDelay: "0.5s",
-                  } as React.CSSProperties
-                }
-              >
-                <WhatsAppPreview />
+                  não tapar o dashboard. Mobile com scale menor.
+                  Posição/scale no wrapper e animação no filho: o keyframe de
+                  float-soft define `transform` e, no mesmo elemento, anularia
+                  o `scale-[0.8]` do mobile (o card crescia sobre os bullets). */}
+              <div className="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.8] sm:scale-100 origin-bottom-left sm:origin-top-left">
+                <div
+                  className="animate-float-soft"
+                  style={
+                    {
+                      "--card-rotate": "-3deg",
+                      animationDelay: "0.5s",
+                    } as React.CSSProperties
+                  }
+                >
+                  <WhatsAppPreview />
+                </div>
               </div>
             </div>
           </div>

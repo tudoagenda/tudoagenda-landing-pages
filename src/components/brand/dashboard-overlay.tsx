@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // <DashboardOverlay />
 //
-// Overlay HTML/CSS por cima da imagem `dashboard-full.jpeg` pra mostrar dados
+// Overlay HTML/CSS por cima da imagem `dashboard-demo.jpeg` pra mostrar dados
 // fake convincentes (R$ 1.240,00, 6 agendamentos, 72% ocupação, etc.) sem
 // editar o PNG/JPEG. Usa Fraunces italic e Inter via tokens — fica pixel-fiel
 // e respeita responsividade.

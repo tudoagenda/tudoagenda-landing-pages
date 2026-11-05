@@ -68,7 +68,7 @@ describe("SignupModal step 3 — server-authoritative magic link", () => {
     renderModal();
 
     expect(
-      screen.getByText(/Pagamento confirmado/i),
+      screen.getByText(/Cartão cadastrado! Seus 7 dias grátis começaram/i),
     ).toBeInTheDocument();
     // Texto quebrado por <strong>1 minuto</strong> — limita o matcher ao
     // <p> que contém a frase, evitando os ancestrais.
@@ -76,7 +76,7 @@ describe("SignupModal step 3 — server-authoritative magic link", () => {
       if (!node) return false;
       if (node.tagName !== "P") return false;
       const text = node.textContent ?? "";
-      return text.includes("receber no") && text.includes("WhatsApp");
+      return text.includes("recebe no") && text.includes("WhatsApp");
     });
     expect(paragraphs.length).toBeGreaterThan(0);
   });

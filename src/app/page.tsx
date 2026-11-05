@@ -46,18 +46,18 @@ const flow = ["percepção", "impacto", "ação", "resultado"];
 
 const appScreens = [
   {
-    src: "/app-screens/agenda-bela/relatorios-faturamento.jpeg",
-    alt: "Tela de relatório de faturamento do Agenda Bela",
+    src: "/app-screens/caixa-demo.jpeg",
+    alt: "Tela de fluxo de caixa do Agenda Bela",
     className:
       "bottom-8 right-[15.8rem] z-10 h-[22.75rem] w-[11.125rem] opacity-95",
   },
   {
-    src: "/app-screens/agenda-bela/dashboard-acabou-de-passar.jpeg",
+    src: "/app-screens/agenda-bela/acabou-de-passar-demo.jpeg",
     alt: "Tela de decisões de atendimento do Agenda Bela",
     className: "bottom-10 right-0 z-20 h-[22.75rem] w-[11.125rem] opacity-95",
   },
   {
-    src: "/app-screens/agenda-bela/dashboard-resumo-do-dia.jpeg",
+    src: "/app-screens/agenda-bela/resumo-do-dia-demo.jpeg",
     alt: "Tela de resumo do dia do Agenda Bela",
     className: "bottom-0 right-[7.375rem] z-30 h-[27.875rem] w-[13.625rem]",
   },
@@ -96,10 +96,10 @@ const structuredData = {
       "@id": "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software",
       name: "Agenda Bela",
       applicationCategory: "BusinessApplication",
-      operatingSystem: "Web, iOS, Android",
+      operatingSystem: "iOS, Android",
       url: "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento",
       image:
-        "https://tudoagenda.com.br/app-screens/agenda-bela/dashboard-resumo-do-dia.jpeg",
+        "https://tudoagenda.com.br/app-screens/agenda-bela/resumo-do-dia-demo.jpeg",
       description:
         "SaaS para profissionais de beleza feminina com automação de atendimento e gestão de agenda.",
       publisher: {

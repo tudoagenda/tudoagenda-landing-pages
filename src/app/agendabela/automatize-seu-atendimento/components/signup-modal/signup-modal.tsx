@@ -18,6 +18,7 @@ import { useReactivationLookup } from "@/hooks/use-reactivation";
 import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 import { Eye, EyeOff } from "lucide-react";
+import { SUPPORT_WHATSAPP_URL } from "@/config/company";
 
 const SESSION_KEY = "agendabela_signup_email";
 const SESSION_NAME_KEY = "agendabela_signup_name";
@@ -346,10 +347,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           <>
             <AlertDialogHeader>
               <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
-                Crie sua conta gratuita
+                Crie sua conta
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center">
-                Preencha seus dados para começar a usar o Agenda Bela
+                Preencha seus dados. São 7 dias grátis e o cartão só é cobrado
+                depois.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -597,12 +599,11 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
               <AlertDialogDescription asChild>
                 <div className="space-y-3 text-center">
                   <p>
-                    <strong>Trial gratuito de 7 dias.</strong> Cadastre seu
-                    cartão — você{" "}
-                    <strong className="text-emerald-700">NÃO será cobrado agora</strong>.
+                    <strong>7 dias grátis.</strong> Cadastre seu cartão:{" "}
+                    <strong className="text-emerald-700">você não paga nada hoje</strong>.
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Após 7 dias: R$59,90/mês. Cancele quando quiser.
+                    Depois dos 7 dias, R$ 59,90 por mês. Cancele quando quiser.
                   </p>
                 </div>
               </AlertDialogDescription>
@@ -614,7 +615,7 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                 disabled={isBilling}
                 className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
               >
-                Cadastrar cartão
+                Cadastrar cartão e começar
                 {isBilling && <Spinner size="sm" variant="primary" />}
               </Button>
             </AlertDialogFooter>
@@ -625,18 +626,18 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
           <>
             <AlertDialogHeader>
               <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
-                Pagamento confirmado! 🎉
+                Cartão cadastrado! Seus 7 dias grátis começaram 🎉
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-4 text-center">
                   <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft text-brand-petroleo text-sm p-4 text-left font-inter">
                     <p className="font-semibold">
-                      7 dias grátis começam agora.
+                      Nada foi cobrado hoje.
                     </p>
                     <p className="mt-1 text-ink-muted">
-                      Primeira cobrança automática em{" "}
-                      <strong className="text-brand-petroleo">{formatTrialEndDate()}</strong> de R$ 59,90/mês.
-                      Cancele quando quiser pelo perfil.
+                      A primeira cobrança, de R$ 59,90, será em{" "}
+                      <strong className="text-brand-petroleo">{formatTrialEndDate()}</strong>.
+                      Para cancelar antes, é só entrar no seu perfil.
                     </p>
                   </div>
 
@@ -646,22 +647,32 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                     </p>
                   ) : (
                     <p>
-                      Em até <strong>1 minuto</strong> você vai receber no
-                      WhatsApp o link para abrir o app Meu Salão.
+                      Em até <strong>1 minuto</strong> você recebe no WhatsApp
+                      o link para entrar no app Agenda Bela.
                       <br />
                       <br />
-                      Se ainda não tem o app instalado, baixe primeiro pelos
-                      botões abaixo e depois toque no link do WhatsApp.
+                      Se ainda não instalou o app, baixe pelos botões abaixo e
+                      depois toque no link do WhatsApp.
                     </p>
                   )}
 
-                  <AppStoreBadges heading="Baixe o app Meu Salão:" />
+                  <AppStoreBadges heading="Baixe o app Agenda Bela:" />
 
                   {!noPhone && (
                     <>
                       {magicLinkError && (
                         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
-                          Não conseguimos reenviar o link. Tente de novo em alguns minutos.
+                          Não deu para reenviar o link agora. Tente de novo daqui
+                          a pouco ou{" "}
+                          <a
+                            href={SUPPORT_WHATSAPP_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline font-medium"
+                          >
+                            fale com a gente no WhatsApp
+                          </a>
+                          .
                         </div>
                       )}
                       <button

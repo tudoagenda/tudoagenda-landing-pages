@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/brand/agenda-bela/social-preview.png",
+        url: "/brand/agenda-bela/social-preview-demo.png",
         width: 1200,
         height: 630,
         alt: "Agenda Bela — Reative sua conta",

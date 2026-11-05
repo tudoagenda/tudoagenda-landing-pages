@@ -22,7 +22,7 @@ function detectPlatform(): Platform {
  */
 const DEFAULT_IOS_URL =
   process.env.NEXT_PUBLIC_APP_STORE_URL ??
-  "https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB";
+  "https://apps.apple.com/br/app/agenda-bela/id6782112738";
 const DEFAULT_ANDROID_URL =
   process.env.NEXT_PUBLIC_PLAY_STORE_URL ??
   "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao";
@@ -51,7 +51,7 @@ interface AppStoreBadgesProps {
  * - Google Brand Guidelines: https://play.google.com/intl/en_us/badges/
  */
 export function AppStoreBadges({
-  heading = "Baixe o app Meu Salão:",
+  heading = "Baixe o app Agenda Bela:",
   forcePlatform,
   className,
 }: AppStoreBadgesProps) {

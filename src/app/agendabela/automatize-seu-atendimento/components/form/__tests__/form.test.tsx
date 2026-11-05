@@ -45,6 +45,6 @@ describe("FormComponent", () => {
     );
 
     // The signup modal should appear with the step 1 form
-    expect(await screen.findByText("Crie sua conta gratuita")).toBeInTheDocument();
+    expect(await screen.findByText("Crie sua conta")).toBeInTheDocument();
   });
 });
