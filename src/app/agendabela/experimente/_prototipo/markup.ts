@@ -49,7 +49,7 @@ export const EXPERIMENTE_MARKUP = `<header class="top">
     <ul class="pains">
       <li><b>A cliente que desiste porque você demorou para responder.</b> Você estava no meio de um atendimento.</li>
       <li><b>Duas clientes marcadas no mesmo horário</b>, porque a agenda está no caderno e na cabeça.</li>
-      <li><b>A cliente que esquece e não aparece.</b> Ninguém lembrou ela do horário.</li>
+      <li><b>A cliente que esquece e não aparece.</b> Ninguém lembrou a cliente do horário.</li>
       <li><b>O fim do mês sem saber quanto entrou de verdade.</b></li>
     </ul>
     <p class="turn">Isso não é falta de capricho. É falta de uma secretária trabalhando enquanto você atende.</p>
@@ -86,7 +86,7 @@ export const EXPERIMENTE_MARKUP = `<header class="top">
     </div>
     <div class="sim menu-mode" id="sim" role="region" aria-label="Experimente o Agenda Bela: telas do app com dados de exemplo">
       <div class="sim-top">
-        <span class="selo"><b>SIMULAÇÃO</b> · dados de exemplo · nada é enviado</span>
+        <span class="selo"><b>SIMULAÇÃO</b> · clientes de exemplo · nada é enviado</span>
         <button class="sair" data-a="exit" aria-label="Sair do Experimente o Agenda Bela">Sair</button>
       </div>
       <div class="sim-body">
