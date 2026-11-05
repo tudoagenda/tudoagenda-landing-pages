@@ -205,12 +205,12 @@ export const FeaturesComponent = () => {
                 <div className="relative w-[180px] md:w-[200px] aspect-[9/19.5] rounded-[28px] bg-brand-petroleo shadow-brand-md p-2">
                   <div className="relative h-full w-full rounded-[20px] overflow-hidden bg-surface-subtle">
                     <Image
-                      src="/app-screens/dashboard-full.jpeg"
-                      alt="Dashboard do app com agenda do dia"
+                      src="/app-screens/dashboard-demo.jpeg"
+                      alt="Tela inicial do app com o resumo do dia e a próxima cliente"
                       fill
                       sizes="200px"
                       className="object-cover object-top"
-                      style={{ aspectRatio: "626/1685" }}
+                      style={{ aspectRatio: "990/2667" }}
                     />
                   </div>
                 </div>
@@ -239,8 +239,8 @@ export const FeaturesComponent = () => {
                 <div className="relative w-[160px] md:w-[180px] aspect-[9/19] rounded-[24px] bg-brand-petroleo shadow-brand-md p-1.5">
                   <div className="relative h-full w-full rounded-[18px] overflow-hidden bg-surface-subtle">
                     <Image
-                      src="/app-screens/financeiro-faturamento.jpeg"
-                      alt="Tela financeira com gráfico de receita"
+                      src="/app-screens/caixa-demo.jpeg"
+                      alt="Tela de fluxo de caixa com o saldo do dia"
                       fill
                       sizes="180px"
                       className="object-cover object-top"

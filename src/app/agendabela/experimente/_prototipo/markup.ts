@@ -174,7 +174,7 @@ export const EXPERIMENTE_MARKUP = `<header class="top">
     <details><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Sai do número do Agenda Bela, não do seu. No fim do agendamento, a cliente ainda vê o botão "Falar com o salão no WhatsApp".</p></details>
     <details><summary>Como funciona o sinal no Pix?</summary><p>Você liga o sinal no serviço e escolhe o valor. Pelo seu link, a cliente paga um Pix para garantir o horário. Se ela não pagar a tempo, o horário é liberado. O valor entra na sua Conta Agenda Bela e você saca para a sua chave Pix. Vale para quem marca pelo seu link, em serviço simples (não vale para combo).</p></details>
     <details><summary>Quanto custa, e se eu não gostar?</summary><p>São 7 dias grátis. Depois, R$ 59,90 por mês. Cancele quando quiser.</p></details>
-    <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por "Agendabela" nas lojas.</p></details>
+    <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por "Agenda Bela" nas lojas.</p></details>
     <details><summary>Serve para o meu salão?</summary><p>Foi feito para quem atende sozinha ou com 1 ou 2 pessoas: cabeleireira, manicure, esteticista, maquiadora. Salão grande, com 10 ou mais profissionais, ainda não é o nosso público. É melhor saber agora do que descobrir depois.</p></details>
     <button class="btn btn-primary" data-open="j1" data-local="faq" style="margin-top:20px">Marcar minha primeira cliente</button>
   </div>
