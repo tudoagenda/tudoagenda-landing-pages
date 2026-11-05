@@ -96,7 +96,7 @@ const structuredData = {
       "@id": "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento#software",
       name: "Agenda Bela",
       applicationCategory: "BusinessApplication",
-      operatingSystem: "Web, iOS, Android",
+      operatingSystem: "iOS, Android",
       url: "https://tudoagenda.com.br/agendabela/automatize-seu-atendimento",
       image:
         "https://tudoagenda.com.br/app-screens/agenda-bela/resumo-do-dia-demo.jpeg",

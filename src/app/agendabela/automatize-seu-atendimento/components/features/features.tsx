@@ -19,7 +19,7 @@ import {
 //   - Toda manhã: push da dona (bom-dia 07:30 + "{nome} confirmou ✅") e o
 //     lembrete da cliente (07:00) com os botões Confirmar/Remarcar/Cancelar
 //   - Agenda do dia: phone com dashboard real do app (sem zoom/desfoque)
-//   - Painel completo: phone com tela financeira
+//   - Fluxo de caixa: phone com o caixa do dia
 // ─────────────────────────────────────────────────────────────────────────────
 
 const confirmacaoCliente = [
@@ -218,7 +218,7 @@ export const FeaturesComponent = () => {
             </div>
           </article>
 
-          {/* Card 4 — Painel completo (financeiro) */}
+          {/* Card 4 — Fluxo de caixa do dia */}
           <article className="relative overflow-hidden rounded-app-xl bg-brand-creme-soft shadow-brand-sm">
             <div
               aria-hidden
@@ -226,14 +226,14 @@ export const FeaturesComponent = () => {
             />
             <div className="relative flex flex-col gap-5 p-6 md:p-8">
               <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho">
-                Painel completo
+                Fluxo de caixa
               </span>
               <h3 className="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]">
-                Quanto você faturou
+                O caixa do seu dia
               </h3>
               <p className="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]">
-                Faturamento do mês, dias mais cheios, serviços que mais saem e
-                ranking das profissionais.
+                Veja o que entrou, o que saiu e quanto sobrou no dia, no Pix,
+                no cartão ou no dinheiro.
               </p>
               <div className="mt-2 flex justify-center md:justify-start">
                 <div className="relative w-[160px] md:w-[180px] aspect-[9/19] rounded-[24px] bg-brand-petroleo shadow-brand-md p-1.5">

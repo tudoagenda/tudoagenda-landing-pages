@@ -61,7 +61,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
           <p
             class="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]"
           >
-            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou remarca com um toque, e você é avisada. 
+            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou pede para remarcar com um toque, e você é avisada. 
             <span
               class="text-brand-petroleo font-medium"
             >
@@ -226,150 +226,154 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
             </div>
           </div>
           <div
-            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
-            style="--card-rotate: -3deg; animation-delay: 0.5s;"
+            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.8] sm:scale-100 origin-bottom-left sm:origin-top-left"
           >
             <div
-              class="w-[260px] rounded-[18px] overflow-hidden shadow-brand-lg bg-white"
+              class="animate-float-soft"
+              style="--card-rotate: -3deg; animation-delay: 0.5s;"
             >
               <div
-                class="flex items-center gap-2.5 bg-[#075E54] px-3 py-2.5"
-              >
-                <span
-                  class="text-white text-[16px] leading-none"
-                >
-                  ‹
-                </span>
-                <div
-                  class="h-7 w-7 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[11px] font-semibold"
-                >
-                  SE
-                </div>
-                <div
-                  class="flex-1 min-w-0"
-                >
-                  <p
-                    class="font-inter text-[12.5px] font-semibold text-white leading-tight truncate"
-                  >
-                    Salão Estilo
-                  </p>
-                  <p
-                    class="font-inter text-[9.5px] text-white/70 leading-tight"
-                  >
-                    online
-                  </p>
-                </div>
-                <span
-                  class="text-white/80 text-[12px]"
-                >
-                  ⋮
-                </span>
-              </div>
-              <div
-                class="relative px-3 py-4 flex flex-col gap-2 min-h-[260px]"
-                style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 32px 32px, 20px 20px;"
+                class="w-[260px] rounded-[18px] overflow-hidden shadow-brand-lg bg-white"
               >
                 <div
-                  class="flex justify-center mb-1"
+                  class="flex items-center gap-2.5 bg-[#075E54] px-3 py-2.5"
                 >
                   <span
-                    class="bg-white/90 rounded-md px-2 py-0.5 font-inter text-[9.5px] text-[#54656F]"
+                    class="text-white text-[16px] leading-none"
                   >
-                    HOJE
+                    ‹
+                  </span>
+                  <div
+                    class="h-7 w-7 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[11px] font-semibold"
+                  >
+                    SE
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <p
+                      class="font-inter text-[12.5px] font-semibold text-white leading-tight truncate"
+                    >
+                      Salão Estilo
+                    </p>
+                    <p
+                      class="font-inter text-[9.5px] text-white/70 leading-tight"
+                    >
+                      online
+                    </p>
+                  </div>
+                  <span
+                    class="text-white/80 text-[12px]"
+                  >
+                    ⋮
                   </span>
                 </div>
                 <div
-                  class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                  style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
-                >
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21]"
-                  >
-                    Oi Camila! ✨ Seu agendamento foi confirmado:
-                  </p>
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21] font-semibold mt-1"
-                  >
-                    Manicure com Paula
-                    <br />
-                    amanhã (sex), 15h
-                  </p>
-                  <p
-                    class="font-inter text-[11.5px] leading-[16px] text-[#111B21] mt-1.5"
-                  >
-                    Te esperamos! 💜
-                  </p>
-                  <span
-                    class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
-                  >
-                    14:32
-                  </span>
-                </div>
-                <div
-                  class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
-                  style="animation-delay: 1.6s;"
+                  class="relative px-3 py-4 flex flex-col gap-2 min-h-[260px]"
+                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 32px 32px, 20px 20px;"
                 >
                   <div
-                    class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                    style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    class="flex justify-center mb-1"
+                  >
+                    <span
+                      class="bg-white/90 rounded-md px-2 py-0.5 font-inter text-[9.5px] text-[#54656F]"
+                    >
+                      HOJE
+                    </span>
+                  </div>
+                  <div
+                    class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
+                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                   >
                     <p
                       class="font-inter text-[12px] leading-[17px] text-[#111B21]"
                     >
-                      🔔 Bom dia, Camila!
+                      Oi Camila! ✨ Seu agendamento foi confirmado:
+                    </p>
+                    <p
+                      class="font-inter text-[12px] leading-[17px] text-[#111B21] font-semibold mt-1"
+                    >
+                      Manicure com Paula
                       <br />
-                      Lembrando que hoje você tem horário às 
-                      <strong>
-                        15h
-                      </strong>
-                       com a Paula 💜
+                      amanhã (sex), 15h
+                    </p>
+                    <p
+                      class="font-inter text-[11.5px] leading-[16px] text-[#111B21] mt-1.5"
+                    >
+                      Te esperamos! 💜
                     </p>
                     <span
                       class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
                     >
-                      07:00
+                      14:32
                     </span>
                   </div>
                   <div
-                    class="flex flex-col gap-1 w-full"
+                    class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
+                    style="animation-delay: 1.6s;"
                   >
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                    <div
+                      class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
                       style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                     >
-                      Confirmar
-                    </span>
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
-                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      <p
+                        class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                      >
+                        🔔 Bom dia, Camila!
+                        <br />
+                        Lembrando que hoje você tem horário às 
+                        <strong>
+                          15h
+                        </strong>
+                         com a Paula 💜
+                      </p>
+                      <span
+                        class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
+                      >
+                        07:00
+                      </span>
+                    </div>
+                    <div
+                      class="flex flex-col gap-1 w-full"
                     >
-                      Remarcar
-                    </span>
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
-                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
-                    >
-                      Cancelar
-                    </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Confirmar
+                      </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Remarcar
+                      </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Cancelar
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="flex items-center gap-2 bg-[#F0F2F5] px-2 py-1.5"
-              >
                 <div
-                  class="flex-1 rounded-full bg-white h-7 px-3 flex items-center"
+                  class="flex items-center gap-2 bg-[#F0F2F5] px-2 py-1.5"
                 >
-                  <span
-                    class="font-inter text-[10.5px] text-[#667781]"
+                  <div
+                    class="flex-1 rounded-full bg-white h-7 px-3 flex items-center"
                   >
-                    Mensagem
-                  </span>
-                </div>
-                <div
-                  class="h-7 w-7 rounded-full bg-[#075E54] flex items-center justify-center text-white text-[11px]"
-                >
-                  🎤
+                    <span
+                      class="font-inter text-[10.5px] text-[#667781]"
+                    >
+                      Mensagem
+                    </span>
+                  </div>
+                  <div
+                    class="h-7 w-7 rounded-full bg-[#075E54] flex items-center justify-center text-white text-[11px]"
+                  >
+                    🎤
+                  </div>
                 </div>
               </div>
             </div>
@@ -485,7 +489,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           <p
             class="font-inter text-ink-muted text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] max-w-[44ch]"
           >
-            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou remarca com um toque, e você é avisada. 
+            Você marca, a Bela avisa sua cliente no WhatsApp e lembra ela no dia do horário. Ela confirma ou pede para remarcar com um toque, e você é avisada. 
             <span
               class="text-brand-petroleo font-medium"
             >
@@ -657,150 +661,154 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             </div>
           </div>
           <div
-            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.6] sm:scale-100 origin-bottom-left sm:origin-top-left animate-float-soft"
-            style="--card-rotate: -3deg; animation-delay: 0.5s;"
+            class="absolute z-10 -left-2 sm:-left-4 lg:-left-8 bottom-2 sm:bottom-auto sm:top-4 scale-[0.8] sm:scale-100 origin-bottom-left sm:origin-top-left"
           >
             <div
-              class="w-[260px] rounded-[18px] overflow-hidden shadow-brand-lg bg-white"
+              class="animate-float-soft"
+              style="--card-rotate: -3deg; animation-delay: 0.5s;"
             >
               <div
-                class="flex items-center gap-2.5 bg-[#075E54] px-3 py-2.5"
-              >
-                <span
-                  class="text-white text-[16px] leading-none"
-                >
-                  ‹
-                </span>
-                <div
-                  class="h-7 w-7 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[11px] font-semibold"
-                >
-                  SE
-                </div>
-                <div
-                  class="flex-1 min-w-0"
-                >
-                  <p
-                    class="font-inter text-[12.5px] font-semibold text-white leading-tight truncate"
-                  >
-                    Salão Estilo
-                  </p>
-                  <p
-                    class="font-inter text-[9.5px] text-white/70 leading-tight"
-                  >
-                    online
-                  </p>
-                </div>
-                <span
-                  class="text-white/80 text-[12px]"
-                >
-                  ⋮
-                </span>
-              </div>
-              <div
-                class="relative px-3 py-4 flex flex-col gap-2 min-h-[260px]"
-                style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 32px 32px, 20px 20px;"
+                class="w-[260px] rounded-[18px] overflow-hidden shadow-brand-lg bg-white"
               >
                 <div
-                  class="flex justify-center mb-1"
+                  class="flex items-center gap-2.5 bg-[#075E54] px-3 py-2.5"
                 >
                   <span
-                    class="bg-white/90 rounded-md px-2 py-0.5 font-inter text-[9.5px] text-[#54656F]"
+                    class="text-white text-[16px] leading-none"
                   >
-                    HOJE
+                    ‹
+                  </span>
+                  <div
+                    class="h-7 w-7 rounded-full bg-brand-rosa-claro flex items-center justify-center text-brand-petroleo font-fraunces italic text-[11px] font-semibold"
+                  >
+                    SE
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <p
+                      class="font-inter text-[12.5px] font-semibold text-white leading-tight truncate"
+                    >
+                      Salão Estilo
+                    </p>
+                    <p
+                      class="font-inter text-[9.5px] text-white/70 leading-tight"
+                    >
+                      online
+                    </p>
+                  </div>
+                  <span
+                    class="text-white/80 text-[12px]"
+                  >
+                    ⋮
                   </span>
                 </div>
                 <div
-                  class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                  style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
-                >
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21]"
-                  >
-                    Oi Camila! ✨ Seu agendamento foi confirmado:
-                  </p>
-                  <p
-                    class="font-inter text-[12px] leading-[17px] text-[#111B21] font-semibold mt-1"
-                  >
-                    Manicure com Paula
-                    <br />
-                    amanhã (sex), 15h
-                  </p>
-                  <p
-                    class="font-inter text-[11.5px] leading-[16px] text-[#111B21] mt-1.5"
-                  >
-                    Te esperamos! 💜
-                  </p>
-                  <span
-                    class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
-                  >
-                    14:32
-                  </span>
-                </div>
-                <div
-                  class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
-                  style="animation-delay: 1.6s;"
+                  class="relative px-3 py-4 flex flex-col gap-2 min-h-[260px]"
+                  style="background-color: rgb(236, 229, 221); background-size: 24px 24px, 32px 32px, 20px 20px;"
                 >
                   <div
-                    class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
-                    style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                    class="flex justify-center mb-1"
+                  >
+                    <span
+                      class="bg-white/90 rounded-md px-2 py-0.5 font-inter text-[9.5px] text-[#54656F]"
+                    >
+                      HOJE
+                    </span>
+                  </div>
+                  <div
+                    class="wa-msg-in self-start max-w-[88%] rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
+                    style="animation-delay: 0.4s; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                   >
                     <p
                       class="font-inter text-[12px] leading-[17px] text-[#111B21]"
                     >
-                      🔔 Bom dia, Camila!
+                      Oi Camila! ✨ Seu agendamento foi confirmado:
+                    </p>
+                    <p
+                      class="font-inter text-[12px] leading-[17px] text-[#111B21] font-semibold mt-1"
+                    >
+                      Manicure com Paula
                       <br />
-                      Lembrando que hoje você tem horário às 
-                      <strong>
-                        15h
-                      </strong>
-                       com a Paula 💜
+                      amanhã (sex), 15h
+                    </p>
+                    <p
+                      class="font-inter text-[11.5px] leading-[16px] text-[#111B21] mt-1.5"
+                    >
+                      Te esperamos! 💜
                     </p>
                     <span
                       class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
                     >
-                      07:00
+                      14:32
                     </span>
                   </div>
                   <div
-                    class="flex flex-col gap-1 w-full"
+                    class="wa-msg-in self-start max-w-[88%] flex flex-col gap-1"
+                    style="animation-delay: 1.6s;"
                   >
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                    <div
+                      class="rounded-[8px] rounded-tl-[2px] bg-white px-2.5 py-1.5"
                       style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
                     >
-                      Confirmar
-                    </span>
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
-                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      <p
+                        class="font-inter text-[12px] leading-[17px] text-[#111B21]"
+                      >
+                        🔔 Bom dia, Camila!
+                        <br />
+                        Lembrando que hoje você tem horário às 
+                        <strong>
+                          15h
+                        </strong>
+                         com a Paula 💜
+                      </p>
+                      <span
+                        class="block text-right font-inter text-[9px] text-[#667781] mt-0.5"
+                      >
+                        07:00
+                      </span>
+                    </div>
+                    <div
+                      class="flex flex-col gap-1 w-full"
                     >
-                      Remarcar
-                    </span>
-                    <span
-                      class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
-                      style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
-                    >
-                      Cancelar
-                    </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Confirmar
+                      </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Remarcar
+                      </span>
+                      <span
+                        class="block rounded-[7px] bg-white text-center font-inter font-medium text-[#027EB5] text-[12px] py-1.5"
+                        style="box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);"
+                      >
+                        Cancelar
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="flex items-center gap-2 bg-[#F0F2F5] px-2 py-1.5"
-              >
                 <div
-                  class="flex-1 rounded-full bg-white h-7 px-3 flex items-center"
+                  class="flex items-center gap-2 bg-[#F0F2F5] px-2 py-1.5"
                 >
-                  <span
-                    class="font-inter text-[10.5px] text-[#667781]"
+                  <div
+                    class="flex-1 rounded-full bg-white h-7 px-3 flex items-center"
                   >
-                    Mensagem
-                  </span>
-                </div>
-                <div
-                  class="h-7 w-7 rounded-full bg-[#075E54] flex items-center justify-center text-white text-[11px]"
-                >
-                  🎤
+                    <span
+                      class="font-inter text-[10.5px] text-[#667781]"
+                    >
+                      Mensagem
+                    </span>
+                  </div>
+                  <div
+                    class="h-7 w-7 rounded-full bg-[#075E54] flex items-center justify-center text-white text-[11px]"
+                  >
+                    🎤
+                  </div>
                 </div>
               </div>
             </div>
@@ -1352,17 +1360,17 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             <span
               class="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-brand-vinho"
             >
-              Painel completo
+              Fluxo de caixa
             </span>
             <h3
               class="font-fraunces italic font-normal text-brand-petroleo text-[24px] leading-[28px] md:text-[28px] md:leading-[32px] tracking-[-0.02em] max-w-[18ch]"
             >
-              Quanto você faturou
+              O caixa do seu dia
             </h3>
             <p
               class="font-inter text-ink-muted text-[15px] leading-[24px] max-w-[40ch]"
             >
-              Faturamento do mês, dias mais cheios, serviços que mais saem e ranking das profissionais.
+              Veja o que entrou, o que saiu e quanto sobrou no dia, no Pix, no cartão ou no dinheiro.
             </p>
             <div
               class="mt-2 flex justify-center md:justify-start"

@@ -1,7 +1,7 @@
 import { ProductItemComponent, ProductItemProps } from "./product-item";
 
 const agendabarberContent: ProductItemProps = {
-  imgUrl: "/agendabela_print.png",
+  imgUrl: "/agendabela_print-demo.png",
   title: "Agenda Barber",
   description: `
   ✓ Automatize seus agendamentos \n
