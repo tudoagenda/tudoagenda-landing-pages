@@ -77,6 +77,9 @@ function useFooterInView(): boolean {
 
 export const HeroComponent = () => {
   const footerInView = useFooterInView();
+  // Com o foco num campo do card (digitando), ele não some nem fica inert.
+  const [cardFocused, setCardFocused] = useState(false);
+  const hideCard = footerInView && !cardFocused;
 
   return (
     <>
@@ -202,11 +205,17 @@ export const HeroComponent = () => {
       {/* Some quando o rodapé entra na tela, para não cobrir os selos das lojas. */}
       <div
         className={`md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30 motion-safe:transition-[transform,opacity] motion-safe:duration-200${
-          footerInView ? " translate-y-[120%] opacity-0 pointer-events-none" : ""
+          hideCard ? " translate-y-[120%] opacity-0 pointer-events-none" : ""
         }`}
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
-        aria-hidden={footerInView || undefined}
-        inert={footerInView || undefined}
+        aria-hidden={hideCard || undefined}
+        inert={hideCard || undefined}
+        onFocus={() => setCardFocused(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setCardFocused(false);
+          }
+        }}
       >
         <div className="flex flex-col gap-2.5">
           <FormComponent />

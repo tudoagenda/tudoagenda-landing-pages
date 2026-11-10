@@ -71,6 +71,10 @@ describe("FooterComponent", () => {
           cta_location: "rodape_selo",
         }),
       ]);
+      // store do clique anterior não fica no modelo do GTM para o próximo evento
+      expect(Object.keys(window.dataLayer![1])).toEqual(
+        expect.arrayContaining(["store", "device_os", "cta_location"]),
+      );
     });
 
     it("o rodapé tem id para o card fixo do celular saber quando sumir", () => {

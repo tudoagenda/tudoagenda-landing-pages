@@ -1654,7 +1654,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           </a>
         </div>
         <p
-          class="font-inter text-[13px] leading-[18px] text-ink-muted max-w-[32ch]"
+          class="font-inter text-[13px] leading-[18px] text-ink-muted max-w-[40ch]"
         >
           Baixe o app e teste 7 dias grátis, sem cartão.
         </p>

@@ -73,6 +73,14 @@ describe("HeroComponent", () => {
     act(() => notify([{ isIntersecting: false }]));
     expect(card).not.toHaveAttribute("aria-hidden");
 
+    // digitando no card: o rodapé aparece, mas o card não some
+    const input = card.querySelector("input")!;
+    act(() => input.focus());
+    act(() => notify([{ isIntersecting: true }]));
+    expect(card).not.toHaveAttribute("aria-hidden");
+    act(() => input.blur());
+    expect(card).toHaveAttribute("aria-hidden", "true");
+
     footer.remove();
     window.IntersectionObserver = original;
   });

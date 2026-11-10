@@ -79,8 +79,9 @@ const STORE={ios:APP_STORE_URL, android:googlePlayUrl(attribution)};
 const OS = /iPhone|iPad|iPod/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'desktop';
 /* [prod] QR de https://tudoagenda.com.br/agendabela/experimente pré-gerado com o mesmo qrcodejs do protótipo (168px, #213745, nível M) */
 const QR_SRC=ASSET.qr;
-const BADGE_IOS = `<a class="badge-link" href="${STORE.ios}" target="_blank" rel="noopener" data-store="badge-ios"><img src="${ASSET.ios}" alt="Baixar na App Store" width="120" height="40" class="badge-ios"></a>`;
-const BADGE_AND = `<a class="badge-link" href="${STORE.android}" target="_blank" rel="noopener" data-store="badge-android"><img src="${ASSET.android}" alt="Disponível no Google Play" width="134" height="52" class="badge-and"></a>`;
+const B=STORE_BADGES;   /* [prod] alt e medidas da fonte única (iguais aos selos do rodapé em markup.ts) */
+const BADGE_IOS = `<a class="badge-link" href="${STORE.ios}" target="_blank" rel="noopener" data-store="badge-ios"><img src="${ASSET.ios}" alt="${B.appStore.alt}" width="${B.appStore.width}" height="${B.appStore.height}" class="badge-ios"></a>`;
+const BADGE_AND = `<a class="badge-link" href="${STORE.android}" target="_blank" rel="noopener" data-store="badge-android"><img src="${ASSET.android}" alt="${B.googlePlay.alt}" width="${B.googlePlay.width}" height="${B.googlePlay.height}" class="badge-and"></a>`;
 /* selos oficiais: no celular só o da loja do aparelho; nos demais, os dois */
 const storeBadges = () => OS==='ios' ? BADGE_IOS : OS==='android' ? BADGE_AND : BADGE_IOS+BADGE_AND;
 const storeHref = () => OS==='ios'?STORE.ios:OS==='android'?STORE.android:'#baixar';

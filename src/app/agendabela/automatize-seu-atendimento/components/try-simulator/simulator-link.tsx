@@ -1,12 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
-
-export type SimulatorCtaLocation =
-  | "automatize_hero_link"
-  | "automatize_secao_simulador"
-  | "automatize_avaliacoes";
+import {
+  pushAgendaBelaMainEvent,
+  type SimulatorCtaLocation,
+} from "@/lib/analytics/dataLayer";
 
 export const EXPERIMENTE_PATH = "/agendabela/experimente";
 

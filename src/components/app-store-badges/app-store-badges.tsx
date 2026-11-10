@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   APP_STORE_URL,
+  GOOGLE_PLAY_BASE_URL,
   STORE_BADGES,
   googlePlayUrl,
 } from "@/config/app-stores";
@@ -63,7 +64,7 @@ export function AppStoreBadges({
     forcePlatform ?? "unknown",
   );
   // Sem atribuição no servidor; no client o link da Google Play ganha o referrer.
-  const [androidHref, setAndroidHref] = useState(googlePlayUrl());
+  const [androidHref, setAndroidHref] = useState<string>(GOOGLE_PLAY_BASE_URL);
 
   useEffect(() => {
     setPlatform(forcePlatform ?? detectPlatform());

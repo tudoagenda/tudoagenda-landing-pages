@@ -19,6 +19,12 @@ declare global {
 
 type CtaIntent = "primary" | "secondary";
 
+/** Links da landing automatize para o simulador (/agendabela/experimente?ref=...). */
+export type SimulatorCtaLocation =
+  | "automatize_hero_link"
+  | "automatize_secao_simulador"
+  | "automatize_avaliacoes";
+
 type LandingEvent =
   | {
       event: "lp_cta_clicked";
@@ -46,10 +52,7 @@ type LandingEvent =
   | {
       /** Link da landing para o simulador (/agendabela/experimente?ref=...). */
       event: "cta_click";
-      cta_location:
-        | "automatize_hero_link"
-        | "automatize_secao_simulador"
-        | "automatize_avaliacoes";
+      cta_location: SimulatorCtaLocation;
     }
   | {
       /** Selo de loja. Mesmo nome e parâmetros do store_click do Experimente. */
@@ -157,12 +160,23 @@ const ATTRIBUTION_STORAGE_KEY = "agendabela_landing_attribution";
  * Outras landings/produtos no futuro: criar wrapper análogo.
  */
 export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
-  pushLandingEvent(eventData, {
-    product: "agendabela",
-    landing_type: "main",
-    landing_slug: "automatize-seu-atendimento",
-  });
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "main",
+      landing_slug: "automatize-seu-atendimento",
+    },
+    MAIN_RESET_KEYS,
+  );
 }
+
+/**
+ * Parâmetros de cta_click/store_click da landing principal: zerados a cada push
+ * para um store_click (store, device_os) não grudar no cta_click seguinte no
+ * modelo do GTM. Mesmo motivo de EXPERIMENTE_RESET_KEYS.
+ */
+const MAIN_RESET_KEYS = ["cta_location", "store", "device_os"] as const;
 
 /**
  * Faz push de um evento da LP de reativação do Agenda Bela.
