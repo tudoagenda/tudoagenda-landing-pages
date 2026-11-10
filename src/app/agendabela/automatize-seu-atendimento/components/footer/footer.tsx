@@ -1,10 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { COMPANY_LEGAL_IDENTIFICATION, SUPPORT_WHATSAPP_URL } from "@/config/company";
+import { AppStoreBadges } from "@/components/app-store-badges/app-store-badges";
 
 export const FooterComponent = () => {
   return (
-    <footer className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-10 md:py-12 border-t border-surface-alt-border">
+    <footer
+      id="rodape"
+      className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-10 md:py-12 border-t border-surface-alt-border"
+    >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
         <div className="flex flex-col items-center md:items-start gap-2">
           <Image
@@ -19,7 +23,25 @@ export const FooterComponent = () => {
           </span>
         </div>
 
-        <nav className="flex flex-col md:flex-row gap-3 md:gap-6 items-center">
+        {/* Selos sempre visíveis, sem detecção de aparelho: o app tem 7 dias
+            grátis sem cartão, então baixar direto não tem barreira. */}
+        <section
+          aria-labelledby="rodape-baixe-o-app"
+          className="flex flex-col items-center md:items-start gap-3 text-center md:text-left"
+        >
+          <h2
+            id="rodape-baixe-o-app"
+            className="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
+          >
+            Baixe o app
+          </h2>
+          <AppStoreBadges variant="footer" ctaLocation="rodape_selo" />
+          <p className="font-inter text-[13px] leading-[18px] text-ink-muted max-w-[40ch]">
+            Baixe o app e teste 7 dias grátis, sem cartão.
+          </p>
+        </section>
+
+        <nav className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-center md:items-end lg:items-center">
           <Link
             href="/termos"
             className="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"

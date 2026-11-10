@@ -101,6 +101,73 @@ describe("Experimente o Agenda Bela: medição", () => {
     );
   });
 
+  it("selo do rodapé (#loja) vem no HTML e mede rodape_selo", () => {
+    const footerBadges = document.querySelectorAll<HTMLAnchorElement>(
+      "#loja [data-store^='badge-']",
+    );
+    expect(footerBadges).toHaveLength(2);
+    expect(EXPERIMENTE_MARKUP).toContain(
+      'href="https://apps.apple.com/br/app/agenda-bela/id6782112738"',
+    );
+    const ios = document.querySelector<HTMLAnchorElement>(
+      '#loja [data-store="badge-ios"]',
+    );
+    ios?.addEventListener("click", (e) => e.preventDefault());
+    ios?.click();
+    expect(events.at(-1)).toEqual({
+      event: "store_click",
+      store: "app_store",
+      cta_location: "rodape_selo",
+      device_os: "desktop",
+    });
+  });
+
+  it("link da App Store não força idioma (?l=) e a Google Play abre em pt_BR", () => {
+    const hrefs = [...document.querySelectorAll("[data-store^='badge-']")].map(
+      (a) => a.getAttribute("href") ?? "",
+    );
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) expect(href).not.toMatch(/[?&]l=/);
+    expect(
+      hrefs.filter((h) => h.includes("play.google.com")).every((h) =>
+        h.includes("hl=pt_BR&gl=BR"),
+      ),
+    ).toBe(true);
+  });
+
+  it("preço leva para a loja com o rótulo que não colide com o cadastro da landing", () => {
+    expect(
+      document.querySelector('[data-store="preco"]')?.textContent,
+    ).toBe("Baixar o app e testar 7 dias");
+    expect(EXPERIMENTE_MARKUP).not.toContain("Começar meus 7 dias grátis");
+  });
+
+  it("lp_view leva o ?ref= da landing (e undefined quando não veio ou é inválido)", () => {
+    expect(events[0]).toEqual({ event: "lp_view", device_os: "desktop", ref: undefined });
+    cleanup();
+    history.replaceState(null, "", "/agendabela/experimente?ref=automatize_secao#marcar-cliente");
+    events = [];
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    expect(events[0]).toEqual({ event: "lp_view", device_os: "desktop", ref: "automatize_secao" });
+    cleanup();
+    history.replaceState(null, "", "/agendabela/experimente?ref=%3Cscript%3E");
+    events = [];
+    cleanup = initExperimente({ track: (e) => events.push(e) });
+    expect(events[0]).toEqual({ event: "lp_view", device_os: "desktop", ref: undefined });
+    history.replaceState(null, "", "/agendabela/experimente");
+  });
+
+  it("repassa a atribuição também ao selo da Google Play do rodapé", () => {
+    cleanup();
+    cleanup = initExperimente({
+      track: () => {},
+      attribution: { utm_source: "meta" },
+    });
+    expect(
+      document.querySelector('#loja [data-store="badge-android"]')?.getAttribute("href"),
+    ).toContain("&referrer=" + encodeURIComponent("utm_source=meta"));
+  });
+
   it("cleanup remove os listeners (sem evento duplicado ao remontar)", () => {
     cleanup();
     cleanup = initExperimente({ track: (e) => events.push(e) });
@@ -339,6 +406,30 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     expect(events).toHaveLength(n);
     // o toque mostra o aviso padrão do teste, sem texto novo
     expect(document.getElementById("toast")?.textContent).toContain("Neste teste, esse toque não faz nada.");
+  });
+
+  it("conclusão leva para a loja; com 3+ jornadas o menu do desktop ganha o botão para #baixar", () => {
+    const done = () => document.querySelector("#doneOv .done-card");
+    for (let j = 1; j <= 5; j++) {
+      document.querySelector<HTMLElement>(`.benef [data-open="j${j}"]`)?.click();
+      jest.advanceTimersByTime(50);
+      expect(play()).toBe(true);
+      expect(done()?.querySelector('[data-store="conclusao"]')?.textContent).toBe(
+        "Baixar o app e testar 7 dias",
+      );
+      expect(done()?.querySelector(".next-link")?.textContent).toBe(
+        j < 5 ? "Ver o próximo teste →" : "Rever um teste →",
+      );
+      if (j < 5) document.getElementById("doneOv")!.innerHTML = "";
+    }
+    // "Rever um teste" volta ao menu, que já passou de 3 jornadas
+    document.querySelector<HTMLElement>("#doneOv .next-link")?.click();
+    const btn = document.querySelector<HTMLAnchorElement>('#coach [data-store="menu_essencial"]');
+    expect(btn?.textContent).toBe("Baixar o app e testar 7 dias");
+    expect(btn?.getAttribute("href")).toBe("#baixar");
+    btn?.click();
+    expect(events.at(-1)).toEqual({ event: "cta_click", cta_location: "menu_essencial_ver_lojas" });
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   });
 
   it("J2 completa sempre passa por cliente_paga_sinal, sem passo pulado", () => {

@@ -42,6 +42,21 @@ type LandingEvent =
       event: "checkout_opened";
       flow: "reactivation" | "new_signup";
       source: string;
+    }
+  | {
+      /** Link da landing para o simulador (/agendabela/experimente?ref=...). */
+      event: "cta_click";
+      cta_location:
+        | "automatize_hero_link"
+        | "automatize_secao_simulador"
+        | "automatize_avaliacoes";
+    }
+  | {
+      /** Selo de loja. Mesmo nome e parâmetros do store_click do Experimente. */
+      event: "store_click";
+      store: "app_store" | "google_play";
+      cta_location: string;
+      device_os: DeviceOs;
     };
 
 /**
@@ -52,12 +67,14 @@ type LandingEvent =
  * mescla cada push ao modelo anterior e uma chave omitida herdaria o valor velho.
  */
 type JourneyNumber = 1 | 2 | 3 | 4 | 5;
-type DeviceOs = "ios" | "android" | "desktop";
+export type DeviceOs = "ios" | "android" | "desktop";
 
 export type ExperimenteEvent =
   | {
       event: "lp_view";
       device_os: DeviceOs;
+      /** Origem interna vinda de ?ref= (ex.: automatize_secao); undefined quando não veio. */
+      ref: string | undefined;
     }
   | {
       event: "cta_click";
@@ -208,6 +225,7 @@ const EXPERIMENTE_RESET_KEYS = [
   "cta_location",
   "store",
   "device_os",
+  "ref",
 ] as const;
 
 /**

@@ -60,6 +60,14 @@ const HowItWorksComponent = dynamic(
   { loading: () => <div className="h-64 bg-surface-subtle animate-pulse" /> },
 );
 
+const TrySimulatorComponent = dynamic(
+  () =>
+    import("./components/try-simulator").then((mod) => ({
+      default: mod.TrySimulatorComponent,
+    })),
+  { loading: () => <div className="h-64 bg-surface-subtle animate-pulse" /> },
+);
+
 const FeaturesComponent = dynamic(
   () =>
     import("./components/features").then((mod) => ({
@@ -103,6 +111,7 @@ const AutomatizeSeuAtendimento = () => {
       />
       <HeroComponent />
       <HowItWorksComponent />
+      <TrySimulatorComponent />
       <FeaturesComponent />
       <TestimonialsComponent />
       {/* About / Testimonial / Step legacy — removidos do orquestrador.

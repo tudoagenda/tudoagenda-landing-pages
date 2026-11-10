@@ -3,7 +3,12 @@
  * Textos e estrutura iguais ao protótipo; em produção só mudaram os caminhos dos
  * assets, os atributos data-local (medição) e saiu a linha "Protótipo de desenho".
  * O comportamento vem de ./simulador.js, montado por ExperimenteRuntime.
+ * Os selos do rodapé (#loja) vêm direto no HTML: funcionam sem JS.
  */
+import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL, STORE_BADGES } from "@/config/app-stores";
+
+const FOOTER_BADGES = `<a class="badge-link" href="${APP_STORE_URL}" target="_blank" rel="noopener" data-store="badge-ios"><img src="${STORE_BADGES.appStore.src}" alt="${STORE_BADGES.appStore.alt}" width="${STORE_BADGES.appStore.width}" height="${STORE_BADGES.appStore.height}" class="badge-ios"></a><a class="badge-link" href="${GOOGLE_PLAY_BASE_URL}" target="_blank" rel="noopener" data-store="badge-android"><img src="${STORE_BADGES.googlePlay.src}" alt="${STORE_BADGES.googlePlay.alt}" width="${STORE_BADGES.googlePlay.width}" height="${STORE_BADGES.googlePlay.height}" class="badge-and"></a>`;
+
 export const EXPERIMENTE_MARKUP = `<header class="top">
   <div class="wrap">
     <a class="logo" href="#topo" aria-label="Agenda Bela, início"><img class="appicon" src="/images/experimente/agenda-bela-icone.png" alt="Agenda Bela" width="36" height="36"></a>
@@ -159,7 +164,7 @@ export const EXPERIMENTE_MARKUP = `<header class="top">
         <p class="small">Cancele quando quiser.</p>
         <p class="small">Quando você cobra sinal, descontamos a tarifa do Pix e 1,49% do Agenda Bela, só sobre o valor do sinal.</p>
       </div>
-      <div><a class="btn btn-primary btn-block" href="#loja" data-store="preco">Começar meus 7 dias grátis</a></div>
+      <div><a class="btn btn-primary btn-block" href="#loja" data-store="preco">Baixar o app e testar 7 dias</a></div>
     </div>
   </div>
 </section>
@@ -203,6 +208,11 @@ export const EXPERIMENTE_MARKUP = `<header class="top">
         <img src="/brand/agenda-bela/logo-app.png" alt="Agenda Bela" width="48" height="48">
         <span>por Tudo Agenda</span>
       </div>
+      <section class="ab-foot-stores" aria-labelledby="h-foot-stores">
+        <h2 id="h-foot-stores">Baixe o app</h2>
+        <div class="ab-foot-badges">${FOOTER_BADGES}</div>
+        <p>Baixe o app e teste 7 dias grátis, sem cartão.</p>
+      </section>
       <nav aria-label="Links do rodapé">
         <a href="https://tudoagenda.com.br/termos">Termos de serviço</a>
         <a href="https://tudoagenda.com.br/privacidade">Política de privacidade</a>

@@ -7,6 +7,8 @@
 // Mobile-first: 1 col → 2 col.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { SimulatorLink } from "../try-simulator/simulator-link";
+
 interface StoreReview {
   quote: string;
   author: string;
@@ -77,6 +79,16 @@ export const TestimonialsComponent = () => {
             </figure>
           ))}
         </div>
+
+        <p className="mt-8 text-center">
+          <SimulatorLink
+            refId="automatize_avaliacoes"
+            ctaLocation="automatize_avaliacoes"
+            className="inline-flex min-h-11 items-center font-inter text-[15px] font-semibold text-brand-petroleo underline underline-offset-4 decoration-brand-rosa hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo rounded-sm"
+          >
+            Veja o que a Bela faz na prática →
+          </SimulatorLink>
+        </p>
       </div>
     </section>
   );
