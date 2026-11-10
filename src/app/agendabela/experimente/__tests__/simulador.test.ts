@@ -422,7 +422,7 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
       );
       if (j < 5) document.getElementById("doneOv")!.innerHTML = "";
     }
-    // "Rever um teste" volta ao menu, que já passou de 3 jornadas
+    // 5/5 concluídas: "Rever um teste" volta ao menu, que (com 3+) tem o botão de baixar
     document.querySelector<HTMLElement>("#doneOv .next-link")?.click();
     const btn = document.querySelector<HTMLAnchorElement>('#coach [data-store="menu_essencial"]');
     expect(btn?.textContent).toBe("Baixar o app e testar 7 dias");
@@ -430,6 +430,19 @@ describe("Experimente o Agenda Bela: medição por passo", () => {
     btn?.click();
     expect(events.at(-1)).toEqual({ event: "cta_click", cta_location: "menu_essencial_ver_lojas" });
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it("Caixa (J5) concluída primeiro, por link direto: o link leva ao menu sem dizer 'Rever'", () => {
+    history.replaceState(null, "", "/agendabela/experimente#caixa");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    jest.advanceTimersByTime(50);
+    expect(play()).toBe(true);
+    const next = document.querySelector<HTMLElement>("#doneOv .next-link");
+    expect(next?.textContent).toBe("Ver tudo o que dá para testar →");
+    expect(next?.dataset.a).toBe("menu");
+    expect(document.querySelector('#doneOv [data-store="conclusao"]')?.textContent).toBe(
+      "Baixar o app e testar 7 dias",
+    );
   });
 
   it("J2 completa sempre passa por cliente_paga_sinal, sem passo pulado", () => {

@@ -36,8 +36,9 @@ describe("HeroComponent", () => {
     expect(link.className).toMatch(/md:inline-flex/);
   });
 
-  it("card fixo do celular some quando o rodapé entra na tela", () => {
-    let notify: (entries: Array<{ isIntersecting: boolean }>) => void = () => {};
+  it("card fixo do celular some quando o rodapé ou a seção do simulador entram na tela", () => {
+    type Entry = { isIntersecting: boolean; target: Element };
+    let notify: (entries: Entry[]) => void = () => {};
     const observed: Element[] = [];
     const original = window.IntersectionObserver;
     window.IntersectionObserver = class {
@@ -52,7 +53,9 @@ describe("HeroComponent", () => {
 
     const footer = document.createElement("footer");
     footer.id = "rodape";
-    document.body.appendChild(footer);
+    const section = document.createElement("section");
+    section.id = "teste-sem-cadastro";
+    document.body.append(section, footer);
 
     const { container } = render(
       <QueryClientProvider client={queryClient}>
@@ -62,26 +65,36 @@ describe("HeroComponent", () => {
       </QueryClientProvider>
     );
     const card = container.querySelector<HTMLElement>("div.fixed")!;
-    expect(observed).toEqual([footer]);
+    expect(observed).toEqual(expect.arrayContaining([footer, section]));
     expect(card).not.toHaveAttribute("aria-hidden");
 
-    act(() => notify([{ isIntersecting: true }]));
+    // seção do simulador na tela (em 320px o card cobria o botão)
+    act(() => notify([{ isIntersecting: true, target: section }]));
     expect(card).toHaveAttribute("aria-hidden", "true");
     expect(card.hasAttribute("inert")).toBe(true);
     expect(card.className).toMatch(/opacity-0/);
-
-    act(() => notify([{ isIntersecting: false }]));
+    act(() => notify([{ isIntersecting: false, target: section }]));
     expect(card).not.toHaveAttribute("aria-hidden");
 
-    // digitando no card: o rodapé aparece, mas o card não some
+    // rodapé na tela
+    act(() => notify([{ isIntersecting: true, target: footer }]));
+    expect(card).toHaveAttribute("aria-hidden", "true");
+    // seção sai, rodapé continua: segue escondido
+    act(() => notify([{ isIntersecting: false, target: section }]));
+    expect(card).toHaveAttribute("aria-hidden", "true");
+    act(() => notify([{ isIntersecting: false, target: footer }]));
+    expect(card).not.toHaveAttribute("aria-hidden");
+
+    // digitando no card: a zona aparece, mas o card não some
     const input = card.querySelector("input")!;
     act(() => input.focus());
-    act(() => notify([{ isIntersecting: true }]));
+    act(() => notify([{ isIntersecting: true, target: section }]));
     expect(card).not.toHaveAttribute("aria-hidden");
     act(() => input.blur());
     expect(card).toHaveAttribute("aria-hidden", "true");
 
     footer.remove();
+    section.remove();
     window.IntersectionObserver = original;
   });
 });

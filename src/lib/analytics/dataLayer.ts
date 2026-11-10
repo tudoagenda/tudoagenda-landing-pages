@@ -172,11 +172,23 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
 }
 
 /**
- * Parâmetros de cta_click/store_click da landing principal: zerados a cada push
- * para um store_click (store, device_os) não grudar no cta_click seguinte no
- * modelo do GTM. Mesmo motivo de EXPERIMENTE_RESET_KEYS.
+ * Todo parâmetro de evento da landing principal (LandingEvent), zerado a cada
+ * push para um evento não herdar o valor do anterior no modelo do GTM (ex.:
+ * store/device_os de um store_click grudando no cta_click seguinte). Mesmo
+ * motivo de EXPERIMENTE_RESET_KEYS. Parâmetro novo em LandingEvent entra aqui.
+ * landing_slug fica de fora: vem do contexto da landing em todo push.
  */
-const MAIN_RESET_KEYS = ["cta_location", "store", "device_os"] as const;
+export const MAIN_RESET_KEYS = [
+  "cta_position",
+  "cta_intent",
+  "form_name",
+  "flow",
+  "source",
+  "alert_kind",
+  "cta_location",
+  "store",
+  "device_os",
+] as const;
 
 /**
  * Faz push de um evento da LP de reativação do Agenda Bela.

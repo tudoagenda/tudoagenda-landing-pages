@@ -953,6 +953,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
   <section
     aria-labelledby="simulador-titulo"
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pb-16 md:pb-24"
+    id="teste-sem-cadastro"
   >
     <div
       class="max-w-4xl mx-auto flex flex-col items-center gap-4 text-center bg-brand-creme-soft rounded-app-xl border border-surface-alt-border shadow-brand-xs px-6 py-10 md:px-12 md:py-14"

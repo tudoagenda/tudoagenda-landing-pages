@@ -11,6 +11,7 @@ import { SimulatorLink } from "./simulator-link";
 export const TrySimulatorComponent = () => {
   return (
     <section
+      id="teste-sem-cadastro"
       aria-labelledby="simulador-titulo"
       className="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pb-16 md:pb-24"
     >

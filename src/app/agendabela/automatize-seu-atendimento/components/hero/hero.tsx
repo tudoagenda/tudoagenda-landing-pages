@@ -35,39 +35,53 @@ const features = [
 ];
 
 /**
- * true quando o rodapé (#rodape) está na tela. O card fixo do celular some
- * nesse momento para não cobrir os selos das lojas do rodapé.
+ * Elementos que o card fixo do celular não pode cobrir: o rodapé (selos das
+ * lojas) e o botão da seção do simulador (em 320px o card cobria o botão).
  */
-function useFooterInView(): boolean {
+const CARD_AVOID_IDS = ["rodape", "teste-sem-cadastro"] as const;
+
+/**
+ * true quando algum dos elementos de CARD_AVOID_IDS está na tela. Eles vêm de
+ * next/dynamic, então os que ainda não estão no DOM são esperados.
+ */
+function useAvoidZonesInView(): boolean {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
-    let io: IntersectionObserver | null = null;
+    const visible = new Set<Element>();
+    const watched = new Set<Element>();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      });
+      setInView(visible.size > 0);
+    });
     let mo: MutationObserver | null = null;
 
-    const watch = (footer: Element) => {
-      io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
-      io.observe(footer);
-    };
-
-    const footer = document.getElementById("rodape");
-    if (footer) {
-      watch(footer);
-    } else {
-      // O rodapé é carregado à parte (next/dynamic): espera ele entrar no DOM.
-      mo = new MutationObserver(() => {
-        const el = document.getElementById("rodape");
-        if (!el) return;
+    const watchFound = () => {
+      CARD_AVOID_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && !watched.has(el)) {
+          watched.add(el);
+          io.observe(el);
+        }
+      });
+      if (watched.size === CARD_AVOID_IDS.length) {
         mo?.disconnect();
         mo = null;
-        watch(el);
-      });
+      }
+    };
+
+    watchFound();
+    if (watched.size < CARD_AVOID_IDS.length) {
+      mo = new MutationObserver(watchFound);
       mo.observe(document.body, { childList: true, subtree: true });
     }
 
     return () => {
-      io?.disconnect();
+      io.disconnect();
       mo?.disconnect();
     };
   }, []);
@@ -76,10 +90,10 @@ function useFooterInView(): boolean {
 }
 
 export const HeroComponent = () => {
-  const footerInView = useFooterInView();
+  const avoidZoneInView = useAvoidZonesInView();
   // Com o foco num campo do card (digitando), ele não some nem fica inert.
   const [cardFocused, setCardFocused] = useState(false);
-  const hideCard = footerInView && !cardFocused;
+  const hideCard = avoidZoneInView && !cardFocused;
 
   return (
     <>
@@ -202,7 +216,8 @@ export const HeroComponent = () => {
       </main>
 
       {/* Sticky CTA mobile — card flutuante */}
-      {/* Some quando o rodapé entra na tela, para não cobrir os selos das lojas. */}
+      {/* Some quando o rodapé ou a seção do simulador entram na tela, para não
+          cobrir os selos das lojas nem o botão "Experimentar o Agenda Bela". */}
       <div
         className={`md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30 motion-safe:transition-[transform,opacity] motion-safe:duration-200${
           hideCard ? " translate-y-[120%] opacity-0 pointer-events-none" : ""

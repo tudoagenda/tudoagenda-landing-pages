@@ -569,7 +569,7 @@ function finish(){
     <div class="storetile" style="margin:0 0 12px"><img class="appicon" src="${ASSET.icon}" alt="" width="44" height="44"><div><b>Agenda Bela</b><small>${completed.size>=3?'Você já viu o essencial. ':''}iPhone e Android · 7 dias grátis</small></div></div>
     <a class="btn btn-primary btn-block" href="${storeHref()}" data-store="conclusao" data-dl>Baixar o app e testar 7 dias</a>
     <div class="stores-row small">${storeBadges()}</div>
-    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver o próximo teste →':'Rever um teste →'}</button></div></div>`;
+    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver o próximo teste →':completed.size>=5?'Rever um teste →':'Ver tudo o que dá para testar →'}</button></div></div>`;
   later(()=>{const b=$('#doneOv .btn'); b&&b.focus({preventScroll:true});},30);
 }
 
