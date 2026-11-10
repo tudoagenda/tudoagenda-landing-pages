@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
 import { COMPANY_LEGAL_IDENTIFICATION, SUPPORT_WHATSAPP_URL } from "@/config/company";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -682,7 +683,7 @@ export function ReactivationFlow() {
             {/* App store badges — reutilizando componente se existir, senão links simples */}
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                href="https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB"
+                href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -690,7 +691,7 @@ export function ReactivationFlow() {
                 App Store (iOS)
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao"
+                href={GOOGLE_PLAY_BASE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -727,7 +728,7 @@ export function ReactivationFlow() {
 
             <div className="flex flex-col gap-3">
               <a
-                href="https://apps.apple.com/br/app/agenda-bela/id6782112738?l=en-GB"
+                href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
@@ -735,7 +736,7 @@ export function ReactivationFlow() {
                 Baixar app (iOS)
               </a>
               <a
-                href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao"
+                href={GOOGLE_PLAY_BASE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"

@@ -17,6 +17,14 @@ describe("AppStoreBadges — device detection", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("usa o selo oficial da Apple em português", () => {
+      render(<AppStoreBadges forcePlatform="ios" />);
+
+      expect(
+        screen.getByAltText("Baixar na App Store").getAttribute("src"),
+      ).toContain("badge-app-store-pt-br.svg");
+    });
+
     it("renders only Google badge for Android", () => {
       render(<AppStoreBadges forcePlatform="android" />);
 

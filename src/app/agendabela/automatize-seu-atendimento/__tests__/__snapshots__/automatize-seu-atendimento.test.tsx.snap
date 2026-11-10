@@ -1635,7 +1635,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
               alt="Baixar na App Store"
               class="block h-10 w-auto"
               height="40"
-              src="/images/badges/badge-app-store-en.svg"
+              src="/images/badges/badge-app-store-pt-br.svg"
               width="120"
             />
           </a>

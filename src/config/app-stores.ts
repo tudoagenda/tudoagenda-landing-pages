@@ -29,14 +29,13 @@ export function googlePlayUrl(
 
 /**
  * Selos oficiais, versionados em /public (nunca redesenhar à mão).
- * A Apple ainda está no selo em inglês: o oficial em PT ("Baixar na App
- * Store") sai do Apple Marketing Tools e entra aqui quando for baixado.
+ * O da Apple é o "Baixar na App Store" em PT-BR do Apple Marketing Tools.
  * O PNG da Google tem respiro em cima e embaixo: 52px de altura dão o mesmo
  * tamanho visual dos 40px do selo da Apple (compensado com margem negativa).
  */
 export const STORE_BADGES = {
   appStore: {
-    src: "/images/badges/badge-app-store-en.svg",
+    src: "/images/badges/badge-app-store-pt-br.svg",
     alt: "Baixar na App Store",
     width: 120,
     height: 40,

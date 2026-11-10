@@ -656,7 +656,10 @@ export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 
                     </p>
                   )}
 
-                  <AppStoreBadges heading="Baixe o app Agenda Bela:" />
+                  <AppStoreBadges
+                    heading="Baixe o app Agenda Bela:"
+                    ctaLocation="cadastro_concluido_selo"
+                  />
 
                   {!noPhone && (
                     <>
