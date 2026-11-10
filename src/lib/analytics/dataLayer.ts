@@ -19,6 +19,12 @@ declare global {
 
 type CtaIntent = "primary" | "secondary";
 
+/** Links da landing automatize para o simulador (/agendabela/experimente?ref=...). */
+export type SimulatorCtaLocation =
+  | "automatize_hero_link"
+  | "automatize_secao_simulador"
+  | "automatize_avaliacoes";
+
 type LandingEvent =
   | {
       event: "lp_cta_clicked";
@@ -42,6 +48,18 @@ type LandingEvent =
       event: "checkout_opened";
       flow: "reactivation" | "new_signup";
       source: string;
+    }
+  | {
+      /** Link da landing para o simulador (/agendabela/experimente?ref=...). */
+      event: "cta_click";
+      cta_location: SimulatorCtaLocation;
+    }
+  | {
+      /** Selo de loja. Mesmo nome e parâmetros do store_click do Experimente. */
+      event: "store_click";
+      store: "app_store" | "google_play";
+      cta_location: string;
+      device_os: DeviceOs;
     };
 
 /**
@@ -52,12 +70,14 @@ type LandingEvent =
  * mescla cada push ao modelo anterior e uma chave omitida herdaria o valor velho.
  */
 type JourneyNumber = 1 | 2 | 3 | 4 | 5;
-type DeviceOs = "ios" | "android" | "desktop";
+export type DeviceOs = "ios" | "android" | "desktop";
 
 export type ExperimenteEvent =
   | {
       event: "lp_view";
       device_os: DeviceOs;
+      /** Origem interna vinda de ?ref= (ex.: automatize_secao); undefined quando não veio. */
+      ref: string | undefined;
     }
   | {
       event: "cta_click";
@@ -140,12 +160,35 @@ const ATTRIBUTION_STORAGE_KEY = "agendabela_landing_attribution";
  * Outras landings/produtos no futuro: criar wrapper análogo.
  */
 export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
-  pushLandingEvent(eventData, {
-    product: "agendabela",
-    landing_type: "main",
-    landing_slug: "automatize-seu-atendimento",
-  });
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "main",
+      landing_slug: "automatize-seu-atendimento",
+    },
+    MAIN_RESET_KEYS,
+  );
 }
+
+/**
+ * Todo parâmetro de evento da landing principal (LandingEvent), zerado a cada
+ * push para um evento não herdar o valor do anterior no modelo do GTM (ex.:
+ * store/device_os de um store_click grudando no cta_click seguinte). Mesmo
+ * motivo de EXPERIMENTE_RESET_KEYS. Parâmetro novo em LandingEvent entra aqui.
+ * landing_slug fica de fora: vem do contexto da landing em todo push.
+ */
+export const MAIN_RESET_KEYS = [
+  "cta_position",
+  "cta_intent",
+  "form_name",
+  "flow",
+  "source",
+  "alert_kind",
+  "cta_location",
+  "store",
+  "device_os",
+] as const;
 
 /**
  * Faz push de um evento da LP de reativação do Agenda Bela.
@@ -208,6 +251,7 @@ const EXPERIMENTE_RESET_KEYS = [
   "cta_location",
   "store",
   "device_os",
+  "ref",
 ] as const;
 
 /**

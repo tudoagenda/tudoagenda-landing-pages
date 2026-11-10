@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { SimulatorLink } from "../try-simulator/simulator-link";
 import { AppScreenStack } from "@/components/brand/app-screen-stack";
 import { WhatsAppPreview } from "@/components/brand/whatsapp-preview";
 
@@ -32,7 +34,67 @@ const features = [
   "Toda manhã você recebe a agenda do dia no celular, e um aviso quando uma cliente confirma",
 ];
 
+/**
+ * Elementos que o card fixo do celular não pode cobrir: o rodapé (selos das
+ * lojas) e o botão da seção do simulador (em 320px o card cobria o botão).
+ */
+const CARD_AVOID_IDS = ["rodape", "teste-sem-cadastro"] as const;
+
+/**
+ * true quando algum dos elementos de CARD_AVOID_IDS está na tela. Eles vêm de
+ * next/dynamic, então os que ainda não estão no DOM são esperados.
+ */
+function useAvoidZonesInView(): boolean {
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const visible = new Set<Element>();
+    const watched = new Set<Element>();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      });
+      setInView(visible.size > 0);
+    });
+    let mo: MutationObserver | null = null;
+
+    const watchFound = () => {
+      CARD_AVOID_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && !watched.has(el)) {
+          watched.add(el);
+          io.observe(el);
+        }
+      });
+      if (watched.size === CARD_AVOID_IDS.length) {
+        mo?.disconnect();
+        mo = null;
+      }
+    };
+
+    watchFound();
+    if (watched.size < CARD_AVOID_IDS.length) {
+      mo = new MutationObserver(watchFound);
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => {
+      io.disconnect();
+      mo?.disconnect();
+    };
+  }, []);
+
+  return inView;
+}
+
 export const HeroComponent = () => {
+  const avoidZoneInView = useAvoidZonesInView();
+  // Com o foco num campo do card (digitando), ele não some nem fica inert.
+  const [cardFocused, setCardFocused] = useState(false);
+  const hideCard = avoidZoneInView && !cardFocused;
+
   return (
     <>
       <main
@@ -111,6 +173,13 @@ export const HeroComponent = () => {
                   {positiveDisclaimer}
                 </p>
               </div>
+              <SimulatorLink
+                refId="automatize_hero"
+                ctaLocation="automatize_hero_link"
+                className="hidden md:inline-flex self-start min-h-11 items-center -mt-2 font-inter text-[14.5px] font-medium text-brand-petroleo underline underline-offset-4 decoration-brand-rosa hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo rounded-sm"
+              >
+                Prefere ver antes? Teste o app sem cadastro →
+              </SimulatorLink>
             </div>
 
             {/* Coluna direita — stack de phones reais + notificações push.
@@ -147,9 +216,21 @@ export const HeroComponent = () => {
       </main>
 
       {/* Sticky CTA mobile — card flutuante */}
+      {/* Some quando o rodapé ou a seção do simulador entram na tela, para não
+          cobrir os selos das lojas nem o botão "Experimentar o Agenda Bela". */}
       <div
-        className="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30"
+        className={`md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30 motion-safe:transition-[transform,opacity] motion-safe:duration-200${
+          hideCard ? " translate-y-[120%] opacity-0 pointer-events-none" : ""
+        }`}
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        aria-hidden={hideCard || undefined}
+        inert={hideCard || undefined}
+        onFocus={() => setCardFocused(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setCardFocused(false);
+          }
+        }}
       >
         <div className="flex flex-col gap-2.5">
           <FormComponent />

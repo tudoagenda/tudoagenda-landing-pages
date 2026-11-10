@@ -639,3 +639,15 @@ footer .stores{align-items:center}
 .badge-and{height:52px;margin:-6px 0}
 .stores-row{gap:12px}
 .stores-row.small{gap:8px;margin-top:8px}
+/* selos no rodapé (#loja): celular centralizado, desktop em coluna própria */
+.ab-foot-stores{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:0}
+.ab-foot-stores h2{margin:0;line-height:1.4;font-family:var(--f-mono);font-size:10px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--vinho)}
+.ab-foot-stores p{margin:0;font-size:13px;line-height:18px;color:var(--muted);max-width:40ch}
+.ab-foot-badges{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}
+.ab-foot-badges .badge-link{padding:2px 0}
+@media (min-width:900px){
+  .ab-foot-row{gap:40px}
+  .ab-foot-stores{align-items:flex-start;text-align:left;flex:none}
+  .ab-foot-badges{justify-content:flex-start}
+  .ab-footer nav{flex:1 1 0;min-width:0;flex-wrap:wrap;justify-content:flex-end;column-gap:24px;row-gap:0}
+}

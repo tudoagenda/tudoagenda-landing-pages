@@ -161,6 +161,21 @@ describe("ReactivationFlow — regressão dos fluxos já existentes", () => {
     );
   });
 
+  it("ALREADY_ACTIVE leva para as lojas em português (sem ?l=en-GB)", async () => {
+    mockLookup.mockResolvedValue({ status: "ALREADY_ACTIVE" });
+
+    renderFlow();
+    submitLookup("ativa@example.com");
+
+    const ios = await screen.findByRole("link", { name: /Baixar app \(iOS\)/i });
+    const android = screen.getByRole("link", { name: /Baixar app \(Android\)/i });
+    expect(ios).toHaveAttribute(
+      "href",
+      "https://apps.apple.com/br/app/agenda-bela/id6782112738",
+    );
+    expect(android.getAttribute("href")).toContain("hl=pt_BR&gl=BR");
+  });
+
   it("NEW_SIGNUP_REQUIRED continua mostrando o CTA de cadastro novo", async () => {
     mockLookup.mockResolvedValue({ status: "NEW_SIGNUP_REQUIRED" });
 

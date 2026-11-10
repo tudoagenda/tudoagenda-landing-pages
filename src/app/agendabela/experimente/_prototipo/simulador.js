@@ -7,12 +7,14 @@
  *  - vira um módulo com init/cleanup (montado por ExperimenteRuntime);
  *  - `track` empurra para o dataLayer (schema em src/lib/analytics/dataLayer.ts);
  *  - assets servidos de /public; QR pré-gerado (sem lib externa);
- *  - UTMs da página repassadas ao link da Google Play (parâmetro referrer).
+ *  - UTMs da página repassadas ao link da Google Play (parâmetro referrer);
+ *  - links e selos das lojas vêm de src/config/app-stores.ts (fonte única).
  *
  * Garantia: nenhuma chamada de rede, nenhum dado digitado, nada salvo.
  * Todos os dados são fictícios e vivem só na memória desta aba.
  */
 /* eslint-disable @typescript-eslint/no-unused-expressions -- estilo `a&&b()` do protótipo, mantido para não reescrever o simulador */
+import { APP_STORE_URL, STORE_BADGES, googlePlayUrl } from '@/config/app-stores';
 
 /**
  * @param {{ track: (e: Record<string, unknown>) => void, attribution?: Record<string, string> }} opts
@@ -71,18 +73,15 @@ const I = {
 const ic = (n, c='#2A2A2A', s=20, w=2) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 const hint = c => c ? ' hint' : '';
 /* [prod] assets em /public */
-const ASSET={icon:'/images/experimente/agenda-bela-icone.png', ios:'/images/experimente/badge-app-store-en.svg', android:'/images/experimente/badge-google-play-pt-br.png', qr:'/images/experimente/qr-experimente.png'};
-const STORE={ios:'https://apps.apple.com/br/app/agenda-bela/id6782112738', android:'https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao&hl=pt_BR&gl=BR'+playReferrer()};
-/* [prod] repassa a atribuição da landing (UTMs, gclid, fbclid; mesma fonte do dataLayer) para o Install Referrer da Google Play */
-function playReferrer(){
-  const t=new URLSearchParams(attribution).toString();
-  return t ? '&referrer='+encodeURIComponent(t) : '';
-}
+const ASSET={icon:'/images/experimente/agenda-bela-icone.png', ios:STORE_BADGES.appStore.src, android:STORE_BADGES.googlePlay.src, qr:'/images/experimente/qr-experimente.png'};
+/* [prod] links da fonte única; a Google Play recebe a atribuição da landing (UTMs, gclid, fbclid; mesma fonte do dataLayer) no Install Referrer */
+const STORE={ios:APP_STORE_URL, android:googlePlayUrl(attribution)};
 const OS = /iPhone|iPad|iPod/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'desktop';
 /* [prod] QR de https://tudoagenda.com.br/agendabela/experimente pré-gerado com o mesmo qrcodejs do protótipo (168px, #213745, nível M) */
 const QR_SRC=ASSET.qr;
-const BADGE_IOS = `<a class="badge-link" href="${STORE.ios}" target="_blank" rel="noopener" data-store="badge-ios"><img src="${ASSET.ios}" alt="Baixar na App Store" width="120" height="40" class="badge-ios"></a>`;
-const BADGE_AND = `<a class="badge-link" href="${STORE.android}" target="_blank" rel="noopener" data-store="badge-android"><img src="${ASSET.android}" alt="Disponível no Google Play" width="134" height="52" class="badge-and"></a>`;
+const B=STORE_BADGES;   /* [prod] alt e medidas da fonte única (iguais aos selos do rodapé em markup.ts) */
+const BADGE_IOS = `<a class="badge-link" href="${STORE.ios}" target="_blank" rel="noopener" data-store="badge-ios"><img src="${ASSET.ios}" alt="${B.appStore.alt}" width="${B.appStore.width}" height="${B.appStore.height}" class="badge-ios"></a>`;
+const BADGE_AND = `<a class="badge-link" href="${STORE.android}" target="_blank" rel="noopener" data-store="badge-android"><img src="${ASSET.android}" alt="${B.googlePlay.alt}" width="${B.googlePlay.width}" height="${B.googlePlay.height}" class="badge-and"></a>`;
 /* selos oficiais: no celular só o da loja do aparelho; nos demais, os dois */
 const storeBadges = () => OS==='ios' ? BADGE_IOS : OS==='android' ? BADGE_AND : BADGE_IOS+BADGE_AND;
 const storeHref = () => OS==='ios'?STORE.ios:OS==='android'?STORE.android:'#baixar';
@@ -482,7 +481,7 @@ function render(){
   if(!S.j){
     coach.innerHTML=`<div class="menu-panel">${belaRow('<p class="instr" style="margin:0">Oi, eu sou a Bela, a secretária do seu salão. Escolhe por onde começar que eu te mostro.</p>')}
       <div class="count" style="margin-top:14px">${completed.size} de 5</div><h3>Por onde você quer começar?</h3><p class="a-body" style="font-size:14px;line-height:20px;margin:2px 0 0">Pode fazer em qualquer ordem e sair a qualquer hora.</p>
-      <ul class="jlist">${jcards()}</ul>${completed.size>=3?'<p style="margin:14px 0 0;color:var(--petroleo);font-weight:600">Você já viu o essencial. Falta só colocar as suas clientes.</p>':''}</div>${qrHtml()}`;
+      <ul class="jlist">${jcards()}</ul>${completed.size>=3?`<p style="margin:14px 0 0;color:var(--petroleo);font-weight:600">Você já viu o essencial. Falta só colocar as suas clientes.</p><a class="btn btn-primary btn-block" style="margin-top:12px;min-height:48px;font-size:15px" href="${storeHref()}" data-store="menu_essencial">Baixar o app e testar 7 dias</a>`:''}</div>${qrHtml()}`;
   } else {
     const [txt,act]=coachText(), jd=J[S.j];
     coach.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="jt" style="flex:1">${jd.title} · passo ${S.step+1} de ${jd.steps.length}</div><button class="jbtn" data-a="menu">Menu</button></div>
@@ -568,9 +567,9 @@ function finish(){
   $('#doneOv').innerHTML=`<div class="done-ov" role="dialog" aria-modal="true" aria-labelledby="doneT"><div class="done-card">
     ${belaRow(`<h3 id="doneT" style="margin-top:2px">${jd.done.title}</h3>`)}<p>${jd.done.msg}</p>
     <div class="storetile" style="margin:0 0 12px"><img class="appicon" src="${ASSET.icon}" alt="" width="44" height="44"><div><b>Agenda Bela</b><small>${completed.size>=3?'Você já viu o essencial. ':''}iPhone e Android · 7 dias grátis</small></div></div>
-    <a class="btn btn-primary btn-block" href="${storeHref()}" data-store="conclusao" data-dl>Baixar e começar meus 7 dias grátis</a>
+    <a class="btn btn-primary btn-block" href="${storeHref()}" data-store="conclusao" data-dl>Baixar o app e testar 7 dias</a>
     <div class="stores-row small">${storeBadges()}</div>
-    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver o próximo teste →':'Ver tudo o que dá para testar →'}</button></div></div>`;
+    <button class="next-link" data-a="${jd.done.next?'next':'menu'}" data-v="${jd.done.next||''}">${jd.done.next?'Ver o próximo teste →':completed.size>=5?'Rever um teste →':'Ver tudo o que dá para testar →'}</button></div></div>`;
   later(()=>{const b=$('#doneOv .btn'); b&&b.focus({preventScroll:true});},30);
 }
 
@@ -692,13 +691,17 @@ function ctaLocation(el){ return el.dataset.local || (el.closest('#jlistMobile')
 function storeEvent(el){
   const k=el.dataset.store, href=el.getAttribute('href')||storeHref();
   const store=/apps\.apple\.com/.test(href)?'app_store':/play\.google\.com/.test(href)?'google_play':null;
-  const loc=/^badge-/.test(k) ? (el.closest('.done-card')?'conclusao_selo':'final_selo') : k;
+  const loc=/^badge-/.test(k) ? (el.closest('.done-card')?'conclusao_selo':el.closest('#loja')?'rodape_selo':'final_selo') : k;
   return store ? {event:'store_click', store, cta_location:loc, device_os:OS} : {event:'cta_click', cta_location:loc+'_ver_lojas'};
 }
-track({event:'lp_view', device_os:OS});
+/* [prod] origem interna (links da landing automatize): ?ref= só com letras minúsculas, números e _ */
+const REF=(()=>{ const r=new URLSearchParams(location.search).get('ref'); return r&&/^[a-z0-9_]{1,40}$/.test(r)?r:undefined; })();
+track({event:'lp_view', device_os:OS, ref:REF});
 const ano=document.getElementById('ano'); if(ano) ano.textContent=now.getFullYear();
 $('#heroBubble').innerHTML=confirmMsg('Marina',addDays(now,1),'14:00','Escova e Mão e pé')+'<span class="meta">agora</span>';
 document.querySelectorAll('[data-store]').forEach(a=>{ if(!/badge/.test(a.dataset.store)) a.setAttribute('href',storeHref()); });
+/* [prod] selo da Google Play do rodapé vem no HTML sem atribuição (funciona sem JS); aqui ganha o referrer */
+document.querySelectorAll('#loja [data-store="badge-android"]').forEach(a=>a.setAttribute('href',STORE.android));
 document.querySelectorAll('[data-stores]').forEach(el=>{ el.innerHTML=storeBadges()+(OS==='desktop'&&QR_SRC?`<span class="qr-final"><img src="${QR_SRC}" alt="QR code para abrir esta página no celular" width="96" height="96"><small>Aponte a câmera do celular</small></span>`:''); });
 renderMenuLists(); render();
 /* [prod] link direto por jornada (suporte e marketing). O hash só é comparado com esta lista fixa. */

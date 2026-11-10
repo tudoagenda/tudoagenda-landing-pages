@@ -17,6 +17,14 @@ describe("AppStoreBadges — device detection", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("usa o selo oficial da Apple em português", () => {
+      render(<AppStoreBadges forcePlatform="ios" />);
+
+      expect(
+        screen.getByAltText("Baixar na App Store").getAttribute("src"),
+      ).toContain("badge-app-store-pt-br.svg");
+    });
+
     it("renders only Google badge for Android", () => {
       render(<AppStoreBadges forcePlatform="android" />);
 
@@ -24,7 +32,7 @@ describe("AppStoreBadges — device detection", () => {
       expect(googlePlayBadge).toBeInTheDocument();
       expect(googlePlayBadge.closest("a")).toHaveAttribute(
         "href",
-        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao",
+        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao&hl=pt_BR&gl=BR",
       );
       expect(
         screen.queryByAltText("Baixar na App Store"),
@@ -107,6 +115,37 @@ describe("AppStoreBadges — device detection", () => {
       expect(
         screen.getByAltText("Disponível no Google Play"),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("variant footer", () => {
+    it("renders BOTH badges on any device, with no heading or desktop hint", () => {
+      Object.defineProperty(navigator, "userAgent", {
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+        configurable: true,
+      });
+      render(<AppStoreBadges variant="footer" />);
+
+      expect(screen.getByAltText("Baixar na App Store")).toBeInTheDocument();
+      expect(screen.getByAltText("Disponível no Google Play")).toBeInTheDocument();
+      expect(screen.queryByText(/dispositivo móvel/i)).not.toBeInTheDocument();
+    });
+
+    it("adds the session attribution to the Google Play referrer", () => {
+      window.sessionStorage.setItem(
+        "agendabela_landing_attribution",
+        JSON.stringify({ utm_source: "meta" }),
+      );
+      render(<AppStoreBadges variant="footer" />);
+
+      expect(
+        screen.getByAltText("Disponível no Google Play").closest("a"),
+      ).toHaveAttribute(
+        "href",
+        "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao&hl=pt_BR&gl=BR&referrer=" +
+          encodeURIComponent("utm_source=meta"),
+      );
+      window.sessionStorage.clear();
     });
   });
 });

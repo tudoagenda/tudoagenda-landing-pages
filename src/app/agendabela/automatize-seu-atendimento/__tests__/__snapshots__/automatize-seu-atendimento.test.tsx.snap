@@ -137,6 +137,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
                Cancele quando quiser.
             </p>
           </div>
+          <a
+            class="hidden md:inline-flex self-start min-h-11 items-center -mt-2 font-inter text-[14.5px] font-medium text-brand-petroleo underline underline-offset-4 decoration-brand-rosa hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo rounded-sm"
+            href="/agendabela/experimente?ref=automatize_hero"
+          >
+            Prefere ver antes? Teste o app sem cadastro →
+          </a>
         </div>
         <div
           class="relative h-[400px] sm:h-[520px] lg:h-[580px]"
@@ -383,7 +389,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
     </section>
   </main>
   <div
-    class="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30"
+    class="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30 motion-safe:transition-[transform,opacity] motion-safe:duration-200"
   >
     <div
       class="flex flex-col gap-2.5"
@@ -410,6 +416,9 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
       </p>
     </div>
   </div>
+  <div
+    class="h-64 bg-surface-subtle animate-pulse"
+  />
   <div
     class="h-64 bg-surface-subtle animate-pulse"
   />
@@ -572,6 +581,12 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
                Cancele quando quiser.
             </p>
           </div>
+          <a
+            class="hidden md:inline-flex self-start min-h-11 items-center -mt-2 font-inter text-[14.5px] font-medium text-brand-petroleo underline underline-offset-4 decoration-brand-rosa hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo rounded-sm"
+            href="/agendabela/experimente?ref=automatize_hero"
+          >
+            Prefere ver antes? Teste o app sem cadastro →
+          </a>
         </div>
         <div
           class="relative h-[400px] sm:h-[520px] lg:h-[580px]"
@@ -818,7 +833,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
     </section>
   </main>
   <div
-    class="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30"
+    class="md:hidden fixed bottom-3 left-3 right-3 bg-white rounded-app-xl shadow-brand-lg p-4 z-30 motion-safe:transition-[transform,opacity] motion-safe:duration-200"
   >
     <div
       class="flex flex-col gap-2.5"
@@ -933,6 +948,38 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           </p>
         </div>
       </div>
+    </div>
+  </section>
+  <section
+    aria-labelledby="simulador-titulo"
+    class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 pb-16 md:pb-24"
+    id="teste-sem-cadastro"
+  >
+    <div
+      class="max-w-4xl mx-auto flex flex-col items-center gap-4 text-center bg-brand-creme-soft rounded-app-xl border border-surface-alt-border shadow-brand-xs px-6 py-10 md:px-12 md:py-14"
+    >
+      <span
+        class="font-mono-brand text-[11px] tracking-[2px] uppercase text-brand-vinho"
+      >
+        Simulação · clientes de exemplo
+      </span>
+      <h2
+        class="font-fraunces italic font-normal text-brand-petroleo text-[30px] leading-[34px] md:text-[40px] md:leading-[44px] tracking-[-0.025em] max-w-[20ch]"
+        id="simulador-titulo"
+      >
+        Quer ver antes? Teste aqui, sem cadastro.
+      </h2>
+      <p
+        class="font-inter text-ink-muted text-[15.5px] leading-[24px] md:text-[17px] md:leading-[26px] max-w-[46ch]"
+      >
+        Marque uma cliente de exemplo e veja a confirmação que ela recebe no WhatsApp. Nada é enviado de verdade.
+      </p>
+      <a
+        class="mt-2 inline-flex min-h-12 items-center justify-center rounded-full border-2 border-brand-petroleo bg-transparent px-7 font-inter text-[15px] font-semibold text-brand-petroleo transition-colors hover:bg-brand-petroleo/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo motion-reduce:transition-none"
+        href="/agendabela/experimente?ref=automatize_secao#marcar-cliente"
+      >
+        Experimentar o Agenda Bela
+      </a>
     </div>
   </section>
   <section
@@ -1484,6 +1531,16 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           </figcaption>
         </figure>
       </div>
+      <p
+        class="mt-8 text-center"
+      >
+        <a
+          class="inline-flex min-h-11 items-center font-inter text-[15px] font-semibold text-brand-petroleo underline underline-offset-4 decoration-brand-rosa hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo rounded-sm"
+          href="/agendabela/experimente?ref=automatize_avaliacoes"
+        >
+          Veja o que a Bela faz na prática →
+        </a>
+      </p>
     </div>
   </section>
   <section
@@ -1529,6 +1586,7 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
   </section>
   <footer
     class="w-full bg-surface-subtle px-5 md:px-10 lg:px-20 py-10 md:py-12 border-t border-surface-alt-border"
+    id="rodape"
   >
     <div
       class="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-6"
@@ -1554,8 +1612,56 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
           por Tudo Agenda
         </span>
       </div>
+      <section
+        aria-labelledby="rodape-baixe-o-app"
+        class="flex flex-col items-center md:items-start gap-3 text-center md:text-left"
+      >
+        <h2
+          class="font-mono-brand text-[10px] tracking-[2px] uppercase text-brand-vinho"
+          id="rodape-baixe-o-app"
+        >
+          Baixe o app
+        </h2>
+        <div
+          class="flex flex-wrap items-center justify-center md:justify-start gap-3"
+        >
+          <a
+            class="inline-flex min-h-11 items-center rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+            href="https://apps.apple.com/br/app/agenda-bela/id6782112738"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <img
+              alt="Baixar na App Store"
+              class="block h-10 w-auto"
+              height="40"
+              src="/images/badges/badge-app-store-pt-br.svg"
+              width="120"
+            />
+          </a>
+          <a
+            class="inline-flex min-h-11 items-center rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+            href="https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao&hl=pt_BR&gl=BR"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <img
+              alt="Disponível no Google Play"
+              class="block h-[52px] w-auto -my-1.5"
+              height="52"
+              src="/images/badges/badge-google-play-pt-br.png"
+              width="134"
+            />
+          </a>
+        </div>
+        <p
+          class="font-inter text-[13px] leading-[18px] text-ink-muted max-w-[40ch]"
+        >
+          Baixe o app e teste 7 dias grátis, sem cartão.
+        </p>
+      </section>
       <nav
-        class="flex flex-col md:flex-row gap-3 md:gap-6 items-center"
+        class="flex flex-col lg:flex-row gap-3 lg:gap-6 items-center md:items-end lg:items-center"
       >
         <a
           class="font-inter text-[13px] text-ink-muted hover:text-brand-petroleo transition-colors"
