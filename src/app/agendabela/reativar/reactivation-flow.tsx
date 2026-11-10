@@ -680,7 +680,7 @@ export function ReactivationFlow() {
               app Agenda Bela. Se ainda não tiver instalado, baixe agora:
             </p>
 
-            {/* App store badges — reutilizando componente se existir, senão links simples */}
+            {/* Links das lojas (mesmos do resto do site, em src/config/app-stores.ts) */}
             <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href={APP_STORE_URL}
