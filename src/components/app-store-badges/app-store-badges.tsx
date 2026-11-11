@@ -33,7 +33,7 @@ interface AppStoreBadgesProps {
    * "footer": os dois selos sempre, renderizados no servidor, sem título.
    */
   variant?: "detect" | "footer";
-  /** Tom textual mostrado acima dos badges (só na variante "detect"). */
+  /** Tom textual mostrado acima dos badges (só na variante "detect"). Vazio = sem título. */
   heading?: string;
   /**
    * Força a plataforma na variante "detect" — útil em tests ou previews.
@@ -136,7 +136,7 @@ export function AppStoreBadges({
 
   return (
     <div className={className ?? "bg-purple-50 p-4 rounded-lg text-center"}>
-      <p className="font-medium text-sm mb-3">{heading}</p>
+      {heading && <p className="font-medium text-sm mb-3">{heading}</p>}
       <div className="flex gap-2 justify-center items-center flex-wrap">
         {showIOS && (
           <a

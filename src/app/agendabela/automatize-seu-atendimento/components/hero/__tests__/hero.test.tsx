@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { HeroComponent } from "../hero";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
@@ -85,8 +85,8 @@ describe("HeroComponent", () => {
     act(() => notify([{ isIntersecting: false, target: footer }]));
     expect(card).not.toHaveAttribute("aria-hidden");
 
-    // digitando no card: a zona aparece, mas o card não some
-    const input = card.querySelector("input")!;
+    // foco no botão do card: a zona aparece, mas o card não some
+    const input = card.querySelector("button")!;
     act(() => input.focus());
     act(() => notify([{ isIntersecting: true, target: section }]));
     expect(card).not.toHaveAttribute("aria-hidden");
@@ -96,5 +96,49 @@ describe("HeroComponent", () => {
     footer.remove();
     section.remove();
     window.IntersectionObserver = original;
+  });
+
+  it("um botão só abre o cadastro (sem campo de e-mail na página)", async () => {
+    window.dataLayer = [];
+    sessionStorage.clear();
+    render(<HeroComponent />);
+    expect(screen.queryByPlaceholderText("Seu melhor email")).not.toBeInTheDocument();
+    const [desktop] = screen.getAllByRole("button", { name: "Começar meus 7 dias grátis" });
+    fireEvent.click(desktop);
+    expect(await screen.findByText("Crie sua conta")).toBeInTheDocument();
+    expect(window.dataLayer).toContainEqual(
+      expect.objectContaining({ event: "lp_cta_clicked", cta_position: "hero" }),
+    );
+  });
+
+  it("conta já criada nesta aba: o botão volta para a Escolha", async () => {
+    sessionStorage.setItem(
+      "agendabela_signup_web",
+      JSON.stringify({ profileId: "p", email: "a@b.co", firstName: "Ana", accessLinkSent: true }),
+    );
+    render(<HeroComponent />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Começar meus 7 dias grátis" })[0]);
+    expect(await screen.findByText("Como você quer começar seus 7 dias?")).toBeInTheDocument();
+    sessionStorage.clear();
+  });
+
+  it("volta do checkout concluído sem contexto abre a tela genérica do app", async () => {
+    window.dataLayer = [];
+    sessionStorage.clear();
+    history.replaceState(null, "", "/agendabela/automatize-seu-atendimento?checkout=concluido");
+    render(<HeroComponent />);
+    expect(await screen.findByText("Pronto! Agora é no app.")).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+    expect(window.dataLayer).toContainEqual(
+      expect.objectContaining({ event: "checkout_returned", checkout_result: "concluido" }),
+    );
+  });
+
+  it("volta do checkout (voltou) sem contexto: landing normal, sem modal", () => {
+    sessionStorage.clear();
+    history.replaceState(null, "", "/agendabela/automatize-seu-atendimento?checkout=voltou");
+    render(<HeroComponent />);
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(window.location.search).toBe("");
   });
 });

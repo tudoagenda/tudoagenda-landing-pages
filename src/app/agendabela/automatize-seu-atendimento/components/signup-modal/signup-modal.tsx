@@ -1,716 +1,907 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Fraunces, Inter } from "next/font/google";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { AppStoreBadges } from "@/components/app-store-badges/app-store-badges";
-import { useCreateBilling, useSendMagicLink } from "@/hooks/use-create-user";
-import { useReactivationLookup } from "@/hooks/use-reactivation";
-import { useAmplitude } from "@/contexts/AmplitudeProvider";
-import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
-import { Eye, EyeOff } from "lucide-react";
-import { SUPPORT_WHATSAPP_URL } from "@/config/company";
+import { APP_STORE_URL, googlePlayUrl } from "@/config/app-stores";
+import {
+  getLandingAttribution,
+  pushAgendaBelaMainEvent,
+  type DeviceOs,
+  type SignupStep,
+} from "@/lib/analytics/dataLayer";
+import { SignupWebError, signupWebService } from "@/services/signup-web";
+import { ChevronLeft, Eye, EyeOff, X } from "lucide-react";
+import {
+  PASSWORD_RULES,
+  type SignupContext,
+  firstNameOf,
+  formatPhone,
+  formatTaxId,
+  formatTrialEndDate,
+  readSignupContext,
+  writeSignupContext,
+} from "./signup-session";
 
-const SESSION_KEY = "agendabela_signup_email";
-const SESSION_NAME_KEY = "agendabela_signup_name";
-const SESSION_PHONE_KEY = "agendabela_signup_phone";
+/**
+ * Cadastro SEM cartão (Opção B, desenho aprovado em 06/11/2026, telas
+ * Cadastro → Escolha → Sem cartão | Cartão → Aprovado/Desistiu, e Já tem
+ * conta). A conta nasce em "Criar minha conta", igual ao cadastro do app; o
+ * cartão é opcional depois. CPF só no caminho do cartão (D4).
+ */
+
+export type { SignupStep };
+
+/* A landing não carrega Fraunces/Inter (as classes font-fraunces/font-inter
+   dela caem na fonte do body). O cadastro segue o desenho com as fontes do
+   app, só dentro do modal e sem preload: nada muda no carregamento da landing. */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["600"],
+  display: "swap",
+  preload: false,
+  variable: "--font-fraunces",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+  preload: false,
+  variable: "--font-inter",
+});
 
 interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialEmail: string;
-  initialStep?: Step;
+  initialStep?: SignupStep;
 }
 
-type Step = 1 | 2 | 3;
+/* Classes do desenho com os tokens do repo (brand-vinho = #90496A,
+   brand-rosa-50 = #FFF1F5, surface-alt-border = #F4D7DF). O que não tem token
+   fica com o valor do desenho. */
+const TITLE =
+  "font-fraunces font-semibold text-brand-petroleo text-[28px] leading-[1.15] tracking-normal text-left";
+const BODY = "font-inter text-[15px] leading-[1.45] text-[#4A4548]";
+const LABEL = "font-inter text-sm font-semibold text-ink";
+const INPUT =
+  "h-auto rounded-xl border-[#E2D3CB] px-3.5 py-3 text-base md:text-base font-inter text-ink";
+const PRIMARY =
+  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-brand-vinho px-5 py-4 text-center font-inter text-[17px] font-bold text-white transition-colors hover:bg-[#783B58] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
+const SECONDARY =
+  "w-full rounded-[14px] border border-brand-vinho bg-white px-5 py-3.5 font-inter text-[15px] font-semibold text-brand-vinho transition-colors hover:bg-brand-rosa-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
+const LINK =
+  "self-center min-h-11 px-2 font-inter text-sm font-semibold text-brand-vinho hover:text-[#783B58] underline-offset-4 hover:underline disabled:opacity-60";
+const SUCCESS_BOX =
+  "rounded-[14px] bg-[#EAF7F0] px-3.5 py-3 font-inter text-sm leading-[1.45] text-[#2E6B50]";
+const ERROR_BOX =
+  "rounded-xl border border-red-200 bg-red-50 p-3 font-inter text-sm text-red-700";
 
-function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+function Check({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#3D8B68"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`shrink-0 ${className}`}
+    >
+      <path d="M5 12l5 5L20 7" />
+    </svg>
+  );
+}
+
+function detectDevice(): DeviceOs {
+  if (typeof navigator === "undefined") return "desktop";
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
+  if (/Android/i.test(ua)) return "android";
+  return "desktop";
 }
 
 /**
- * Formata CPF (11 dígitos) ou CNPJ (12-14 dígitos) enquanto o usuário digita.
- * Obrigatório pro checkout AbacatePay v2: sem taxId no customer, o checkout
- * hospedado pede CPF/CNPJ na mão e o antifraude bloqueia até preencher —
- * causa raiz de checkouts abandonados detectada em prod (2026-07-15/16).
+ * "Já baixei, abrir o app" / "Entrar no app". A web não abre o app sem um
+ * link de acesso: no celular, leva para a página do app na loja do aparelho
+ * (com o app instalado, a loja mostra "Abrir"). No computador, não há o que
+ * abrir: vira a orientação de entrar pelo celular.
  */
-function formatTaxId(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 14);
-  if (digits.length <= 11) {
-    // CPF: 000.000.000-00
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9)
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+function OpenAppButton({
+  label,
+  ctaLocation,
+  className = PRIMARY,
+  desktopHint = true,
+}: {
+  label: string;
+  ctaLocation: string;
+  className?: string;
+  /** false onde os selos já dizem para abrir pelo celular. */
+  desktopHint?: boolean;
+}) {
+  const [device, setDevice] = useState<DeviceOs | null>(null);
+  const [androidHref, setAndroidHref] = useState("");
+  useEffect(() => {
+    setDevice(detectDevice());
+    setAndroidHref(googlePlayUrl(getLandingAttribution()));
+  }, []);
+
+  if (device === null) return null;
+  if (device === "desktop") {
+    if (!desktopHint) return null;
+    return (
+      <p className={`${BODY} text-center`}>
+        Abra o app Agenda Bela no seu celular e entre com seu e-mail e senha.
+      </p>
+    );
   }
-  // CNPJ: 00.000.000/0000-00
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+  const store = device === "ios" ? "app_store" : "google_play";
+  return (
+    <a
+      href={device === "ios" ? APP_STORE_URL : androidHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      onClick={() =>
+        pushAgendaBelaMainEvent({
+          event: "store_click",
+          store,
+          cta_location: ctaLocation,
+          device_os: device,
+        })
+      }
+    >
+      {label}
+    </a>
+  );
 }
 
-/**
- * Calcula a data de término do trial (now + 7 dias) e retorna formatada
- * em pt-BR. O cálculo é feito no momento da renderização do step 3
- * (logo após o pagamento) — mesma janela do `trialEndsAt` que o backend
- * grava em Subscription. Aceitamos pequena divergência (segundos) entre
- * o que o user vê e o que está no banco.
- */
-function formatTrialEndDate(now: Date = new Date()): string {
-  const end = new Date(now);
-  end.setDate(end.getDate() + 7);
-  const day = String(end.getDate()).padStart(2, "0");
-  const month = String(end.getMonth() + 1).padStart(2, "0");
-  return `${day}/${month}`;
+function StoreBadges({ ctaLocation }: { ctaLocation: string }) {
+  return (
+    <AppStoreBadges
+      heading=""
+      ctaLocation={ctaLocation}
+      className="flex flex-col items-start gap-1 [&>div]:justify-start [&>p]:text-left [&>p]:text-xs [&>p]:text-ink-muted [&>p]:mt-1"
+    />
+  );
 }
 
-function validatePassword(pw: string): string | null {
-  if (pw.length < 8) return "Mínimo 8 caracteres";
-  if (!/[A-Z]/.test(pw)) return "Precisa de letra maiúscula";
-  if (!/[a-z]/.test(pw)) return "Precisa de letra minúscula";
-  if (!/[0-9]/.test(pw)) return "Precisa de número";
-  if (!/[^A-Za-z0-9]/.test(pw)) return "Precisa de caractere especial (!@#$...)";
-  return null;
-}
+type CadastroErrors = Partial<
+  Record<"name" | "salonName" | "phone" | "email" | "password", string>
+>;
 
-export const SignupModal = ({ open, onOpenChange, initialEmail, initialStep = 1 }: SignupModalProps) => {
-  const [step, setStep] = useState<Step>(initialStep);
+export const SignupModal = ({
+  open,
+  onOpenChange,
+  initialStep = "cadastro",
+}: SignupModalProps) => {
+  const [step, setStep] = useState<SignupStep>(initialStep);
+  const [ctx, setCtx] = useState<SignupContext | null>(null);
+
+  // Cadastro
   const [name, setName] = useState("");
   const [salonName, setSalonName] = useState("");
   const [phone, setPhone] = useState("");
-  const [taxId, setTaxId] = useState("");
-  const [email, setEmail] = useState(initialEmail);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<CadastroErrors>({});
+  const [creating, setCreating] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const focusEmailRef = useRef(false);
+
+  // Cartão
+  const [taxId, setTaxId] = useState("");
+  const [taxIdError, setTaxIdError] = useState<string | null>(null);
+  const [openingCheckout, setOpeningCheckout] = useState(false);
+
+  // Comum
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [linkState, setLinkState] = useState<"idle" | "sending" | "sent">("idle");
+  const [linkError, setLinkError] = useState<string | null>(null);
 
-  const { mutate: createBilling, isPending: isBilling } = useCreateBilling();
-  const { mutate: sendMagicLink, isPending: isSendingLink } = useSendMagicLink();
-  const { mutate: lookupReactivation, isPending: checkingReentry } = useReactivationLookup();
-  const [magicLinkError, setMagicLinkError] = useState(false);
-  const [noPhone, setNoPhone] = useState(false);
-  // Quando o backend devolve 409 "email já tem conta" sinalizamos com banner
-  // dedicado no step 1 — orienta a usuária a usar `/agendabela/reativar` em
-  // vez de tentar novo cadastro. Mensagem do backend é estável (veja
-  // `agendabela-backend-services/src/subscriptions/abacatepay.service.ts`).
-  const [duplicateEmail, setDuplicateEmail] = useState(false);
-  // Reentrada silenciosa: se o email já tem um checkout card-first pendente
-  // (item 1/2 do plano de checkout abandonado — ADR 0009), o mesmo lookup
-  // de `/agendabela/reativar` (PR #69) já sabe disso. Reaproveitamos aqui
-  // pra não deixar a usuária duplicar o cadastro sem saber.
-  const [pendingCheckoutFound, setPendingCheckoutFound] = useState<{
-    checkoutUrl: string;
-    salonName?: string;
-  } | null>(null);
-  // Setado quando a usuária clica "Não é você?" no banner de reentrada —
-  // evita rodar o lookup de novo no próximo submit do step 1 (senão ela
-  // cai no mesmo banner em loop). Some do fluxo normal a partir daí, até
-  // que o email mude de novo.
-  const [skipReentryCheck, setSkipReentryCheck] = useState(false);
-  // Guarda contra respostas obsoletas do lookup de reentrada: cada chamada
-  // captura o valor atual antes de incrementar; o callback só age se ainda
-  // for o mais recente. Cobre dois casos — (1) usuária cancela/fecha o
-  // modal com o lookup em voo (fechar incrementa o ref, invalidando a
-  // resposta que chegar depois) e (2) duplo clique disparando duas
-  // chamadas em paralelo (só a última resposta relevante tem efeito,
-  // independente da ordem de chegada).
-  const reentryRequestIdRef = useRef(0);
-  const { track } = useAmplitude();
-
-  // Sync initialEmail when modal opens
+  // Ao abrir: passo pedido pelo dono do modal e o contexto da aba.
   useEffect(() => {
-    if (open && initialEmail) {
-      setEmail(initialEmail);
-    }
-  }, [open, initialEmail]);
+    if (!open) return;
+    setStep(initialStep);
+    setCtx(readSignupContext());
+  }, [open, initialStep]);
 
-  // Guard step 3: only allow if user completed signup (email in sessionStorage)
+  // Cada tela que aparece vira um evento (cadastro = cadastro iniciado).
   useEffect(() => {
-    if (initialStep === 3) {
-      const storedEmail = sessionStorage.getItem(SESSION_KEY);
-      const storedPhone = sessionStorage.getItem(SESSION_PHONE_KEY);
-      if (!storedEmail) {
-        // No signup context — ignore the query param, reset to step 1
-        setStep(1);
-      } else {
-        setEmail(storedEmail);
-        setStep(3);
-        if (!storedPhone) {
-          setNoPhone(true);
-        }
-        // Magic link is now dispatched server-side by the AbacatePay
-        // webhook (backend PR #65). Step 3 just informs the user it's
-        // coming via WhatsApp; the "Reenviar link" button below can
-        // request a resend through the public endpoint, which only
-        // succeeds for subscriptions already marked ACTIVE.
-      }
-    }
-  }, [initialStep]);
+    if (!open) return;
+    pushAgendaBelaMainEvent({ event: "signup_step_viewed", signup_step: step });
+    setGeneralError(null);
+    setLinkState("idle");
+    setLinkError(null);
+  }, [open, step]);
 
-  // Sync initialEmail/step when modal opens
+  useEffect(() => {
+    if (open && step === "cadastro" && focusEmailRef.current) {
+      focusEmailRef.current = false;
+      emailRef.current?.focus();
+    }
+  }, [open, step]);
+
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      setEmail(initialEmail);
-      if (initialStep === 3) {
-        const storedEmail = sessionStorage.getItem(SESSION_KEY);
-        setStep(storedEmail ? 3 : 1);
-        if (storedEmail) setEmail(storedEmail);
-      } else {
-        setStep(initialStep);
-      }
-    }
     if (!nextOpen) {
-      // Invalida qualquer lookup de reentrada em voo — se a resposta
-      // chegar depois disso, o onSuccess/onError vai comparar o id
-      // capturado com este novo valor, ver que não bate, e descartar.
-      // Sem isso, cancelar/fechar o modal durante o lookup não impede
-      // que a resposta tardia sobrescreva sessionStorage já limpo ou
-      // reabra o banner de reentrada num modal "recém-aberto".
-      reentryRequestIdRef.current += 1;
-      // Reset on close
-      setStep(1);
+      // A conta (se criada) continua no contexto da aba; o formulário zera.
       setName("");
       setSalonName("");
       setPhone("");
-      setTaxId("");
+      setEmail("");
       setPassword("");
-      setConfirmPassword("");
       setShowPassword(false);
-      setShowConfirmPassword(false);
-      setAcceptedTerms(false);
       setErrors({});
+      setTaxId("");
+      setTaxIdError(null);
       setGeneralError(null);
-      setMagicLinkError(false);
-      setNoPhone(false);
-      setDuplicateEmail(false);
-      setPendingCheckoutFound(null);
-      setSkipReentryCheck(false);
-      sessionStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem(SESSION_NAME_KEY);
-      sessionStorage.removeItem(SESSION_PHONE_KEY);
     }
     onOpenChange(nextOpen);
   };
 
-  const validateStep1 = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  const firstName = ctx?.firstName ?? "";
 
-    if (!name.trim()) newErrors.name = "Nome é obrigatório";
-    if (!salonName.trim()) newErrors.salonName = "Nome do salão é obrigatório";
+  // ---------------------------------------------------------------- cadastro
+  const clearError = (key: keyof CadastroErrors) =>
+    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
 
-    const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) newErrors.phone = "Telefone inválido";
-
-    const taxIdDigits = taxId.replace(/\D/g, "");
-    if (taxIdDigits.length !== 11 && taxIdDigits.length !== 14)
-      newErrors.taxId = "CPF ou CNPJ inválido";
-
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      newErrors.email = "Email inválido";
-
-    const pwError = validatePassword(password);
-    if (pwError) newErrors.password = pwError;
-
-    if (password !== confirmPassword) newErrors.confirmPassword = "As senhas não coincidem";
-
-    if (!acceptedTerms) newErrors.terms = "Aceite os termos para continuar";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validateCadastro = (): CadastroErrors => {
+    const e: CadastroErrors = {};
+    if (!name.trim()) e.name = "Conte como você quer ser chamada.";
+    if (!salonName.trim()) e.salonName = "Informe o nome do salão ou espaço.";
+    if (phone.replace(/\D/g, "").length < 10)
+      e.phone = "Informe o WhatsApp com DDD.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+      e.email = "Confira o e-mail.";
+    if (!PASSWORD_RULES.every((r) => r.test(password)))
+      e.password = "A senha precisa cumprir todos os itens abaixo.";
+    return e;
   };
 
-  const proceedToStep2 = () => {
-    const phoneDigits = phone.replace(/\D/g, "");
-
-    track("agendabela/signup-modal/step1_submit", { email });
-
-    track("agendabela/signup-modal/account_details_completed", { email });
-    pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
-    sessionStorage.setItem(SESSION_KEY, email);
-    sessionStorage.setItem(SESSION_NAME_KEY, name);
-    sessionStorage.setItem(SESSION_PHONE_KEY, phoneDigits);
-    setStep(2);
-  };
-
-  const handleStep1Submit = () => {
-    if (!validateStep1()) return;
+  const handleCreate = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (creating) return;
+    const e = validateCadastro();
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
 
     setGeneralError(null);
+    setCreating(true);
+    pushAgendaBelaMainEvent({ event: "lp_form_submitted", form_name: "signup_web" });
+    try {
+      const result = await signupWebService.signup({
+        name: name.trim(),
+        salonName: salonName.trim(),
+        phone: phone.replace(/\D/g, ""),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      const next: SignupContext = {
+        profileId: result.profileId,
+        email: result.email,
+        firstName: firstNameOf(name),
+        accessLinkSent: result.accessLinkSent,
+      };
+      writeSignupContext(next);
+      setCtx(next);
+      setPassword("");
+      pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+      setStep("escolha");
+    } catch (err) {
+      if (err instanceof SignupWebError && err.code === "EMAIL_ALREADY_REGISTERED") {
+        pushAgendaBelaMainEvent({ event: "signup_email_exists" });
+        setStep("ja_tem_conta");
+        return;
+      }
+      const status = err instanceof SignupWebError ? err.status : 0;
+      pushAgendaBelaMainEvent({
+        event: "signup_failed",
+        signup_step: "cadastro",
+        failure_reason:
+          status === 0 ? "network" : status === 400 ? "invalid_data" : status === 429 ? "rate_limited" : "server",
+      });
+      setGeneralError(
+        err instanceof SignupWebError
+          ? err.message
+          : "Não consegui criar sua conta agora. Tente de novo em instantes.",
+      );
+    } finally {
+      setCreating(false);
+    }
+  };
 
-    // Usuária já dispensou o banner de reentrada uma vez ("Não é você?
-    // Preencher cadastro novo mesmo assim") — não repete o lookup pra não
-    // cair no mesmo banner de novo a cada clique em Continuar.
-    if (skipReentryCheck) {
-      proceedToStep2();
+  // ------------------------------------------------------------ link acesso
+  const requestLink = async (
+    origin: "sem_cartao" | "aprovado" | "ja_tem_conta",
+    target: string,
+  ) => {
+    if (!target || linkState === "sending") return;
+    setLinkError(null);
+    setLinkState("sending");
+    pushAgendaBelaMainEvent({ event: "access_link_requested", signup_step: origin });
+    try {
+      await signupWebService.requestAccessLink(target);
+      setLinkState("sent");
+    } catch (err) {
+      setLinkState("idle");
+      setLinkError(
+        err instanceof SignupWebError
+          ? err.message
+          : "Não deu para mandar o link agora. Tente de novo em instantes.",
+      );
+    }
+  };
+
+  // ------------------------------------------------------------------ cartão
+  const choosePath = (
+    path: "cartao" | "sem_cartao",
+    from: "escolha" | "cartao" | "desistiu",
+  ) => {
+    pushAgendaBelaMainEvent({ event: "signup_path_chosen", signup_path: path, signup_step: from });
+    setStep(path === "cartao" ? "cartao" : "sem_cartao");
+  };
+
+  const handleStartTrial = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (openingCheckout || !ctx) return;
+    const digits = taxId.replace(/\D/g, "");
+    if (digits.length !== 11 && digits.length !== 14) {
+      setTaxIdError("Confira o CPF ou CNPJ.");
       return;
     }
-
-    // Bônus de UX: verifica se esse email já tem um checkout card-first
-    // abandonado (mesmo lookup consumido em `/agendabela/reativar`, PR #69).
-    // Fail-open sempre — isso nunca pode travar o cadastro de quem nunca
-    // usou o produto, é o principal endpoint de aquisição paga da empresa.
-    const requestId = ++reentryRequestIdRef.current;
-    lookupReactivation(email, {
-      onSuccess: (data) => {
-        // Resposta obsoleta: modal foi fechado/cancelado, ou já saiu um
-        // clique mais recente disparando outro lookup. Ignora.
-        if (reentryRequestIdRef.current !== requestId) return;
-        if (data.status === "PENDING_CHECKOUT_FOUND" && data.checkoutUrl) {
-          track("agendabela/signup-modal/reentry_pending_checkout_found", { email });
-          setPendingCheckoutFound({
-            checkoutUrl: data.checkoutUrl,
-            salonName: data.salonName,
-          });
-          return;
-        }
-        proceedToStep2();
-      },
-      onError: () => {
-        if (reentryRequestIdRef.current !== requestId) return;
-        proceedToStep2();
-      },
-    });
-  };
-
-  const handlePayment = () => {
-    track("agendabela/signup-modal/payment_click", { email });
+    setTaxIdError(null);
     setGeneralError(null);
-    setDuplicateEmail(false);
-
-    createBilling(
-      {
-        email,
-        password,
-        name: name || sessionStorage.getItem(SESSION_NAME_KEY) || "",
-        salonName,
-        phone: phone.replace(/\D/g, "") || sessionStorage.getItem(SESSION_PHONE_KEY) || "",
-        taxId: taxId.replace(/\D/g, ""),
-      },
-      {
-        onSuccess: (data) => {
-          if (data.url) {
-            pushAgendaBelaMainEvent({
-              event: "checkout_opened",
-              flow: "new_signup",
-              source: "lp_signup_modal",
-            });
-            window.location.href = data.url;
-          }
-        },
-        onError: (error: Error) => {
-          // O backend (`abacatepay.service.ts`) responde 409 quando o
-          // email já tem conta — caminho típico pra base legada que
-          // tenta usar o signup novo. Voltamos pra step 1 com banner
-          // explicando e link pra LP de reativação.
-          const msg = (error.message || "").toLowerCase();
-          const isDuplicate =
-            msg.includes("já possui uma conta") ||
-            msg.includes("já existe") ||
-            msg.includes("reativação");
-          if (isDuplicate) {
-            track("agendabela/signup-modal/duplicate_email_blocked", { email });
-            setDuplicateEmail(true);
-            setStep(1);
-            return;
-          }
-          // Outros erros: mensagem genérica no banner (toast do hook já
-          // cobre como fallback secundário).
-          setGeneralError(
-            error.message ||
-              "Não foi possível processar o pagamento. Tente novamente.",
-          );
-          setStep(1);
-        },
-      },
-    );
+    setOpeningCheckout(true);
+    try {
+      const { checkoutUrl } = await signupWebService.startTrial(ctx.profileId, digits);
+      writeSignupContext({ ...ctx, checkoutPending: true });
+      pushAgendaBelaMainEvent({
+        event: "checkout_opened",
+        flow: "new_signup",
+        source: "lp_signup_web",
+      });
+      window.location.href = checkoutUrl;
+      // Mantém o botão travado até a página trocar.
+    } catch (err) {
+      setOpeningCheckout(false);
+      if (err instanceof SignupWebError && err.code === "ALREADY_SUBSCRIBED") {
+        pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: "ja_cadastrado" });
+        setStep("aprovado");
+        return;
+      }
+      const status = err instanceof SignupWebError ? err.status : 0;
+      pushAgendaBelaMainEvent({
+        event: "signup_failed",
+        signup_step: "cartao",
+        failure_reason:
+          status === 0 ? "network" : status === 400 ? "invalid_data" : status === 429 ? "rate_limited" : "server",
+      });
+      setGeneralError(
+        err instanceof SignupWebError
+          ? err.message
+          : "Não consegui abrir o pagamento agora. Tente de novo em instantes.",
+      );
+    }
   };
+
+  // -------------------------------------------------------------- telas
+  const stepHeader = (onBack: () => void) => (
+    <div className="flex items-center justify-between">
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label="Voltar"
+        className="-ml-3 flex h-11 w-11 items-center justify-center rounded-full text-brand-petroleo hover:bg-surface-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-petroleo"
+      >
+        <ChevronLeft className="h-[22px] w-[22px]" aria-hidden="true" />
+      </button>
+      <span className="font-inter text-[13px] text-ink-muted">Passo 1 de 2</span>
+    </div>
+  );
+
+  const closeButton = (
+    <div className="-mb-2 flex justify-end">
+      <button
+        type="button"
+        onClick={() => handleOpenChange(false)}
+        aria-label="Fechar"
+        className="-mr-3 flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-surface-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-petroleo"
+      >
+        <X className="h-5 w-5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+
+  const linkFeedback = (sentText: string) => (
+    <>
+      {linkState === "sent" && (
+        <div role="status" className={SUCCESS_BOX}>
+          {sentText}
+        </div>
+      )}
+      {linkError && (
+        <div role="alert" className={ERROR_BOX}>
+          {linkError}
+        </div>
+      )}
+    </>
+  );
+
+  const field = (
+    id: string,
+    label: string,
+    input: React.ReactNode,
+    error?: string,
+    hint?: React.ReactNode,
+  ) => (
+    <div className="flex flex-col gap-[5px]">
+      <label htmlFor={id} className={LABEL}>
+        {label}
+      </label>
+      {input}
+      {error && (
+        <p id={`${id}-erro`} className="font-inter text-xs text-red-600">
+          {error}
+        </p>
+      )}
+      {hint}
+    </div>
+  );
+
+  const inputClass = (err?: string) =>
+    `${INPUT}${err ? " border-red-500 focus-visible:border-red-500" : ""}`;
+
+  let content: React.ReactNode = null;
+
+  if (step === "cadastro") {
+    content = (
+      <form onSubmit={handleCreate} noValidate className="flex flex-col gap-3.5">
+        {stepHeader(() => handleOpenChange(false))}
+        <div className="flex flex-col gap-1.5">
+          <AlertDialogTitle className={TITLE}>Crie sua conta</AlertDialogTitle>
+          <AlertDialogDescription className={BODY}>
+            Leva 1 minuto. Você testa tudo por 7 dias grátis, sem cartão.
+          </AlertDialogDescription>
+        </div>
+        {generalError && (
+          <div role="alert" className={ERROR_BOX}>
+            {generalError}
+          </div>
+        )}
+        {field(
+          "signup-nome",
+          "Seu nome",
+          <Input
+            id="signup-nome"
+            autoComplete="name"
+            placeholder="Como você quer ser chamada"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              clearError("name");
+            }}
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "signup-nome-erro" : undefined}
+            className={inputClass(errors.name)}
+          />,
+          errors.name,
+        )}
+        {field(
+          "signup-salao",
+          "Nome do salão ou espaço",
+          <Input
+            id="signup-salao"
+            autoComplete="organization"
+            placeholder="Ex.: Studio da Carla"
+            value={salonName}
+            onChange={(e) => {
+              setSalonName(e.target.value);
+              clearError("salonName");
+            }}
+            aria-invalid={!!errors.salonName}
+            aria-describedby={errors.salonName ? "signup-salao-erro" : undefined}
+            className={inputClass(errors.salonName)}
+          />,
+          errors.salonName,
+        )}
+        {field(
+          "signup-whatsapp",
+          "WhatsApp com DDD",
+          <Input
+            id="signup-whatsapp"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            placeholder="(00) 00000-0000"
+            value={phone}
+            onChange={(e) => {
+              setPhone(formatPhone(e.target.value));
+              clearError("phone");
+            }}
+            aria-invalid={!!errors.phone}
+            aria-describedby={errors.phone ? "signup-whatsapp-erro" : undefined}
+            className={inputClass(errors.phone)}
+          />,
+          errors.phone,
+        )}
+        {field(
+          "signup-email",
+          "E-mail",
+          <Input
+            id="signup-email"
+            ref={emailRef}
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              clearError("email");
+            }}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "signup-email-erro" : undefined}
+            className={inputClass(errors.email)}
+          />,
+          errors.email,
+        )}
+        {field(
+          "signup-senha",
+          "Crie uma senha",
+          <div className="relative">
+            <Input
+              id="signup-senha"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="Você vai usar para entrar no app"
+              value={password}
+              onChange={(e) => {
+              setPassword(e.target.value);
+              clearError("password");
+            }}
+              aria-invalid={!!errors.password}
+              aria-describedby="signup-senha-regras"
+              className={`${inputClass(errors.password)} pr-12`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-ink-muted hover:text-ink"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>,
+          errors.password,
+          <ul
+            id="signup-senha-regras"
+            className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1.5 font-inter text-xs"
+          >
+            {PASSWORD_RULES.map((rule) => {
+              const ok = rule.test(password);
+              return (
+                <li key={rule.label} className={ok ? "text-[#3D8B68]" : "text-ink-muted"}>
+                  <span aria-hidden="true">{ok ? "✓" : "○"}</span> {rule.label}
+                  <span className="sr-only">{ok ? " (ok)" : " (falta)"}</span>
+                </li>
+              );
+            })}
+          </ul>,
+        )}
+        <p className="font-inter text-xs leading-[1.45] text-ink-muted">
+          Ao criar sua conta, você aceita os{" "}
+          <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline-offset-2 hover:underline">
+            Termos de Uso
+          </a>{" "}
+          e a{" "}
+          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline-offset-2 hover:underline">
+            Política de Privacidade
+          </a>
+          .
+        </p>
+        <button type="submit" disabled={creating} className={PRIMARY}>
+          Criar minha conta
+          {creating && <Spinner size="sm" variant="primary" />}
+        </button>
+      </form>
+    );
+  }
+
+  if (step === "ja_tem_conta") {
+    const backToCadastro = () => {
+      focusEmailRef.current = true;
+      setStep("cadastro");
+    };
+    content = (
+      <div className="flex flex-col gap-3.5">
+        {stepHeader(() => setStep("cadastro"))}
+        <AlertDialogTitle className={TITLE}>Crie sua conta</AlertDialogTitle>
+        <AlertDialogDescription className="sr-only">
+          Esse e-mail já tem conta no Agenda Bela.
+        </AlertDialogDescription>
+        {field(
+          "signup-email-existente",
+          "E-mail",
+          <Input
+            id="signup-email-existente"
+            value={email}
+            readOnly
+            aria-invalid
+            className={`${INPUT} border-2 border-[#A94468]`}
+          />,
+        )}
+        <div className="flex flex-col gap-3 rounded-2xl bg-[#FCEEF2] p-4">
+          <p className="font-inter text-base font-bold text-brand-petroleo">
+            Esse e-mail já tem conta.
+          </p>
+          <p className="font-inter text-sm leading-normal text-[#4A4548]">
+            Entre no app com ele. Sua agenda e suas clientes continuam lá.
+          </p>
+          <OpenAppButton
+            label="Entrar no app"
+            ctaLocation="ja_tem_conta_entrar_app"
+            className={`${PRIMARY} rounded-xl py-3.5 text-base`}
+          />
+          <button
+            type="button"
+            className={`${SECONDARY} rounded-xl`}
+            disabled={linkState === "sending"}
+            onClick={() => requestLink("ja_tem_conta", email.trim().toLowerCase())}
+          >
+            {linkState === "sending" ? "Mandando..." : "Esqueci a senha"}
+          </button>
+          {linkFeedback("Se esse e-mail tiver conta, mandei o link no seu WhatsApp e no e-mail.")}
+          <button type="button" onClick={backToCadastro} className={LINK}>
+            Usar outro e-mail
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "escolha") {
+    content = (
+      <div className="flex flex-col gap-[18px]">
+        {closeButton}
+        <div role="status" className="flex items-start gap-2.5 rounded-[14px] bg-[#EAF7F0] p-3.5 font-inter text-sm leading-[1.45] text-[#2E6B50]">
+          <Check className="mt-px" />
+          <span>
+            Conta criada{firstName ? `, ${firstName}` : ""}. Seu e-mail e sua senha já valem para entrar no app.
+          </span>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.18]`}>
+            Como você quer começar seus 7 dias?
+          </AlertDialogTitle>
+          <AlertDialogDescription className={BODY}>
+            Nos dois jeitos você usa tudo, igualzinho.
+          </AlertDialogDescription>
+        </div>
+        <button
+          type="button"
+          onClick={() => choosePath("cartao", "escolha")}
+          className="flex flex-col gap-2 rounded-[18px] border-2 border-brand-vinho bg-brand-rosa-50 p-[18px] text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+        >
+          <span className="self-start rounded-full bg-brand-vinho px-[9px] py-1 font-inter text-[11px] font-bold tracking-[0.6px] text-white">
+            SEM PREOCUPAÇÃO DEPOIS
+          </span>
+          <span className="font-inter text-[19px] font-bold text-brand-petroleo">
+            Já cadastrar o cartão
+          </span>
+          <span className="font-inter text-sm leading-[1.45] text-[#4A4548]">
+            Nada é cobrado hoje. Depois dos 7 dias, R$ 59,90 por mês. Cancele quando quiser.
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => choosePath("sem_cartao", "escolha")}
+          className="flex flex-col gap-2 rounded-[18px] border border-[#E2D3CB] bg-white p-[18px] text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+        >
+          <span className="font-inter text-lg font-bold text-brand-petroleo">
+            Testar 7 dias sem cartão
+          </span>
+          <span className="font-inter text-sm leading-[1.45] text-[#4A4548]">
+            Baixe o app e comece agora. No fim dos 7 dias, você decide se assina.
+          </span>
+        </button>
+        <p className="mt-auto text-center font-inter text-[13px] leading-normal text-ink-muted">
+          Se fechar esta página agora, tudo bem: sua conta já está criada e o teste sem cartão continua valendo.
+        </p>
+      </div>
+    );
+  }
+
+  if (step === "sem_cartao") {
+    content = (
+      <div className="flex flex-col gap-4">
+        {closeButton}
+        <AlertDialogTitle className={TITLE}>
+          {firstName ? `Pronto, ${firstName}! Agora é no app.` : "Pronto! Agora é no app."}
+        </AlertDialogTitle>
+        {ctx ? (
+          <AlertDialogDescription className="rounded-[14px] bg-brand-creme-soft px-3.5 py-[13px] font-inter text-sm leading-[1.45] text-[#8A5220]">
+            Seus 7 dias grátis começam quando você configurar sua agenda no app. Não precisa correr.
+          </AlertDialogDescription>
+        ) : (
+          // Genérica: volta do checkout sem o contexto desta aba.
+          <AlertDialogDescription className="sr-only">
+            Baixe o app e entre com seu e-mail e senha.
+          </AlertDialogDescription>
+        )}
+        <div className="flex flex-col gap-2.5">
+          <p className="font-inter text-[15px] font-bold text-brand-petroleo">
+            1. Baixe o app Agenda Bela
+          </p>
+          <StoreBadges ctaLocation="cadastro_sem_cartao_selo" />
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <p className="font-inter text-[15px] font-bold text-brand-petroleo">
+            2. Toque no link que a Bela te mandou no WhatsApp
+          </p>
+          <div aria-hidden="true" className="flex flex-col gap-2 rounded-[14px] bg-[#E9F8E4] p-3">
+            <div className="rounded-[10px] bg-white px-3 py-[11px] font-inter text-sm leading-[1.45] text-ink">
+              Oi{firstName ? `, ${firstName}` : ""}! Sou a Bela. Sua conta do Agendabela está pronta. Toque abaixo para entrar no app.
+            </div>
+            <div className="rounded-[10px] bg-white p-2.5 text-center font-inter text-sm font-semibold text-[#1F7AD1]">
+              Entrar no Agendabela
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="font-inter text-[15px] font-bold text-brand-petroleo">
+            Ou entre com seu e-mail e senha
+          </p>
+          {ctx?.email && (
+            <p className="font-inter text-sm text-[#4A4548] break-all">E-mail: {ctx.email}</p>
+          )}
+        </div>
+        <OpenAppButton label="Já baixei, abrir o app" ctaLocation="cadastro_sem_cartao_abrir_app" desktopHint={false} />
+        {ctx?.email && (
+          <button
+            type="button"
+            className={LINK}
+            disabled={linkState === "sending"}
+            onClick={() => requestLink("sem_cartao", ctx.email)}
+          >
+            {linkState === "sending" ? "Reenviando..." : "Não chegou? Reenviar link"}
+          </button>
+        )}
+        {linkFeedback("Mandei o link de novo no seu WhatsApp e no e-mail. Pode levar até 1 minuto.")}
+        {ctx && (
+          <p className="mt-auto text-center font-inter text-xs leading-normal text-ink-muted">
+            Depois dos 7 dias, sua agenda continua lá para você consultar. Para seguir marcando, é só assinar pelo app.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  if (step === "cartao") {
+    content = (
+      <form onSubmit={handleStartTrial} noValidate className="flex flex-col gap-4">
+        {closeButton}
+        <AlertDialogTitle className={TITLE}>Cadastre seu cartão</AlertDialogTitle>
+        <AlertDialogDescription asChild>
+          <div className="flex flex-col gap-2 rounded-2xl border border-surface-alt-border bg-brand-rosa-50 p-4">
+            <span className="font-inter text-lg font-bold text-brand-petroleo">
+              7 dias grátis. Você não paga nada hoje.
+            </span>
+            <span className="font-inter text-sm leading-[1.45] text-[#4A4548]">
+              Depois dos 7 dias, R$ 59,90 por mês. Cancele quando quiser.
+            </span>
+            <span className="font-inter text-sm text-[#4A4548]">
+              Primeira cobrança em {formatTrialEndDate()}, só se você não cancelar antes.
+            </span>
+          </div>
+        </AlertDialogDescription>
+        {generalError && (
+          <div role="alert" className={ERROR_BOX}>
+            {generalError}
+          </div>
+        )}
+        {field(
+          "signup-cpf",
+          "CPF ou CNPJ",
+          <Input
+            id="signup-cpf"
+            inputMode="numeric"
+            placeholder="Só números"
+            value={taxId}
+            onChange={(e) => setTaxId(formatTaxId(e.target.value))}
+            aria-invalid={!!taxIdError}
+            aria-describedby={taxIdError ? "signup-cpf-erro" : "signup-cpf-dica"}
+            className={inputClass(taxIdError ?? undefined)}
+          />,
+          taxIdError ?? undefined,
+          <span id="signup-cpf-dica" className="font-inter text-xs text-ink-muted">
+            Pedido só aqui, para o pagamento.
+          </span>,
+        )}
+        <button type="submit" disabled={openingCheckout || !ctx} className={PRIMARY}>
+          Cadastrar cartão e começar
+          {openingCheckout && <Spinner size="sm" variant="primary" />}
+        </button>
+        <button type="button" className={LINK} onClick={() => choosePath("sem_cartao", "cartao")}>
+          Prefiro testar sem cartão
+        </button>
+        <p className="text-center font-inter text-xs text-ink-muted">
+          Pagamento seguro pela AbacatePay. Você volta para cá no fim.
+        </p>
+      </form>
+    );
+  }
+
+  if (step === "aprovado") {
+    content = (
+      <div className="flex flex-col gap-4">
+        {closeButton}
+        <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.2]`}>
+          Cartão cadastrado! Seus 7 dias grátis começaram
+        </AlertDialogTitle>
+        <AlertDialogDescription className={`${BODY} leading-normal`}>
+          Nada foi cobrado hoje. A primeira cobrança, de R$ 59,90, será em {formatTrialEndDate()}. Para cancelar antes, é só entrar no seu perfil.
+        </AlertDialogDescription>
+        <div className={SUCCESS_BOX}>
+          Em até 1 minuto você recebe no WhatsApp o link para entrar no app Agenda Bela.
+        </div>
+        <StoreBadges ctaLocation="cadastro_concluido_selo" />
+        <OpenAppButton label="Já baixei, abrir o app" ctaLocation="cadastro_concluido_abrir_app" desktopHint={false} />
+        {ctx?.email && (
+          <button
+            type="button"
+            className={LINK}
+            disabled={linkState === "sending"}
+            onClick={() => requestLink("aprovado", ctx.email)}
+          >
+            {linkState === "sending" ? "Reenviando..." : "Não recebeu? Reenviar link"}
+          </button>
+        )}
+        {linkFeedback("Mandei o link de novo no seu WhatsApp e no e-mail. Pode levar até 1 minuto.")}
+      </div>
+    );
+  }
+
+  if (step === "desistiu") {
+    content = (
+      <div className="flex flex-col gap-4">
+        {closeButton}
+        <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.2]`}>
+          Tudo bem, sua conta continua criada.
+        </AlertDialogTitle>
+        <AlertDialogDescription className={`${BODY} leading-normal`}>
+          Você pode começar agora sem cartão e cadastrar depois, pelo app, quando quiser.
+        </AlertDialogDescription>
+        <button type="button" className={PRIMARY} onClick={() => choosePath("sem_cartao", "desistiu")}>
+          Testar 7 dias sem cartão
+        </button>
+        {ctx && (
+          <button type="button" className={SECONDARY} onClick={() => choosePath("cartao", "desistiu")}>
+            Tentar cadastrar o cartão de novo
+          </button>
+        )}
+        <p className="text-center font-inter text-[13px] text-ink-muted">Nada foi cobrado.</p>
+      </div>
+    );
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-md mx-0 sm:mx-auto px-4 sm:px-6 max-h-[90vh] overflow-y-auto bg-surface-subtle border border-surface-alt-border rounded-app-xl">
-        {step === 1 && (
-          <>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
-                Crie sua conta
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-center">
-                Preencha seus dados. São 7 dias grátis e o cartão só é cobrado
-                depois.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <div className="space-y-3 py-2">
-              {pendingCheckoutFound && (
-                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
-                  <p className="text-sm text-amber-900 font-semibold">
-                    Que bom te ver de novo{pendingCheckoutFound.salonName ? `, ${pendingCheckoutFound.salonName}` : ""}!
-                  </p>
-                  <p className="text-sm text-amber-800">
-                    Vimos que você já começou seu cadastro. Não precisa preencher tudo de novo — é só continuar de onde parou.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      track("agendabela/signup-modal/reentry_checkout_continue", { email });
-                      pushAgendaBelaMainEvent({
-                        event: "checkout_opened",
-                        flow: "new_signup",
-                        source: "lp_signup_modal_reentry",
-                      });
-                      window.location.href = pendingCheckoutFound.checkoutUrl;
-                    }}
-                    className="inline-flex items-center justify-center w-full h-10 px-4 rounded-full bg-brand-rosa hover:bg-brand-rosa-hover text-white font-inter font-semibold text-sm transition-colors"
-                  >
-                    Continuar meu cadastro
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      track("agendabela/signup-modal/reentry_dismissed", { email });
-                      setPendingCheckoutFound(null);
-                      setSkipReentryCheck(true);
-                    }}
-                    className="w-full text-center text-xs text-amber-700 underline"
-                  >
-                    Não é você? Preencher cadastro novo mesmo assim
-                  </button>
-                </div>
-              )}
-              {duplicateEmail && (
-                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
-                  <p className="text-sm text-amber-900 font-semibold">
-                    Esse email já tem conta no Agenda Bela.
-                  </p>
-                  <p className="text-sm text-amber-800">
-                    Se você já é nossa cliente, reative sua conta cadastrando o cartão — seus dados antigos são mantidos.
-                  </p>
-                  <a
-                    href="/agendabela/reativar"
-                    className="inline-flex items-center justify-center w-full h-10 px-4 rounded-full bg-brand-rosa hover:bg-brand-rosa-hover text-white font-inter font-semibold text-sm transition-colors"
-                  >
-                    Reativar minha conta
-                  </a>
-                </div>
-              )}
-              {generalError && !duplicateEmail && !pendingCheckoutFound && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
-                  {generalError}
-                </div>
-              )}
-              <div>
-                <Input
-                  placeholder="Seu nome completo"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={errors.name ? "border-red-500" : ""}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-500 mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  placeholder="Nome do salão"
-                  value={salonName}
-                  onChange={(e) => setSalonName(e.target.value)}
-                  className={errors.salonName ? "border-red-500" : ""}
-                />
-                {errors.salonName && (
-                  <p className="text-xs text-red-500 mt-1">{errors.salonName}</p>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  placeholder="(11) 99999-9999"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhone(e.target.value))}
-                  className={errors.phone ? "border-red-500" : ""}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  placeholder="CPF ou CNPJ"
-                  inputMode="numeric"
-                  value={taxId}
-                  onChange={(e) => setTaxId(formatTaxId(e.target.value))}
-                  className={errors.taxId ? "border-red-500" : ""}
-                />
-                {errors.taxId ? (
-                  <p className="text-xs text-red-500 mt-1">{errors.taxId}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Exigido pela operadora de cartão para liberar o cadastro
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  placeholder="Seu e-mail"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    // Email mudou: qualquer decisão de reentrada anterior
-                    // (banner mostrado/dispensado) era pra outro endereço.
-                    setPendingCheckoutFound(null);
-                    setSkipReentryCheck(false);
-                  }}
-                  className={errors.email ? "border-red-500" : ""}
-                />
-                {errors.email && (
-                  <p className="text-xs text-red-500 mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div>
-                <div className="relative">
-                  <Input
-                    placeholder="Crie uma senha"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {errors.password ? (
-                  <p className="text-xs text-red-500 mt-1">{errors.password}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Min. 8 caracteres, maiúscula, minúscula, número e especial
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <div className="relative">
-                  <Input
-                    placeholder="Confirme sua senha"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
-
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 accent-brand-rosa"
-                />
-                <label htmlFor="terms" className="text-xs text-ink-muted font-inter">
-                  Li e aceito os{" "}
-                  <a
-                    href="/termos"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline text-brand-rosa hover:text-brand-rosa-hover"
-                  >
-                    Termos de Uso
-                  </a>{" "}
-                  e{" "}
-                  <a
-                    href="/privacidade"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline text-brand-rosa hover:text-brand-rosa-hover"
-                  >
-                    Política de Privacidade
-                  </a>
-                </label>
-              </div>
-              {errors.terms && (
-                <p className="text-xs text-red-500">{errors.terms}</p>
-              )}
-            </div>
-
-            <AlertDialogFooter className="flex-col gap-2">
-              <Button
-                onClick={handleStep1Submit}
-                disabled={checkingReentry}
-                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
-              >
-                Continuar
-                {checkingReentry && <Spinner size="sm" variant="primary" />}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleOpenChange(false)}
-                className="w-full rounded-full font-inter font-semibold"
-              >
-                Cancelar
-              </Button>
-            </AlertDialogFooter>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
-                Cadastre seu cartão
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-3 text-center">
-                  <p>
-                    <strong>7 dias grátis.</strong> Cadastre seu cartão:{" "}
-                    <strong className="text-emerald-700">você não paga nada hoje</strong>.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Depois dos 7 dias, R$ 59,90 por mês. Cancele quando quiser.
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <AlertDialogFooter className="flex-col gap-2 pt-4">
-              <Button
-                onClick={handlePayment}
-                disabled={isBilling}
-                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
-              >
-                Cadastrar cartão e começar
-                {isBilling && <Spinner size="sm" variant="primary" />}
-              </Button>
-            </AlertDialogFooter>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-fraunces italic font-normal text-brand-petroleo text-[26px] leading-[30px] tracking-[-0.015em] text-center">
-                Cartão cadastrado! Seus 7 dias grátis começaram 🎉
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-4 text-center">
-                  <div className="rounded-app-md bg-brand-creme border border-brand-creme-soft text-brand-petroleo text-sm p-4 text-left font-inter">
-                    <p className="font-semibold">
-                      Nada foi cobrado hoje.
-                    </p>
-                    <p className="mt-1 text-ink-muted">
-                      A primeira cobrança, de R$ 59,90, será em{" "}
-                      <strong className="text-brand-petroleo">{formatTrialEndDate()}</strong>.
-                      Para cancelar antes, é só entrar no seu perfil.
-                    </p>
-                  </div>
-
-                  {noPhone ? (
-                    <p>
-                      Sua conta está pronta! Baixe o app abaixo e faça login com seu email.
-                    </p>
-                  ) : (
-                    <p>
-                      Em até <strong>1 minuto</strong> você recebe no WhatsApp
-                      o link para entrar no app Agenda Bela.
-                      <br />
-                      <br />
-                      Se ainda não instalou o app, baixe pelos botões abaixo e
-                      depois toque no link do WhatsApp.
-                    </p>
-                  )}
-
-                  <AppStoreBadges
-                    heading="Baixe o app Agenda Bela:"
-                    ctaLocation="cadastro_concluido_selo"
-                  />
-
-                  {!noPhone && (
-                    <>
-                      {magicLinkError && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
-                          Não deu para reenviar o link agora. Tente de novo daqui
-                          a pouco ou{" "}
-                          <a
-                            href={SUPPORT_WHATSAPP_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline font-medium"
-                          >
-                            fale com a gente no WhatsApp
-                          </a>
-                          .
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        disabled={isSendingLink}
-                        onClick={() => {
-                          const storedPhone = sessionStorage.getItem(SESSION_PHONE_KEY);
-                          const storedEmail = sessionStorage.getItem(SESSION_KEY);
-                          if (!storedPhone || !storedEmail) return;
-                          setMagicLinkError(false);
-                          sendMagicLink(
-                            { phone: storedPhone, email: storedEmail },
-                            { onError: () => setMagicLinkError(true) },
-                          );
-                        }}
-                        className="text-sm text-brand-rosa hover:text-brand-rosa-hover underline disabled:opacity-50 font-inter"
-                      >
-                        {isSendingLink ? "Reenviando..." : "Não recebeu? Reenviar link"}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <AlertDialogFooter className="flex-col gap-2 pt-2">
-              <Button
-                onClick={() => handleOpenChange(false)}
-                className="w-full bg-brand-rosa hover:bg-brand-rosa-hover text-white rounded-full font-inter font-semibold"
-              >
-                Fechar
-              </Button>
-            </AlertDialogFooter>
-          </>
-        )}
+      <AlertDialogContent
+        className={`${fraunces.variable} ${inter.variable} font-inter inset-0 left-0 top-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto rounded-none border-0 bg-white px-[22px] pb-6 pt-[22px] data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[90vh] sm:max-w-[420px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:border sm:border-surface-alt-border sm:shadow-brand-lg`}
+        onEscapeKeyDown={() => handleOpenChange(false)}
+      >
+        <div className="flex min-h-full flex-1 flex-col">{content}</div>
       </AlertDialogContent>
     </AlertDialog>
   );

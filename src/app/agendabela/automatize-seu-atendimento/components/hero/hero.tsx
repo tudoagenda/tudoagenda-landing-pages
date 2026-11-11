@@ -1,32 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SignupCtaButton } from "../form";
+import {
+  consumeCheckoutReturn,
+  readSignupContext,
+} from "../signup-modal/signup-session";
+import {
+  pushAgendaBelaMainEvent,
+  type SignupStep,
+} from "@/lib/analytics/dataLayer";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { SimulatorLink } from "../try-simulator/simulator-link";
 import { AppScreenStack } from "@/components/brand/app-screen-stack";
 import { WhatsAppPreview } from "@/components/brand/whatsapp-preview";
 
-const FormComponent = dynamic(
-  () => import("../form").then((mod) => ({ default: mod.FormComponent })),
-  {
-    loading: () => (
-      <div className="flex flex-col md:flex-row gap-2 w-full">
-        <div className="h-11 bg-surface-alt-card animate-pulse rounded-full flex-1" />
-        <div className="h-11 bg-brand-rosa/40 animate-pulse rounded-full md:w-44" />
-      </div>
-    ),
-  },
+// O cadastro só carrega quando a cliente toca no botão (ou volta do checkout).
+const SignupModal = dynamic(
+  () => import("../signup-modal").then((mod) => ({ default: mod.SignupModal })),
+  { ssr: false },
 );
 
-const positiveDisclaimer = (
-  <>
-    <strong className="font-inter font-semibold text-ink">
-      7 dias grátis.
-    </strong>{" "}
-    Cancele quando quiser.
-  </>
-);
+const positiveDisclaimer = "Sem cartão para começar. Cancele quando quiser.";
 
 const features = [
   "Sua cliente recebe a confirmação no WhatsApp assim que você marca",
@@ -94,6 +90,25 @@ export const HeroComponent = () => {
   // Com o foco num campo do card (digitando), ele não some nem fica inert.
   const [cardFocused, setCardFocused] = useState(false);
   const hideCard = avoidZoneInView && !cardFocused;
+
+  // Um único cadastro para os dois botões (desktop e card do celular).
+  const [signupOpen, setSignupOpen] = useState(false);
+  const [signupStep, setSignupStep] = useState<SignupStep>("cadastro");
+
+  // Volta do checkout AbacatePay: reabre o cadastro na tela certa.
+  useEffect(() => {
+    const ret = consumeCheckoutReturn();
+    if (!ret) return;
+    pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: ret.result });
+    setSignupStep(ret.step);
+    setSignupOpen(true);
+  }, []);
+
+  // Conta já criada nesta aba: não pede o cadastro de novo, volta à escolha.
+  const startSignup = () => {
+    setSignupStep(readSignupContext() ? "escolha" : "cadastro");
+    setSignupOpen(true);
+  };
 
   return (
     <>
@@ -163,12 +178,12 @@ export const HeroComponent = () => {
                 ))}
               </ul>
 
-              {/* Form desktop only — mobile usa sticky */}
+              {/* Botão desktop only — no celular fica no card fixo */}
               <div className="hidden md:flex flex-col gap-3 bg-white rounded-app-lg shadow-brand-md p-5 max-w-xl">
                 <span className="font-mono-brand text-[10px] tracking-[1.8px] uppercase text-ink-muted">
                   Comece agora, é rápido
                 </span>
-                <FormComponent />
+                <SignupCtaButton ctaPosition="hero" onStart={startSignup} />
                 <p className="font-inter text-[12px] leading-[18px] text-ink-muted">
                   {positiveDisclaimer}
                 </p>
@@ -233,12 +248,20 @@ export const HeroComponent = () => {
         }}
       >
         <div className="flex flex-col gap-2.5">
-          <FormComponent />
+          <SignupCtaButton ctaPosition="sticky_mobile" onStart={startSignup} />
           <p className="font-inter text-[11px] leading-[15px] text-ink-muted text-center">
             {positiveDisclaimer}
           </p>
         </div>
       </div>
+
+      {signupOpen && (
+        <SignupModal
+          open={signupOpen}
+          onOpenChange={setSignupOpen}
+          initialStep={signupStep}
+        />
+      )}
     </>
   );
 };
