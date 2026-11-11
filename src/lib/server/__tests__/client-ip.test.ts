@@ -92,18 +92,26 @@ describe("resolveClientIp", () => {
     ).toBe("none");
   });
 
-  it("sem sinal de CloudFront: X-Real-IP do Railway", () => {
-    const r = resolveClientIp(h({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "6.6.6.6, 203.0.113.7" }), SECRET);
+  it("env do segredo configurada + pedido direto com X-Real-IP forjado: none", () => {
+    const r = resolveClientIp(
+      h({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "6.6.6.6, 203.0.113.7" }),
+      SECRET,
+    );
+    expect(r).toEqual(expect.objectContaining({ ip: null, source: "none", viaCloudFront: false }));
+  });
+
+  it("sem a env (staging/dev) e sem sinal de CloudFront: X-Real-IP do Railway", () => {
+    const r = resolveClientIp(h({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "6.6.6.6, 203.0.113.7" }), undefined);
     expect(r).toEqual(expect.objectContaining({ ip: "203.0.113.7", source: "real_ip", viaCloudFront: false }));
   });
 
-  it("sem CloudFront e sem X-Real-IP: última do XFF", () => {
-    const r = resolveClientIp(h({ "x-forwarded-for": "6.6.6.6, 2001:db8::1" }), SECRET);
+  it("sem a env, sem CloudFront e sem X-Real-IP: última do XFF", () => {
+    const r = resolveClientIp(h({ "x-forwarded-for": "6.6.6.6, 2001:db8::1" }), undefined);
     expect(r).toEqual(expect.objectContaining({ ip: "2001:db8::1", source: "xff_last" }));
   });
 
   it("nada válido: none", () => {
-    expect(resolveClientIp(h({ "x-forwarded-for": "lixo" }), SECRET).source).toBe("none");
+    expect(resolveClientIp(h({ "x-forwarded-for": "lixo" }), undefined).source).toBe("none");
   });
 });
 

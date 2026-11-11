@@ -27,10 +27,11 @@ import { isIP } from "net";
  * CloudFront que o Railway acrescentou, e tem que ser igual ao `X-Real-IP`.
  *
  * - Segredo confere → `cf_penultimate` (ou `none` se o formato não conferir).
- * - Parece CloudFront sem o segredo (env ausente, cabeçalho errado ou
- *   forjado) → `none`: sem chave/IP, limite global no backend (o de hoje).
- * - Sem sinal de CloudFront (staging, Railway direto) → `X-Real-IP`, senão a
- *   última entrada do X-Forwarded-For.
+ * - Env do segredo configurada (produção) e segredo ausente/errado → `none`
+ *   em QUALQUER pedido, inclusive o direto no Railway: sem chave/IP, limite
+ *   global no backend (o de hoje).
+ * - Env ausente: parece CloudFront → `none`; sem sinal de CloudFront
+ *   (staging, dev) → `X-Real-IP`, senão a última entrada do X-Forwarded-For.
  * Entradas mais à esquerda vêm do navegador e podem ser forjadas: nunca usar.
  */
 
@@ -78,6 +79,11 @@ export function resolveClientIp(
   const last = xff.length ? xff[xff.length - 1] : null;
   const lastHop = realIp ?? validIp(last);
   const base = { lastHop, viaCloudFront, cfVerified };
+
+  // Com o segredo configurado (produção), nada sem ele é confiável: nem o
+  // caminho direto, cujo X-Real-IP só seria seguro se o edge do Railway
+  // sobrescrevesse o valor enviado pela visitante (não verificado).
+  if (expected && !cfVerified) return { ip: null, source: "none", ...base };
 
   if (viaCloudFront) {
     if (!cfVerified) return { ip: null, source: "none", ...base };
