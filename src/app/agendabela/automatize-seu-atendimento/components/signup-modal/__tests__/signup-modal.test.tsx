@@ -166,6 +166,52 @@ describe("Cadastro (Passo 1 de 2)", () => {
     expect(alert).not.toHaveTextContent("Failed to fetch");
   });
 
+  it("timeout/5xx e depois 409 do mesmo e-mail: \"Sua conta foi criada\", não \"já tem conta\"", async () => {
+    mockSignup
+      .mockRejectedValueOnce(new SignupWebError("Não consegui criar sua conta agora.", 502))
+      .mockRejectedValueOnce(
+        new SignupWebError("Esse e-mail já tem conta.", 409, "EMAIL_ALREADY_REGISTERED"),
+      );
+    mockAccessLink.mockResolvedValue({ ok: true });
+    renderAt();
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByRole("alert");
+    fireEvent.change(screen.getByLabelText("Crie uma senha"), { target: { value: "Senha123!" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    expect(await screen.findByText("Sua conta foi criada! Agora é no app.")).toBeInTheDocument();
+    expect(screen.queryByText("Esse e-mail já tem conta.")).not.toBeInTheDocument();
+    expect(screen.getByText("E-mail: carla@exemplo.com")).toBeInTheDocument();
+    expect(events()).toEqual(expect.arrayContaining(["signup_recovered", "lp_signup_completed"]));
+    expect(events()).not.toContain("signup_email_exists");
+    fireEvent.click(screen.getByRole("button", { name: "Não chegou? Reenviar link" }));
+    await waitFor(() => expect(mockAccessLink).toHaveBeenCalledWith("carla@exemplo.com"));
+  });
+
+  it("409 sem erro antes (ou erro 400 antes) continua sendo Já tem conta", async () => {
+    mockSignup
+      .mockRejectedValueOnce(new SignupWebError("Confira os dados e tente de novo.", 400))
+      .mockRejectedValueOnce(
+        new SignupWebError("Esse e-mail já tem conta.", 409, "EMAIL_ALREADY_REGISTERED"),
+      );
+    renderAt();
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    expect(await screen.findByText("Esse e-mail já tem conta.")).toBeInTheDocument();
+  });
+
+  it("lp_signup_completed sai uma vez só por aba", async () => {
+    mockSignup.mockResolvedValue({ ...CTX });
+    sessionStorage.setItem("agendabela_signup_completed", "1");
+    renderAt();
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByText("Como você quer começar seus 7 dias?");
+    expect(events()).not.toContain("lp_signup_completed");
+  });
+
   it("voltar fecha o cadastro", () => {
     const onOpenChange = jest.fn();
     renderAt("cadastro", onOpenChange);

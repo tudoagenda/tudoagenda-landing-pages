@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       `${getBackendApiUrl()}/subscriptions/signup-web/access-link`,
       {
         method: "POST",
-        headers: buildLandingHeaders(req),
+        headers: buildLandingHeaders(req, "access-link"),
         body: JSON.stringify({ email }),
         signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       },

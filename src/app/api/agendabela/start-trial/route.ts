@@ -31,6 +31,26 @@ const PROFILE_ID_REGEX =
 const GENERIC_ERROR =
   "Não consegui abrir o pagamento agora. Tente de novo em instantes ou comece sem cartão.";
 
+const CARD_CODES = new Set(["TRIAL_ALREADY_ACTIVE", "CARD_ALREADY_REGISTERED"]);
+const ACTIVE_CODES = new Set(["SUBSCRIPTION_ALREADY_ACTIVE", "STORE_MANAGED"]);
+
+/**
+ * 409 do start-trial: prefere o `code` do backend; sem ele (ou com um code
+ * desconhecido), cai no texto da mensagem. Qualquer outro 409 é "desconhecido"
+ * e nunca vira Aprovado (falha para o lado seguro).
+ */
+function classifyConflict(
+  body: Record<string, unknown> | null,
+): "card" | "active" | "unknown" {
+  const code = typeof body?.code === "string" ? body.code : "";
+  if (CARD_CODES.has(code)) return "card";
+  if (ACTIVE_CODES.has(code)) return "active";
+  const message = typeof body?.message === "string" ? body.message : "";
+  if (/Trial already active|cartão já foi cadastrado/i.test(message)) return "card";
+  if (/Subscription already active|managed by/i.test(message)) return "active";
+  return "unknown";
+}
+
 export async function POST(req: Request) {
   const body = await readJson(req);
   const profileId = str(body?.profileId);
@@ -55,7 +75,7 @@ export async function POST(req: Request) {
       `${getBackendApiUrl()}/subscriptions/${encodeURIComponent(profileId)}/start-trial`,
       {
         method: "POST",
-        headers: buildLandingHeaders(req),
+        headers: buildLandingHeaders(req, "start-trial"),
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       },
@@ -68,15 +88,14 @@ export async function POST(req: Request) {
   const result = (await response.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (response.status === 409) {
-    // O backend não manda code no 409 do start-trial: a mensagem decide.
-    const message = typeof result?.message === "string" ? result.message : "";
-    if (/Trial already active|cartão já foi cadastrado/i.test(message)) {
+    const kind = classifyConflict(result);
+    if (kind === "card") {
       return NextResponse.json(
         { code: "ALREADY_SUBSCRIBED", error: "Seu cartão já está cadastrado." },
         { status: 409 },
       );
     }
-    if (/Subscription already active|managed by/i.test(message)) {
+    if (kind === "active") {
       return NextResponse.json(
         {
           code: "ALREADY_ACTIVE",
@@ -86,9 +105,10 @@ export async function POST(req: Request) {
         { status: 409 },
       );
     }
-    console.error("[start-trial] 409 sem mensagem conhecida");
+    console.error("[start-trial] 409 sem code nem mensagem conhecidos");
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 502 });
   }
+
   if (response.status === 404) {
     return NextResponse.json(
       { error: "Não encontrei sua conta. Recarregue a página e tente de novo." },

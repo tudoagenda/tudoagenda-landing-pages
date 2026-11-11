@@ -70,6 +70,10 @@ type LandingEvent =
       event: "signup_email_exists";
     }
   | {
+      /** 409 logo depois de um timeout/5xx desta aba: a conta foi criada. */
+      event: "signup_recovered";
+    }
+  | {
       /** Falha de servidor/rede ao criar a conta ou abrir o checkout. */
       event: "signup_failed";
       signup_step: "cadastro" | "cartao";

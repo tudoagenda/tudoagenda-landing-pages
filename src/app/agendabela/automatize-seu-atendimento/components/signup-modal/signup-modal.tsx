@@ -27,7 +27,10 @@ import {
   formatPhone,
   formatTaxId,
   formatTrialEndDate,
+  markSignupUncertain,
   readSignupContext,
+  shouldPushSignupCompleted,
+  takeSignupUncertain,
   writeSignupContext,
 } from "./signup-session";
 
@@ -206,6 +209,8 @@ export const SignupModal = ({
   const [openingCheckout, setOpeningCheckout] = useState(false);
   // Cartão que já tinha entrado antes (409): a data da 1ª cobrança não é hoje + 7.
   const [chargeDateUnknown, setChargeDateUnknown] = useState(false);
+  // Conta criada numa tentativa que deu erro (timeout/5xx): sem profileId.
+  const [recoveredEmail, setRecoveredEmail] = useState<string | null>(null);
 
   // Comum
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -268,14 +273,16 @@ export const SignupModal = ({
     setGeneralError(null);
     setCreating(true);
     pushAgendaBelaMainEvent({ event: "lp_form_submitted", form_name: "signup_web" });
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const result = await signupWebService.signup({
         name: name.trim(),
         salonName: salonName.trim(),
         phone: phone.replace(/\D/g, ""),
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
       });
+      takeSignupUncertain(normalizedEmail);
       const next: SignupContext = {
         profileId: result.profileId,
         email: result.email,
@@ -285,15 +292,25 @@ export const SignupModal = ({
       writeSignupContext(next);
       setCtx(next);
       setPassword("");
-      pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+      if (shouldPushSignupCompleted()) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
       setStep("escolha");
     } catch (err) {
       if (err instanceof SignupWebError && err.code === "EMAIL_ALREADY_REGISTERED") {
+        if (takeSignupUncertain(normalizedEmail)) {
+          // A tentativa anterior desta aba deu erro mas criou a conta.
+          pushAgendaBelaMainEvent({ event: "signup_recovered" });
+          if (shouldPushSignupCompleted()) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+          setRecoveredEmail(normalizedEmail);
+          setPassword("");
+          setStep("sem_cartao");
+          return;
+        }
         pushAgendaBelaMainEvent({ event: "signup_email_exists" });
         setStep("ja_tem_conta");
         return;
       }
       const status = err instanceof SignupWebError ? err.status : 0;
+      if (status === 0 || status >= 500) markSignupUncertain(normalizedEmail);
       pushAgendaBelaMainEvent({
         event: "signup_failed",
         signup_step: "cadastro",
@@ -721,11 +738,16 @@ export const SignupModal = ({
   }
 
   if (step === "sem_cartao") {
+    const linkEmail = ctx?.email ?? recoveredEmail;
     content = (
       <div className="flex flex-col gap-4">
         {closeButton}
         <AlertDialogTitle className={TITLE}>
-          {firstName ? `Pronto, ${firstName}! Agora é no app.` : "Pronto! Agora é no app."}
+          {recoveredEmail
+            ? "Sua conta foi criada! Agora é no app."
+            : firstName
+              ? `Pronto, ${firstName}! Agora é no app.`
+              : "Pronto! Agora é no app."}
         </AlertDialogTitle>
         {ctx ? (
           <AlertDialogDescription className="rounded-[14px] bg-brand-creme-soft px-3.5 py-[13px] font-inter text-sm leading-[1.45] text-[#8A5220]">
@@ -760,17 +782,17 @@ export const SignupModal = ({
           <p className="font-inter text-[15px] font-bold text-brand-petroleo">
             Ou entre com seu e-mail e senha
           </p>
-          {ctx?.email && (
-            <p className="font-inter text-sm text-[#4A4548] break-all">E-mail: {ctx.email}</p>
+          {linkEmail && (
+            <p className="font-inter text-sm text-[#4A4548] break-all">E-mail: {linkEmail}</p>
           )}
         </div>
         <OpenAppButton label="Já baixei, abrir o app" ctaLocation="cadastro_sem_cartao_abrir_app" desktopHint={false} />
-        {ctx?.email && (
+        {linkEmail && (
           <button
             type="button"
             className={LINK}
             disabled={linkState === "sending"}
-            onClick={() => requestLink("sem_cartao", ctx.email)}
+            onClick={() => requestLink("sem_cartao", linkEmail)}
           >
             {linkState === "sending" ? "Reenviando..." : "Não chegou? Reenviar link"}
           </button>

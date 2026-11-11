@@ -109,6 +109,24 @@ describe("POST /api/agendabela/start-trial", () => {
     expect(body.error).toContain("assinatura ativa");
   });
 
+  it.each([
+    ["TRIAL_ALREADY_ACTIVE", "ALREADY_SUBSCRIBED"],
+    ["CARD_ALREADY_REGISTERED", "ALREADY_SUBSCRIBED"],
+    ["SUBSCRIPTION_ALREADY_ACTIVE", "ALREADY_ACTIVE"],
+    ["STORE_MANAGED", "ALREADY_ACTIVE"],
+  ])("409 com code %s → %s, mesmo com mensagem que diria outra coisa", async (code, expected) => {
+    mockFetch(409, { code, message: expected === "ALREADY_ACTIVE" ? "Trial already active" : "Subscription already active" });
+    const res = await POST(req({ profileId: PID, taxId: "11144477735" }));
+    expect(res.status).toBe(409);
+    expect((await res.json()).code).toBe(expected);
+  });
+
+  it("409 com code desconhecido cai no texto", async () => {
+    mockFetch(409, { code: "OTHER", message: "Trial already active for this profile" });
+    const res = await POST(req({ profileId: PID, taxId: "11144477735" }));
+    expect((await res.json()).code).toBe("ALREADY_SUBSCRIBED");
+  });
+
   it("409 com mensagem desconhecida → 502 genérico", async () => {
     mockFetch(409, { message: "Profile x has no billingEmail" });
     const res = await POST(req({ profileId: PID, taxId: "11144477735" }));

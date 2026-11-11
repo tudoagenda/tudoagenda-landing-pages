@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   try {
     response = await fetch(`${getBackendApiUrl()}/subscriptions/signup-web`, {
       method: "POST",
-      headers: buildLandingHeaders(req),
+      headers: buildLandingHeaders(req, "signup-web"),
       body: JSON.stringify({ name, salonName, email, phone, password }),
       signal: AbortSignal.timeout(SIGNUP_TIMEOUT_MS),
     });

@@ -127,3 +127,47 @@ export function formatTrialEndDate(now: Date = new Date()): string {
   const month = String(end.getMonth() + 1).padStart(2, "0");
   return `${day}/${month}`;
 }
+
+/**
+ * Criação incerta: a tentativa deu timeout/5xx/rede, e a conta pode ter sido
+ * criada mesmo assim (criar não é idempotente). Guarda o e-mail; se a próxima
+ * tentativa com ele der "já tem conta", a tela é "Sua conta foi criada".
+ */
+const UNCERTAIN_KEY = "agendabela_signup_uncertain";
+
+export function markSignupUncertain(email: string): void {
+  try {
+    window.sessionStorage.setItem(UNCERTAIN_KEY, email);
+  } catch {
+    /* sem storage, só perde a recuperação */
+  }
+}
+
+/** true (e limpa a marca) se a última tentativa incerta foi com este e-mail. */
+export function takeSignupUncertain(email: string): boolean {
+  try {
+    const stored = window.sessionStorage.getItem(UNCERTAIN_KEY);
+    window.sessionStorage.removeItem(UNCERTAIN_KEY);
+    return stored === email;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * `lp_signup_completed` (CompleteRegistration na Meta) uma vez por aba: não
+ * conta de novo a mesma pessoa que cria, fecha e recupera a conta na mesma
+ * sessão. Entre sessões (ex.: reaproveitamento do #318) pode contar 2x.
+ */
+const COMPLETED_KEY = "agendabela_signup_completed";
+
+export function shouldPushSignupCompleted(): boolean {
+  try {
+    if (window.sessionStorage.getItem(COMPLETED_KEY)) return false;
+    window.sessionStorage.setItem(COMPLETED_KEY, "1");
+    return true;
+  } catch {
+    return true;
+  }
+}
+
