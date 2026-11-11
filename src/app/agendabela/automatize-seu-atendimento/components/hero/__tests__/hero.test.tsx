@@ -141,4 +141,28 @@ describe("HeroComponent", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(window.location.search).toBe("");
   });
+
+  it("voltar do checkout pelo cache do navegador (bfcache) mostra Desistiu", async () => {
+    sessionStorage.setItem(
+      "agendabela_signup_web",
+      JSON.stringify({ profileId: "p", email: "a@b.co", firstName: "Ana", accessLinkSent: true, checkoutPending: true }),
+    );
+    history.replaceState(null, "", "/agendabela/automatize-seu-atendimento");
+    // Primeira montagem já consome a marca; simula uma nova ida ao checkout.
+    render(<HeroComponent />);
+    await screen.findByText("Tudo bem, sua conta continua criada.");
+    sessionStorage.setItem(
+      "agendabela_signup_web",
+      JSON.stringify({ profileId: "p", email: "a@b.co", firstName: "Ana", accessLinkSent: true, checkoutPending: true }),
+    );
+    const ev = new Event("pageshow") as PageTransitionEvent;
+    Object.defineProperty(ev, "persisted", { value: true });
+    act(() => {
+      window.dispatchEvent(ev);
+    });
+    expect(await screen.findByText("Tudo bem, sua conta continua criada.")).toBeInTheDocument();
+    expect(JSON.parse(sessionStorage.getItem("agendabela_signup_web")!).checkoutPending).toBe(false);
+    sessionStorage.clear();
+  });
 });
+

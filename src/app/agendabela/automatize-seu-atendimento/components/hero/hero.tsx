@@ -94,19 +94,36 @@ export const HeroComponent = () => {
   // Um único cadastro para os dois botões (desktop e card do celular).
   const [signupOpen, setSignupOpen] = useState(false);
   const [signupStep, setSignupStep] = useState<SignupStep>("cadastro");
+  // Remonta o modal a cada abertura (zera botão travado e formulário).
+  const [signupKey, setSignupKey] = useState(0);
 
-  // Volta do checkout AbacatePay: reabre o cadastro na tela certa.
+  // Volta do checkout AbacatePay: reabre o cadastro na tela certa. Também no
+  // "voltar" do navegador que restaura a página do cache (bfcache), onde o
+  // efeito de montagem não roda de novo e o modal ficaria no botão travado.
   useEffect(() => {
-    const ret = consumeCheckoutReturn();
-    if (!ret) return;
-    pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: ret.result });
-    setSignupStep(ret.step);
-    setSignupOpen(true);
+    const handleReturn = () => {
+      const ret = consumeCheckoutReturn();
+      if (!ret) return false;
+      pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: ret.result });
+      setSignupStep(ret.step);
+      setSignupKey((k) => k + 1);
+      setSignupOpen(true);
+      return true;
+    };
+    handleReturn();
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      // Sem volta a mostrar: fecha o modal para não ficar no botão travado.
+      if (!handleReturn()) setSignupOpen(false);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
 
   // Conta já criada nesta aba: não pede o cadastro de novo, volta à escolha.
   const startSignup = () => {
     setSignupStep(readSignupContext() ? "escolha" : "cadastro");
+    setSignupKey((k) => k + 1);
     setSignupOpen(true);
   };
 
@@ -257,6 +274,7 @@ export const HeroComponent = () => {
 
       {signupOpen && (
         <SignupModal
+          key={signupKey}
           open={signupOpen}
           onOpenChange={setSignupOpen}
           initialStep={signupStep}

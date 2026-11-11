@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  BACKEND_TIMEOUT_MS,
+  SIGNUP_TIMEOUT_MS,
   EMAIL_REGEX,
   buildLandingHeaders,
   getBackendApiUrl,
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: buildLandingHeaders(req),
       body: JSON.stringify({ name, salonName, email, phone, password }),
-      signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
+      signal: AbortSignal.timeout(SIGNUP_TIMEOUT_MS),
     });
   } catch (error) {
     console.error("[signup-web] backend inacessível:", error instanceof Error ? error.name : "erro");

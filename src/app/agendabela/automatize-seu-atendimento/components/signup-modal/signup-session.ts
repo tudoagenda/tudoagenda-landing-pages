@@ -96,10 +96,13 @@ export function firstNameOf(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
 }
 
+/** Celular (11 dígitos) ou fixo (10), igual ao maskPhone da lista de espera. */
 export function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
@@ -124,12 +127,3 @@ export function formatTrialEndDate(now: Date = new Date()): string {
   const month = String(end.getMonth() + 1).padStart(2, "0");
   return `${day}/${month}`;
 }
-
-/** Regras da senha do Cognito, na ordem do checklist do cadastro. */
-export const PASSWORD_RULES: { label: string; test: (pw: string) => boolean }[] = [
-  { label: "8+ caracteres", test: (pw) => pw.length >= 8 },
-  { label: "maiúscula", test: (pw) => /[A-Z]/.test(pw) },
-  { label: "minúscula", test: (pw) => /[a-z]/.test(pw) },
-  { label: "número", test: (pw) => /[0-9]/.test(pw) },
-  { label: "símbolo", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
-];

@@ -345,8 +345,25 @@ describe("Cartão", () => {
     expect(
       await screen.findByText("Cartão cadastrado! Seus 7 dias grátis começaram"),
     ).toBeInTheDocument();
+    // Cartão de antes: não promete data contada de hoje.
+    expect(screen.getByText(/A data da primeira cobrança, de R\$ 59,90, está no seu perfil/)).toBeInTheDocument();
+    expect(screen.queryByText(/Nada foi cobrado hoje/)).not.toBeInTheDocument();
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({ event: "checkout_returned", checkout_result: "ja_cadastrado" }),
+    );
+  });
+
+  it("409 de assinatura ativa (paga ou loja) fica no Cartão com aviso, sem Aprovado", async () => {
+    mockStartTrial.mockRejectedValue(
+      new SignupWebError("Você já tem uma assinatura ativa. É só entrar no app com seu e-mail e senha.", 409, "ALREADY_ACTIVE"),
+    );
+    renderAt("cartao");
+    fireEvent.change(screen.getByLabelText("CPF ou CNPJ"), { target: { value: "11144477735" } });
+    fireEvent.click(screen.getByRole("button", { name: "Cadastrar cartão e começar" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("assinatura ativa");
+    expect(screen.queryByText(/Cartão cadastrado!/)).not.toBeInTheDocument();
+    expect(window.dataLayer).toContainEqual(
+      expect.objectContaining({ event: "signup_failed", failure_reason: "already_active" }),
     );
   });
 

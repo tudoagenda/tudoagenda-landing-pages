@@ -73,7 +73,7 @@ type LandingEvent =
       /** Falha de servidor/rede ao criar a conta ou abrir o checkout. */
       event: "signup_failed";
       signup_step: "cadastro" | "cartao";
-      failure_reason: "invalid_data" | "rate_limited" | "server" | "network";
+      failure_reason: "invalid_data" | "rate_limited" | "already_active" | "server" | "network";
     }
   | {
       /** Escolheu cartão ou sem cartão (na Escolha, no Cartão ou no Desistiu). */

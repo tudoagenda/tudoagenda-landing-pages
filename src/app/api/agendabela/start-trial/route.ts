@@ -20,7 +20,8 @@ import {
  *
  * Respostas para o navegador (mensagens sempre em PT-BR):
  *  - 200 { checkoutUrl }
- *  - 409 { code: "ALREADY_SUBSCRIBED", error } — o cartão já entrou
+ *  - 409 { code: "ALREADY_SUBSCRIBED", error } — o cartão já entrou (trial)
+ *  - 409 { code: "ALREADY_ACTIVE", error } — assinatura paga ou de loja
  *  - 400 CPF/CNPJ inválido · 404 conta não encontrada · 502 resto
  */
 
@@ -67,10 +68,26 @@ export async function POST(req: Request) {
   const result = (await response.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (response.status === 409) {
-    return NextResponse.json(
-      { code: "ALREADY_SUBSCRIBED", error: "Seu cartão já está cadastrado." },
-      { status: 409 },
-    );
+    // O backend não manda code no 409 do start-trial: a mensagem decide.
+    const message = typeof result?.message === "string" ? result.message : "";
+    if (/Trial already active|cartão já foi cadastrado/i.test(message)) {
+      return NextResponse.json(
+        { code: "ALREADY_SUBSCRIBED", error: "Seu cartão já está cadastrado." },
+        { status: 409 },
+      );
+    }
+    if (/Subscription already active|managed by/i.test(message)) {
+      return NextResponse.json(
+        {
+          code: "ALREADY_ACTIVE",
+          error:
+            "Você já tem uma assinatura ativa. É só entrar no app com seu e-mail e senha.",
+        },
+        { status: 409 },
+      );
+    }
+    console.error("[start-trial] 409 sem mensagem conhecida");
+    return NextResponse.json({ error: GENERIC_ERROR }, { status: 502 });
   }
   if (response.status === 404) {
     return NextResponse.json(

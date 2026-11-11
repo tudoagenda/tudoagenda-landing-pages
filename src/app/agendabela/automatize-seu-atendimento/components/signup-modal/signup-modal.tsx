@@ -20,8 +20,8 @@ import {
 } from "@/lib/analytics/dataLayer";
 import { SignupWebError, signupWebService } from "@/services/signup-web";
 import { ChevronLeft, Eye, EyeOff, X } from "lucide-react";
+import { EMAIL_REGEX, PASSWORD_RULES } from "@/lib/signup-rules";
 import {
-  PASSWORD_RULES,
   type SignupContext,
   firstNameOf,
   formatPhone,
@@ -204,6 +204,8 @@ export const SignupModal = ({
   const [taxId, setTaxId] = useState("");
   const [taxIdError, setTaxIdError] = useState<string | null>(null);
   const [openingCheckout, setOpeningCheckout] = useState(false);
+  // Cartão que já tinha entrado antes (409): a data da 1ª cobrança não é hoje + 7.
+  const [chargeDateUnknown, setChargeDateUnknown] = useState(false);
 
   // Comum
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -233,22 +235,9 @@ export const SignupModal = ({
     }
   }, [open, step]);
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      // A conta (se criada) continua no contexto da aba; o formulário zera.
-      setName("");
-      setSalonName("");
-      setPhone("");
-      setEmail("");
-      setPassword("");
-      setShowPassword(false);
-      setErrors({});
-      setTaxId("");
-      setTaxIdError(null);
-      setGeneralError(null);
-    }
-    onOpenChange(nextOpen);
-  };
+  // O Hero desmonta o modal ao fechar: o formulário zera sozinho e a conta
+  // (se criada) continua no contexto da aba.
+  const handleOpenChange = (nextOpen: boolean) => onOpenChange(nextOpen);
 
   const firstName = ctx?.firstName ?? "";
 
@@ -262,7 +251,7 @@ export const SignupModal = ({
     if (!salonName.trim()) e.salonName = "Informe o nome do salão ou espaço.";
     if (phone.replace(/\D/g, "").length < 10)
       e.phone = "Informe o WhatsApp com DDD.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+    if (!EMAIL_REGEX.test(email.trim()))
       e.email = "Confira o e-mail.";
     if (!PASSWORD_RULES.every((r) => r.test(password)))
       e.password = "A senha precisa cumprir todos os itens abaixo.";
@@ -377,6 +366,7 @@ export const SignupModal = ({
       setOpeningCheckout(false);
       if (err instanceof SignupWebError && err.code === "ALREADY_SUBSCRIBED") {
         pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: "ja_cadastrado" });
+        setChargeDateUnknown(true);
         setStep("aprovado");
         return;
       }
@@ -385,7 +375,15 @@ export const SignupModal = ({
         event: "signup_failed",
         signup_step: "cartao",
         failure_reason:
-          status === 0 ? "network" : status === 400 ? "invalid_data" : status === 429 ? "rate_limited" : "server",
+          status === 0
+            ? "network"
+            : status === 400
+              ? "invalid_data"
+              : status === 409
+                ? "already_active"
+                : status === 429
+                  ? "rate_limited"
+                  : "server",
       });
       setGeneralError(
         err instanceof SignupWebError
@@ -850,7 +848,9 @@ export const SignupModal = ({
           Cartão cadastrado! Seus 7 dias grátis começaram
         </AlertDialogTitle>
         <AlertDialogDescription className={`${BODY} leading-normal`}>
-          Nada foi cobrado hoje. A primeira cobrança, de R$ 59,90, será em {formatTrialEndDate()}. Para cancelar antes, é só entrar no seu perfil.
+          {chargeDateUnknown
+            ? "Seu cartão já estava cadastrado. A data da primeira cobrança, de R$ 59,90, está no seu perfil no app. Para cancelar antes, é só entrar no seu perfil."
+            : `Nada foi cobrado hoje. A primeira cobrança, de R$ 59,90, será em ${formatTrialEndDate()}. Para cancelar antes, é só entrar no seu perfil.`}
         </AlertDialogDescription>
         <div className={SUCCESS_BOX}>
           Em até 1 minuto você recebe no WhatsApp o link para entrar no app Agenda Bela.
@@ -899,7 +899,6 @@ export const SignupModal = ({
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent
         className={`${fraunces.variable} ${inter.variable} font-inter inset-0 left-0 top-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto rounded-none border-0 bg-white px-[22px] pb-6 pt-[22px] data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[90vh] sm:max-w-[420px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:border sm:border-surface-alt-border sm:shadow-brand-lg`}
-        onEscapeKeyDown={() => handleOpenChange(false)}
       >
         <div className="flex min-h-full flex-1 flex-col">{content}</div>
       </AlertDialogContent>

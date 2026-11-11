@@ -78,17 +78,14 @@ export function str(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** Mesma política do Cognito que o backend valida (`IsCognitoPassword`). */
-export function passwordProblem(pw: string): string | null {
-  if (pw.length < 8) return "A senha precisa ter pelo menos 8 caracteres.";
-  if (!/[A-Z]/.test(pw)) return "A senha precisa de uma letra maiúscula.";
-  if (!/[a-z]/.test(pw)) return "A senha precisa de uma letra minúscula.";
-  if (!/[0-9]/.test(pw)) return "A senha precisa de um número.";
-  if (!/[^A-Za-z0-9]/.test(pw)) return "A senha precisa de um símbolo (!@#$...).";
-  return null;
-}
+export { EMAIL_REGEX, passwordProblem } from "@/lib/signup-rules";
 
 /** Tempo máximo esperando o backend antes de responder erro à cliente. */
 export const BACKEND_TIMEOUT_MS = 20_000;
+
+/**
+ * Criar a conta não é idempotente: se o tempo estourar com a conta já criada,
+ * tentar de novo dá "Esse e-mail já tem conta". Folga maior que a das outras
+ * rotas (Cognito + envio do link no WhatsApp dentro da mesma chamada).
+ */
+export const SIGNUP_TIMEOUT_MS = 60_000;

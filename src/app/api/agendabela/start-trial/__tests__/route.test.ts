@@ -84,14 +84,35 @@ describe("POST /api/agendabela/start-trial", () => {
     expect(f).not.toHaveBeenCalled();
   });
 
-  it("409 → ALREADY_SUBSCRIBED em PT-BR", async () => {
-    mockFetch(409, { message: "Trial already active for this profile" });
+  it.each([
+    "Trial already active for this profile",
+    "Seu cartão já foi cadastrado. Em instantes a assinatura aparece.",
+  ])("409 de cartão já cadastrado (%s) → ALREADY_SUBSCRIBED", async (message) => {
+    mockFetch(409, { statusCode: 409, message });
     const res = await POST(req({ profileId: PID, taxId: "11144477735" }));
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({
       code: "ALREADY_SUBSCRIBED",
       error: "Seu cartão já está cadastrado.",
     });
+  });
+
+  it.each([
+    "Subscription already active for this profile",
+    "Subscription is managed by APP_STORE. Use your device to manage it.",
+  ])("409 de assinatura viva ou de loja (%s) → ALREADY_ACTIVE, nunca Aprovado", async (message) => {
+    mockFetch(409, { statusCode: 409, message });
+    const res = await POST(req({ profileId: PID, taxId: "11144477735" }));
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.code).toBe("ALREADY_ACTIVE");
+    expect(body.error).toContain("assinatura ativa");
+  });
+
+  it("409 com mensagem desconhecida → 502 genérico", async () => {
+    mockFetch(409, { message: "Profile x has no billingEmail" });
+    const res = await POST(req({ profileId: PID, taxId: "11144477735" }));
+    expect(res.status).toBe(502);
   });
 
   it.each([

@@ -1,6 +1,7 @@
 import {
   SIGNUP_CONTEXT_KEY,
   consumeCheckoutReturn,
+  formatPhone,
   readSignupContext,
 } from "../signup-session";
 
@@ -67,5 +68,12 @@ describe("consumeCheckoutReturn", () => {
     sessionStorage.setItem(SIGNUP_CONTEXT_KEY, "{nao-e-json");
     expect(readSignupContext()).toBeNull();
     expect(consumeCheckoutReturn()).toBeNull();
+  });
+});
+
+describe("formatPhone", () => {
+  it("celular com 11 dígitos e fixo com 10", () => {
+    expect(formatPhone("11900000000")).toBe("(11) 90000-0000");
+    expect(formatPhone("1132345678")).toBe("(11) 3234-5678");
   });
 });
