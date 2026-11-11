@@ -35,4 +35,18 @@ describe("pushAgendaBelaMainEvent: modelo do GTM sem valor velho", () => {
       }),
     );
   });
+
+  it("parâmetros do cadastro sem cartão não grudam no evento seguinte", () => {
+    pushAgendaBelaMainEvent({ event: "signup_path_chosen", signup_path: "cartao", signup_step: "escolha" });
+    pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: "desistiu" });
+    pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+    const [, ret, done] = window.dataLayer!;
+    expect("signup_path" in ret && ret.signup_path === undefined).toBe(true);
+    expect("signup_step" in ret && ret.signup_step === undefined).toBe(true);
+    for (const k of ["signup_step", "signup_path", "checkout_result", "failure_reason"]) {
+      expect(k in done).toBe(true);
+      expect(done[k]).toBeUndefined();
+    }
+  });
 });
+

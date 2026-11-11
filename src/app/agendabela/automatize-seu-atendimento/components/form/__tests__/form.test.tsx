@@ -1,50 +1,24 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { FormComponent } from "../form";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { SignupCtaButton } from "../form";
 
-// Create a new QueryClient instance for each test
-const queryClient = new QueryClient();
-
-describe("FormComponent", () => {
+describe("SignupCtaButton", () => {
   beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
+    window.dataLayer = [];
   });
 
-  it("should render the FormComponent", () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AmplitudeProvider>
-          <FormComponent />
-        </AmplitudeProvider>
-      </QueryClientProvider>
+  it("um botão só, sem campo de e-mail, que mede lp_cta_clicked e abre o cadastro", () => {
+    const onStart = jest.fn();
+    render(<SignupCtaButton ctaPosition="sticky_mobile" onStart={onStart} />);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Começar meus 7 dias grátis" }));
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(window.dataLayer).toContainEqual(
+      expect.objectContaining({
+        event: "lp_cta_clicked",
+        cta_position: "sticky_mobile",
+        cta_intent: "primary",
+        landing_slug: "automatize-seu-atendimento",
+      }),
     );
-    expect(
-      screen.getByPlaceholderText("Seu melhor email")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Começar com 7 dias grátis/i })
-    ).toBeInTheDocument();
-  });
-
-  it("should open signup modal on form submission", async () => {
-    render(
-      <QueryClientProvider client={queryClient}>
-        <AmplitudeProvider>
-          <FormComponent />
-        </AmplitudeProvider>
-      </QueryClientProvider>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("Seu melhor email"), {
-      target: { value: "test@example.com" },
-    });
-    fireEvent.click(
-      screen.getByRole("button", { name: /Começar com 7 dias grátis/i })
-    );
-
-    // The signup modal should appear with the step 1 form
-    expect(await screen.findByText("Crie sua conta")).toBeInTheDocument();
   });
 });

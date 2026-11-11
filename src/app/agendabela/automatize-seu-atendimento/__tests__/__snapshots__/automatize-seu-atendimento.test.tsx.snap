@@ -116,25 +116,16 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
             >
               Comece agora, é rápido
             </span>
-            <div
-              class="flex flex-col md:flex-row gap-2 w-full"
+            <button
+              class="inline-flex w-full md:w-auto md:self-start h-12 items-center justify-center rounded-[14px] bg-brand-vinho hover:bg-[#783B58] px-8 font-inter text-[17px] font-bold text-white whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+              type="button"
             >
-              <div
-                class="h-11 bg-surface-alt-card animate-pulse rounded-full flex-1"
-              />
-              <div
-                class="h-11 bg-brand-rosa/40 animate-pulse rounded-full md:w-44"
-              />
-            </div>
+              Começar meus 7 dias grátis
+            </button>
             <p
               class="font-inter text-[12px] leading-[18px] text-ink-muted"
             >
-              <strong
-                class="font-inter font-semibold text-ink"
-              >
-                7 dias grátis.
-              </strong>
-               Cancele quando quiser.
+              Sem cartão para começar. Cancele quando quiser.
             </p>
           </div>
           <a
@@ -394,25 +385,16 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the AutomatizeSe
     <div
       class="flex flex-col gap-2.5"
     >
-      <div
-        class="flex flex-col md:flex-row gap-2 w-full"
+      <button
+        class="inline-flex w-full md:w-auto md:self-start h-12 items-center justify-center rounded-[14px] bg-brand-vinho hover:bg-[#783B58] px-8 font-inter text-[17px] font-bold text-white whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+        type="button"
       >
-        <div
-          class="h-11 bg-surface-alt-card animate-pulse rounded-full flex-1"
-        />
-        <div
-          class="h-11 bg-brand-rosa/40 animate-pulse rounded-full md:w-44"
-        />
-      </div>
+        Começar meus 7 dias grátis
+      </button>
       <p
         class="font-inter text-[11px] leading-[15px] text-ink-muted text-center"
       >
-        <strong
-          class="font-inter font-semibold text-ink"
-        >
-          7 dias grátis.
-        </strong>
-         Cancele quando quiser.
+        Sem cartão para começar. Cancele quando quiser.
       </p>
     </div>
   </div>
@@ -553,32 +535,16 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
             >
               Comece agora, é rápido
             </span>
-            <form
-              class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
+            <button
+              class="inline-flex w-full md:w-auto md:self-start h-12 items-center justify-center rounded-[14px] bg-brand-vinho hover:bg-[#783B58] px-8 font-inter text-[17px] font-bold text-white whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+              type="button"
             >
-              <input
-                class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand-rosa focus-visible:ring-2 focus-visible:ring-brand-rosa/30 focus-visible:ring-offset-0 focus-visible:z-10 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
-                name="email"
-                placeholder="Seu melhor email"
-                required=""
-                type="email"
-              />
-              <button
-                class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
-                type="submit"
-              >
-                Começar com 7 dias grátis
-              </button>
-            </form>
+              Começar meus 7 dias grátis
+            </button>
             <p
               class="font-inter text-[12px] leading-[18px] text-ink-muted"
             >
-              <strong
-                class="font-inter font-semibold text-ink"
-              >
-                7 dias grátis.
-              </strong>
-               Cancele quando quiser.
+              Sem cartão para começar. Cancele quando quiser.
             </p>
           </div>
           <a
@@ -838,32 +804,16 @@ exports[`AutomatizeSeuAtendimento should match the snapshot for the Layout with 
     <div
       class="flex flex-col gap-2.5"
     >
-      <form
-        class="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
+      <button
+        class="inline-flex w-full md:w-auto md:self-start h-12 items-center justify-center rounded-[14px] bg-brand-vinho hover:bg-[#783B58] px-8 font-inter text-[17px] font-bold text-white whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+        type="button"
       >
-        <input
-          class="flex w-full border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand-rosa focus-visible:ring-2 focus-visible:ring-brand-rosa/30 focus-visible:ring-offset-0 focus-visible:z-10 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
-          name="email"
-          placeholder="Seu melhor email"
-          required=""
-          type="email"
-        />
-        <button
-          class="inline-flex items-center justify-center gap-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-brand-rosa text-white hover:bg-brand-rosa-hover font-inter font-semibold h-11 px-8 rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
-          type="submit"
-        >
-          Começar com 7 dias grátis
-        </button>
-      </form>
+        Começar meus 7 dias grátis
+      </button>
       <p
         class="font-inter text-[11px] leading-[15px] text-ink-muted text-center"
       >
-        <strong
-          class="font-inter font-semibold text-ink"
-        >
-          7 dias grátis.
-        </strong>
-         Cancele quando quiser.
+        Sem cartão para começar. Cancele quando quiser.
       </p>
     </div>
   </div>

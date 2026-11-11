@@ -1,1 +1,1 @@
-export { FormComponent } from "./form";
+export { SignupCtaButton } from "./form";

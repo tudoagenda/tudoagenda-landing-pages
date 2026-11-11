@@ -1,76 +1,34 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
-import { SignupModal } from "../signup-modal";
-import { useAmplitude } from "@/contexts/AmplitudeProvider";
 import { pushAgendaBelaMainEvent } from "@/lib/analytics/dataLayer";
 
-export const FormComponent = () => {
-  const [showSignupModal, setShowSignupModal] = useState(false);
-  const [email, setEmail] = useState("");
-  const [initialStep, setInitialStep] = useState<1 | 2 | 3>(1);
-  const { track } = useAmplitude();
-
-  // Detect ?payment=success to show success step
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
-      setInitialStep(3);
-      setShowSignupModal(true);
-      // Clean URL
-      const url = new URL(window.location.href);
-      url.searchParams.delete("payment");
-      window.history.replaceState({}, "", url.pathname);
-    }
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const emailValue = formData.get("email") as string;
-    setEmail(emailValue);
-    setInitialStep(1);
-    track("agendabela/automatize-seu-atendimento/form_submission", { email: emailValue });
-    pushAgendaBelaMainEvent({
-      event: "lp_form_submitted",
-      form_name: "signup_initial",
-    });
-    setShowSignupModal(true);
-  };
-
-  return (
-    <>
-      {/* Form pill segmentada: input arredondado à esquerda + botão arredondado
-          à direita, sem gap → parece um componente único. */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col md:flex-row md:items-stretch md:gap-0 gap-2 w-full max-w-lg"
-      >
-        <Input
-          placeholder="Seu melhor email"
-          type="email"
-          name="email"
-          required
-          className="h-11 font-inter rounded-full md:rounded-l-full md:rounded-r-none md:border-r-0"
-        />
-        <Button
-          variant="brand-primary"
-          size="lg"
-          type="submit"
-          className="rounded-full md:rounded-r-full md:rounded-l-none whitespace-nowrap"
-        >
-          Começar com 7 dias grátis
-        </Button>
-      </form>
-
-      <SignupModal
-        open={showSignupModal}
-        onOpenChange={setShowSignupModal}
-        initialEmail={email}
-        initialStep={initialStep}
-      />
-    </>
-  );
-};
+/**
+ * Botão único do topo da landing (desenho "Landing", Opção B): o e-mail é
+ * pedido uma vez só, dentro do cadastro. Quem abre o cadastro é o Hero, que
+ * guarda um único SignupModal para os dois botões (desktop e card do celular).
+ */
+export const SignupCtaButton = ({
+  ctaPosition,
+  onStart,
+}: {
+  ctaPosition: "hero" | "sticky_mobile";
+  onStart: () => void;
+}) => (
+  // <button> simples (não o <Button>): o cva/tailwind-merge do componente
+  // entrariam no primeiro carregamento da landing só por este botão.
+  <button
+    type="button"
+    onClick={() => {
+      pushAgendaBelaMainEvent({
+        event: "lp_cta_clicked",
+        cta_position: ctaPosition,
+        cta_intent: "primary",
+      });
+      onStart();
+    }}
+    // Vinho do desenho (#90496A = brand-vinho): branco sobre ele passa no contraste AA.
+    className="inline-flex w-full md:w-auto md:self-start h-12 items-center justify-center rounded-[14px] bg-brand-vinho hover:bg-[#783B58] px-8 font-inter text-[17px] font-bold text-white whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo"
+  >
+    Começar meus 7 dias grátis
+  </button>
+);

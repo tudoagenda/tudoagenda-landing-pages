@@ -19,6 +19,16 @@ declare global {
 
 type CtaIntent = "primary" | "secondary";
 
+/** Telas do cadastro sem cartão (Opção B) na landing principal. */
+export type SignupStep =
+  | "cadastro"
+  | "ja_tem_conta"
+  | "escolha"
+  | "sem_cartao"
+  | "cartao"
+  | "aprovado"
+  | "desistiu";
+
 /** Links da landing automatize para o simulador (/agendabela/experimente?ref=...). */
 export type SimulatorCtaLocation =
   | "automatize_hero_link"
@@ -48,6 +58,42 @@ type LandingEvent =
       event: "checkout_opened";
       flow: "reactivation" | "new_signup";
       source: string;
+    }
+  /* Cadastro sem cartão (Opção B). Nada de e-mail/telefone nos eventos. */
+  | {
+      /** Cada tela do cadastro que aparece (cadastro = cadastro iniciado). */
+      event: "signup_step_viewed";
+      signup_step: SignupStep;
+    }
+  | {
+      /** Backend respondeu 409 EMAIL_ALREADY_REGISTERED no "Criar minha conta". */
+      event: "signup_email_exists";
+    }
+  | {
+      /** 409 logo depois de um timeout/5xx desta aba: a conta foi criada. */
+      event: "signup_recovered";
+    }
+  | {
+      /** Falha de servidor/rede ao criar a conta ou abrir o checkout. */
+      event: "signup_failed";
+      signup_step: "cadastro" | "cartao";
+      failure_reason: "invalid_data" | "rate_limited" | "already_active" | "server" | "network";
+    }
+  | {
+      /** Escolheu cartão ou sem cartão (na Escolha, no Cartão ou no Desistiu). */
+      event: "signup_path_chosen";
+      signup_path: "cartao" | "sem_cartao";
+      signup_step: "escolha" | "cartao" | "desistiu";
+    }
+  | {
+      /** Voltou do checkout AbacatePay (ou o backend disse que o cartão já entrou). */
+      event: "checkout_returned";
+      checkout_result: "concluido" | "desistiu" | "ja_cadastrado";
+    }
+  | {
+      /** "Reenviar link" (sem_cartao/aprovado) ou "Esqueci a senha" (ja_tem_conta). */
+      event: "access_link_requested";
+      signup_step: "sem_cartao" | "aprovado" | "ja_tem_conta";
     }
   | {
       /** Link da landing para o simulador (/agendabela/experimente?ref=...). */
@@ -188,6 +234,10 @@ export const MAIN_RESET_KEYS = [
   "cta_location",
   "store",
   "device_os",
+  "signup_step",
+  "signup_path",
+  "checkout_result",
+  "failure_reason",
 ] as const;
 
 /**
