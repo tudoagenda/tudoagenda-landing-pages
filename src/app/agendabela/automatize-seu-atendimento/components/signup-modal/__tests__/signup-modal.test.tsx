@@ -166,7 +166,7 @@ describe("Cadastro (Passo 1 de 2)", () => {
     expect(alert).not.toHaveTextContent("Failed to fetch");
   });
 
-  it("timeout/5xx e depois 409 do mesmo e-mail: \"Sua conta foi criada\", não \"já tem conta\"", async () => {
+  it("timeout/5xx e depois 409 do mesmo e-mail: texto que vale para conta nova ou antiga, com reenviar link", async () => {
     mockSignup
       .mockRejectedValueOnce(new SignupWebError("Não consegui criar sua conta agora.", 502))
       .mockRejectedValueOnce(
@@ -179,8 +179,14 @@ describe("Cadastro (Passo 1 de 2)", () => {
     await screen.findByRole("alert");
     fireEvent.change(screen.getByLabelText("Crie uma senha"), { target: { value: "Senha123!" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
-    expect(await screen.findByText("Sua conta foi criada! Agora é no app.")).toBeInTheDocument();
-    expect(screen.queryByText("Esse e-mail já tem conta.")).not.toBeInTheDocument();
+    expect(await screen.findByText("Esse e-mail já tem conta.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Se você acabou de criar, já pode entrar no app com a senha que escolheu; se não, use o link de acesso.",
+      ),
+    ).toBeInTheDocument();
+    // Não é a tela "Já tem conta" do cadastro (sem o campo de e-mail com erro).
+    expect(screen.queryByRole("button", { name: "Esqueci a senha" })).not.toBeInTheDocument();
     expect(screen.getByText("E-mail: carla@exemplo.com")).toBeInTheDocument();
     expect(events()).toEqual(expect.arrayContaining(["signup_recovered", "lp_signup_completed"]));
     expect(events()).not.toContain("signup_email_exists");

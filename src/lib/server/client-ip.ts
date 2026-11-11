@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "crypto";
 import { isIP } from "net";
 
 /**
@@ -17,18 +18,23 @@ import { isIP } from "net";
  *   está documentado; o edge acrescenta o IP de quem conectou ao fim.
  *   https://docs.railway.com/networking/public-networking/specs-and-limits
  *
- * Então, pelo CloudFront (`x-amz-cf-id` ou `via` com "cloudfront"): o IP da
- * cliente é a PENÚLTIMA entrada do X-Forwarded-For — a última é o nó do
- * CloudFront que o Railway acrescentou. Só confia nisso quando a última
- * entrada confere com o `X-Real-IP` (ou ele não veio); se não conferir, o
- * formato não é o esperado e o IP fica indeterminado (`none`).
- * Sem CloudFront: `X-Real-IP`, senão a última entrada do X-Forwarded-For.
- * Entradas mais à esquerda vêm do navegador e podem ser forjadas: nunca usar.
+ * O domínio `*.up.railway.app` também está aberto: qualquer um pode imitar os
+ * cabeçalhos do CloudFront (`via`, `x-amz-cf-id`) e montar o X-Forwarded-For.
+ * Por isso o caminho do CloudFront só vale com o cabeçalho secreto de origem
+ * que o CloudFront acrescenta (`X-Origin-Verify` = env
+ * `LANDING_CF_ORIGIN_SECRET`, comparação em tempo constante). Com ele: o IP
+ * da cliente é a PENÚLTIMA entrada do X-Forwarded-For — a última é o nó do
+ * CloudFront que o Railway acrescentou, e tem que ser igual ao `X-Real-IP`.
  *
- * Risco residual: quem chama direto `*.up.railway.app` imitando os cabeçalhos
- * do CloudFront escolhe o penúltimo valor. Correção definitiva (AWS): header
- * secreto de origem no CloudFront + `CloudFront-Viewer-Address`.
+ * - Segredo confere → `cf_penultimate` (ou `none` se o formato não conferir).
+ * - Parece CloudFront sem o segredo (env ausente, cabeçalho errado ou
+ *   forjado) → `none`: sem chave/IP, limite global no backend (o de hoje).
+ * - Sem sinal de CloudFront (staging, Railway direto) → `X-Real-IP`, senão a
+ *   última entrada do X-Forwarded-For.
+ * Entradas mais à esquerda vêm do navegador e podem ser forjadas: nunca usar.
  */
+
+export const CF_ORIGIN_SECRET_HEADER = "x-origin-verify";
 
 export type ClientIpSource = "cf_penultimate" | "real_ip" | "xff_last" | "none";
 
@@ -38,6 +44,14 @@ export interface ClientIpResult {
   /** Último salto (quem conectou no Railway); só para o diagnóstico. */
   lastHop: string | null;
   viaCloudFront: boolean;
+  /** O cabeçalho secreto de origem conferiu. */
+  cfVerified: boolean;
+}
+
+function sameSecret(given: string, expected: string): boolean {
+  const a = createHash("sha256").update(given).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
 }
 
 function validIp(value: string | null | undefined): string | null {
@@ -45,9 +59,17 @@ function validIp(value: string | null | undefined): string | null {
   return v && isIP(v) !== 0 ? v : null;
 }
 
-export function resolveClientIp(headers: Headers): ClientIpResult {
+export function resolveClientIp(
+  headers: Headers,
+  cfOriginSecret: string | null | undefined = process.env.LANDING_CF_ORIGIN_SECRET,
+): ClientIpResult {
+  const expected = cfOriginSecret?.trim();
+  const given = headers.get(CF_ORIGIN_SECRET_HEADER)?.trim();
+  const cfVerified = !!expected && !!given && sameSecret(given, expected);
   const viaCloudFront =
-    headers.has("x-amz-cf-id") || /cloudfront/i.test(headers.get("via") ?? "");
+    cfVerified ||
+    headers.has("x-amz-cf-id") ||
+    /cloudfront/i.test(headers.get("via") ?? "");
   const realIp = validIp(headers.get("x-real-ip"));
   const xff = (headers.get("x-forwarded-for") ?? "")
     .split(",")
@@ -55,20 +77,21 @@ export function resolveClientIp(headers: Headers): ClientIpResult {
     .filter(Boolean);
   const last = xff.length ? xff[xff.length - 1] : null;
   const lastHop = realIp ?? validIp(last);
+  const base = { lastHop, viaCloudFront, cfVerified };
 
   if (viaCloudFront) {
-    const lastMatches = !realIp || last === realIp;
+    if (!cfVerified) return { ip: null, source: "none", ...base };
     const penultimate = xff.length >= 2 ? validIp(xff[xff.length - 2]) : null;
-    if (lastMatches && penultimate) {
-      return { ip: penultimate, source: "cf_penultimate", lastHop, viaCloudFront };
+    if (realIp !== null && last === realIp && penultimate) {
+      return { ip: penultimate, source: "cf_penultimate", ...base };
     }
-    return { ip: null, source: "none", lastHop, viaCloudFront };
+    return { ip: null, source: "none", ...base };
   }
 
-  if (realIp) return { ip: realIp, source: "real_ip", lastHop, viaCloudFront };
+  if (realIp) return { ip: realIp, source: "real_ip", ...base };
   const lastValid = validIp(last);
-  if (lastValid) return { ip: lastValid, source: "xff_last", lastHop, viaCloudFront };
-  return { ip: null, source: "none", lastHop, viaCloudFront };
+  if (lastValid) return { ip: lastValid, source: "xff_last", ...base };
+  return { ip: null, source: "none", ...base };
 }
 
 // ---------------------------------------------------------------------------
@@ -176,7 +199,13 @@ async function loadCloudFrontRanges(): Promise<Cidr[] | null> {
  * Só em produção (a consulta das faixas sai para a internet).
  */
 export function logClientIpDiagnostics(result: ClientIpResult, route: string): void {
-  const base = { msg: "landing_client_ip", route, source: result.source, via_cloudfront: result.viaCloudFront };
+  const base = {
+    msg: "landing_client_ip",
+    route,
+    source: result.source,
+    via_cloudfront: result.viaCloudFront,
+    cf_verified: result.cfVerified,
+  };
   if (process.env.NODE_ENV !== "production" || !result.lastHop) {
     console.info(JSON.stringify({ ...base, last_hop_in_cloudfront_ranges: null }));
     return;

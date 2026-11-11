@@ -804,12 +804,18 @@ export const SignupModal = ({
         {closeButton}
         <AlertDialogTitle data-step-title tabIndex={-1} className={TITLE}>
           {recoveredEmail
-            ? "Sua conta foi criada! Agora é no app."
+            ? "Esse e-mail já tem conta."
             : firstName
               ? `Pronto, ${firstName}! Agora é no app.`
               : "Pronto! Agora é no app."}
         </AlertDialogTitle>
-        {ctx ? (
+        {recoveredEmail ? (
+          // 409 logo depois de timeout/5xx: pode ser a conta que ela acabou de
+          // criar ou uma antiga. O texto vale para os dois casos.
+          <AlertDialogDescription className={BODY}>
+            Se você acabou de criar, já pode entrar no app com a senha que escolheu; se não, use o link de acesso.
+          </AlertDialogDescription>
+        ) : ctx ? (
           <AlertDialogDescription className="rounded-[14px] bg-brand-creme-soft px-3.5 py-[13px] font-inter text-sm leading-[1.45] text-[#8A5220]">
             Seus 7 dias grátis começam quando você configurar sua agenda no app. Não precisa correr.
           </AlertDialogDescription>
