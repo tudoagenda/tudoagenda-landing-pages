@@ -56,6 +56,12 @@ describe("POST /api/agendabela/signup-web", () => {
     });
   });
 
+  it("telefone com +55 chega ao backend só com DDD + número", async () => {
+    const f = mockFetch(201, { profileId: "p1", email: "e", accessLinkSent: true });
+    await POST(req("/api/agendabela/signup-web", { ...valid, phone: "+55 (91) 98765-4321" }));
+    expect(JSON.parse((f.mock.calls[0][1] as RequestInit).body as string).phone).toBe("91987654321");
+  });
+
   it("sem LANDING_INTERNAL_KEY: chama sem X-Landing-Key nem X-Client-IP", async () => {
     const f = mockFetch(201, { profileId: "p1", email: "e", accessLinkSent: false });
     await POST(req("/api/agendabela/signup-web", valid, { "x-real-ip": "203.0.113.7" }));
@@ -117,6 +123,7 @@ describe("POST /api/agendabela/signup-web", () => {
   it.each([
     [{ ...valid, name: "" }, "nome"],
     [{ ...valid, email: "x@" }, "e-mail"],
+    [{ ...valid, email: "ana@exemplo.c" }, "e-mail"],
     [{ ...valid, phone: "119" }, "WhatsApp"],
     [{ ...valid, password: "senha123" }, "maiúscula"],
   ])("valida a entrada antes do backend (%#)", async (body, text) => {

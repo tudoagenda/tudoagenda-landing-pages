@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SignupCtaButton } from "../form";
 import {
   consumeCheckoutReturn,
@@ -94,8 +94,11 @@ export const HeroComponent = () => {
   // Um único cadastro para os dois botões (desktop e card do celular).
   const [signupOpen, setSignupOpen] = useState(false);
   const [signupStep, setSignupStep] = useState<SignupStep>("cadastro");
-  // Remonta o modal a cada abertura (zera botão travado e formulário).
+  // Remonta o modal a cada abertura (zera botão travado e formulário). Fica
+  // montado depois de fechar, para o Radix devolver o foco ao botão.
   const [signupKey, setSignupKey] = useState(0);
+  const [signupMounted, setSignupMounted] = useState(false);
+  const openerRef = useRef<HTMLElement | null>(null);
 
   // Volta do checkout AbacatePay: reabre o cadastro na tela certa. Também no
   // "voltar" do navegador que restaura a página do cache (bfcache), onde o
@@ -107,6 +110,8 @@ export const HeroComponent = () => {
       pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: ret.result });
       setSignupStep(ret.step);
       setSignupKey((k) => k + 1);
+      openerRef.current = null;
+      setSignupMounted(true);
       setSignupOpen(true);
       return true;
     };
@@ -120,10 +125,15 @@ export const HeroComponent = () => {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
 
-  // Conta já criada nesta aba: não pede o cadastro de novo, volta à escolha.
+  // Conta já criada nesta aba: não pede o cadastro de novo. Cartão já
+  // cadastrado → Aprovado; só a conta → Escolha.
   const startSignup = () => {
-    setSignupStep(readSignupContext() ? "escolha" : "cadastro");
+    const ctx = readSignupContext();
+    setSignupStep(ctx?.cardDone ? "aprovado" : ctx ? "escolha" : "cadastro");
+    openerRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setSignupKey((k) => k + 1);
+    setSignupMounted(true);
     setSignupOpen(true);
   };
 
@@ -272,12 +282,13 @@ export const HeroComponent = () => {
         </div>
       </div>
 
-      {signupOpen && (
+      {signupMounted && (
         <SignupModal
           key={signupKey}
           open={signupOpen}
           onOpenChange={setSignupOpen}
           initialStep={signupStep}
+          returnFocusTo={openerRef.current}
         />
       )}
     </>

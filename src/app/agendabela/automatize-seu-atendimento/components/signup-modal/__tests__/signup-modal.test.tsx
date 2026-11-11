@@ -204,12 +204,97 @@ describe("Cadastro (Passo 1 de 2)", () => {
 
   it("lp_signup_completed sai uma vez só por aba", async () => {
     mockSignup.mockResolvedValue({ ...CTX });
-    sessionStorage.setItem("agendabela_signup_completed", "1");
+    sessionStorage.setItem("agendabela_once_lp_signup_completed", "1");
     renderAt();
     fillCadastro();
     fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
     await screen.findByText("Como você quer começar seus 7 dias?");
     expect(events()).not.toContain("lp_signup_completed");
+  });
+
+  it("ao abrir, o foco vai para o primeiro campo", () => {
+    renderAt();
+    expect(screen.getByLabelText("Seu nome")).toHaveFocus();
+  });
+
+  it("erro de validação: foco no primeiro campo inválido e mensagem com role=alert", () => {
+    renderAt();
+    fireEvent.change(screen.getByLabelText("Seu nome"), { target: { value: "Carla" } });
+    fireEvent.change(screen.getByLabelText("Nome do salão ou espaço"), { target: { value: "Studio" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    expect(screen.getByLabelText("WhatsApp com DDD")).toHaveFocus();
+    expect(screen.getByText("Informe o WhatsApp com DDD.")).toHaveAttribute("role", "alert");
+  });
+
+  it("e-mail sem TLD de 2+ letras não passa", () => {
+    renderAt();
+    fillCadastro();
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana@exemplo.c" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    expect(mockSignup).not.toHaveBeenCalled();
+    expect(screen.getByText("Confira o e-mail.")).toBeInTheDocument();
+  });
+
+  it("telefone colado com +55 vai só com DDD + número", async () => {
+    mockSignup.mockResolvedValue({ ...CTX });
+    renderAt();
+    fillCadastro();
+    fireEvent.change(screen.getByLabelText("WhatsApp com DDD"), {
+      target: { value: "+55 (91) 98765-4321" },
+    });
+    expect(screen.getByLabelText("WhatsApp com DDD")).toHaveValue("(91) 98765-4321");
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByText("Como você quer começar seus 7 dias?");
+    expect(mockSignup).toHaveBeenCalledWith(expect.objectContaining({ phone: "91987654321" }));
+  });
+
+  it("duplo clique em Criar minha conta chama o backend uma vez", async () => {
+    let resolve: (v: unknown) => void = () => {};
+    mockSignup.mockReturnValue(new Promise((r) => (resolve = r)));
+    renderAt();
+    fillCadastro();
+    const btn = screen.getByRole("button", { name: "Criar minha conta" });
+    fireEvent.click(btn);
+    fireEvent.click(btn);
+    expect(mockSignup).toHaveBeenCalledTimes(1);
+    await act(async () => resolve({ ...CTX }));
+  });
+
+  it("enquanto cria a conta, Esc e Voltar não fecham", async () => {
+    let resolve: (v: unknown) => void = () => {};
+    mockSignup.mockReturnValue(new Promise((r) => (resolve = r)));
+    const onOpenChange = jest.fn();
+    renderAt("cadastro", onOpenChange);
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    await act(async () => resolve({ ...CTX }));
+    expect(await screen.findByText("Como você quer começar seus 7 dias?")).toBeInTheDocument();
+  });
+
+  it("Lead (lp_form_submitted) uma vez por aba, mesmo com várias tentativas", async () => {
+    mockSignup.mockRejectedValue(new SignupWebError("Muitas tentativas seguidas.", 429));
+    renderAt();
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await waitFor(() => expect(mockSignup).toHaveBeenCalledTimes(2));
+    expect(events().filter((e) => e === "lp_form_submitted")).toHaveLength(1);
+  });
+
+  it("nenhum dado pessoal (nome, telefone, e-mail, senha) vai para o dataLayer", async () => {
+    mockSignup.mockResolvedValue({ ...CTX });
+    renderAt();
+    fillCadastro();
+    fireEvent.click(screen.getByRole("button", { name: "Criar minha conta" }));
+    await screen.findByText("Como você quer começar seus 7 dias?");
+    const dump = JSON.stringify(window.dataLayer);
+    for (const pii of ["Carla", "Souza", "Studio da Carla", "11900000000", "90000-0000", "carla@exemplo.com", "Senha123!"]) {
+      expect(dump).not.toContain(pii);
+    }
   });
 
   it("voltar fecha o cadastro", () => {
@@ -393,6 +478,7 @@ describe("Cartão", () => {
     ).toBeInTheDocument();
     // Cartão de antes: não promete data contada de hoje.
     expect(screen.getByText(/A data da primeira cobrança, de R\$ 59,90, está no seu perfil/)).toBeInTheDocument();
+    expect(JSON.parse(sessionStorage.getItem(SIGNUP_CONTEXT_KEY)!).cardDone).toBe(true);
     expect(screen.queryByText(/Nada foi cobrado hoje/)).not.toBeInTheDocument();
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({ event: "checkout_returned", checkout_result: "ja_cadastrado" }),
@@ -408,6 +494,7 @@ describe("Cartão", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cadastrar cartão e começar" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("assinatura ativa");
     expect(screen.queryByText(/Cartão cadastrado!/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Primeira cobrança em/)).not.toBeInTheDocument();
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({ event: "signup_failed", failure_reason: "already_active" }),
     );
@@ -444,6 +531,17 @@ describe("Aprovado", () => {
     expect(window.dataLayer).toContainEqual(
       expect.objectContaining({ event: "access_link_requested", signup_step: "aprovado" }),
     );
+  });
+});
+
+describe("Aprovado reaberto", () => {
+  it("usa a data de quando o cartão entrou, não a de hoje", () => {
+    sessionStorage.setItem(
+      SIGNUP_CONTEXT_KEY,
+      JSON.stringify({ ...CTX, cardDone: true, cardRegisteredAt: new Date(2026, 10, 6, 12).getTime() }),
+    );
+    renderAt("aprovado");
+    expect(screen.getByText(/será em 13\/11/)).toBeInTheDocument();
   });
 });
 

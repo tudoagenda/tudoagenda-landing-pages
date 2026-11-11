@@ -20,7 +20,7 @@ import {
 } from "@/lib/analytics/dataLayer";
 import { SignupWebError, signupWebService } from "@/services/signup-web";
 import { ChevronLeft, Eye, EyeOff, X } from "lucide-react";
-import { EMAIL_REGEX, PASSWORD_RULES } from "@/lib/signup-rules";
+import { EMAIL_REGEX, PASSWORD_RULES, phoneDigitsBR } from "@/lib/signup-rules";
 import {
   type SignupContext,
   firstNameOf,
@@ -29,7 +29,7 @@ import {
   formatTrialEndDate,
   markSignupUncertain,
   readSignupContext,
-  shouldPushSignupCompleted,
+  firstTimeInTab,
   takeSignupUncertain,
   writeSignupContext,
 } from "./signup-session";
@@ -65,23 +65,25 @@ interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialStep?: SignupStep;
+  /** Botão que abriu o cadastro: recebe o foco de volta ao fechar. */
+  returnFocusTo?: HTMLElement | null;
 }
 
 /* Classes do desenho com os tokens do repo (brand-vinho = #90496A,
    brand-rosa-50 = #FFF1F5, surface-alt-border = #F4D7DF). O que não tem token
    fica com o valor do desenho. */
 const TITLE =
-  "font-fraunces font-semibold text-brand-petroleo text-[28px] leading-[1.15] tracking-normal text-left";
+  "focus:outline-none font-fraunces font-semibold text-brand-petroleo text-[28px] leading-[1.15] tracking-normal text-left";
 const BODY = "font-inter text-[15px] leading-[1.45] text-[#4A4548]";
 const LABEL = "font-inter text-sm font-semibold text-ink";
 const INPUT =
   "h-auto rounded-xl border-[#E2D3CB] px-3.5 py-3 text-base md:text-base font-inter text-ink";
 const PRIMARY =
-  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-brand-vinho px-5 py-4 text-center font-inter text-[17px] font-bold text-white transition-colors hover:bg-[#783B58] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
+  "flex w-full items-center justify-center gap-2 rounded-[14px] bg-brand-vinho px-5 py-4 text-center font-inter text-[17px] font-bold text-white transition-colors [@media(hover:hover)]:hover:bg-[#783B58] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
 const SECONDARY =
-  "w-full rounded-[14px] border border-brand-vinho bg-white px-5 py-3.5 font-inter text-[15px] font-semibold text-brand-vinho transition-colors hover:bg-brand-rosa-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
+  "w-full rounded-[14px] border border-brand-vinho bg-white px-5 py-3.5 font-inter text-[15px] font-semibold text-brand-vinho transition-colors [@media(hover:hover)]:hover:bg-brand-rosa-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-petroleo disabled:opacity-60";
 const LINK =
-  "self-center min-h-11 px-2 font-inter text-sm font-semibold text-brand-vinho hover:text-[#783B58] underline-offset-4 hover:underline disabled:opacity-60";
+  "self-center min-h-11 px-2 font-inter text-sm font-semibold text-brand-vinho underline underline-offset-4 [@media(hover:hover)]:hover:text-[#783B58] disabled:opacity-60";
 const SUCCESS_BOX =
   "rounded-[14px] bg-[#EAF7F0] px-3.5 py-3 font-inter text-sm leading-[1.45] text-[#2E6B50]";
 const ERROR_BOX =
@@ -179,6 +181,14 @@ function StoreBadges({ ctaLocation }: { ctaLocation: string }) {
   );
 }
 
+const FIELD_IDS = {
+  name: "signup-nome",
+  salonName: "signup-salao",
+  phone: "signup-whatsapp",
+  email: "signup-email",
+  password: "signup-senha",
+} as const;
+
 type CadastroErrors = Partial<
   Record<"name" | "salonName" | "phone" | "email" | "password", string>
 >;
@@ -187,7 +197,10 @@ export const SignupModal = ({
   open,
   onOpenChange,
   initialStep = "cadastro",
+  returnFocusTo,
 }: SignupModalProps) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
   const [step, setStep] = useState<SignupStep>(initialStep);
   const [ctx, setCtx] = useState<SignupContext | null>(null);
 
@@ -207,8 +220,8 @@ export const SignupModal = ({
   const [taxId, setTaxId] = useState("");
   const [taxIdError, setTaxIdError] = useState<string | null>(null);
   const [openingCheckout, setOpeningCheckout] = useState(false);
-  // Cartão que já tinha entrado antes (409): a data da 1ª cobrança não é hoje + 7.
-  const [chargeDateUnknown, setChargeDateUnknown] = useState(false);
+  // 409 de assinatura paga/loja: some o "Primeira cobrança em…".
+  const [alreadyActive, setAlreadyActive] = useState(false);
   // Conta criada numa tentativa que deu erro (timeout/5xx): sem profileId.
   const [recoveredEmail, setRecoveredEmail] = useState<string | null>(null);
 
@@ -233,16 +246,43 @@ export const SignupModal = ({
     setLinkError(null);
   }, [open, step]);
 
-  useEffect(() => {
-    if (open && step === "cadastro" && focusEmailRef.current) {
+  /**
+   * Foco de cada tela: o primeiro campo; sem campo, o título (tabIndex -1).
+   * "Usar outro e-mail" volta ao campo de e-mail.
+   */
+  const focusStep = () => {
+    const root = contentRef.current;
+    if (!root) return;
+    if (step === "cadastro" && focusEmailRef.current) {
       focusEmailRef.current = false;
       emailRef.current?.focus();
+      return;
     }
+    const target =
+      root.querySelector<HTMLElement>("input:not([readonly])") ??
+      root.querySelector<HTMLElement>("[data-step-title]");
+    target?.focus();
+  };
+
+  // Troca de tela com o modal aberto (a 1ª vez é no onOpenAutoFocus).
+  const firstStepRef = useRef(true);
+  useEffect(() => {
+    if (!open) return;
+    if (firstStepRef.current) {
+      firstStepRef.current = false;
+      return;
+    }
+    focusStep();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, step]);
 
-  // O Hero desmonta o modal ao fechar: o formulário zera sozinho e a conta
-  // (se criada) continua no contexto da aba.
-  const handleOpenChange = (nextOpen: boolean) => onOpenChange(nextOpen);
+  // Enquanto cria a conta ou abre o checkout, não fecha (Esc, fora, X): a
+  // resposta chegaria num modal fechado e a tela ao reabrir ficaria errada.
+  const busy = creating || openingCheckout;
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && (busy || submittingRef.current)) return;
+    onOpenChange(nextOpen);
+  };
 
   const firstName = ctx?.firstName ?? "";
 
@@ -266,19 +306,29 @@ export const SignupModal = ({
   const handleCreate = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (creating) return;
+    if (submittingRef.current) return;
     const e = validateCadastro();
     setErrors(e);
-    if (Object.keys(e).length > 0) return;
+    const firstInvalid = (["name", "salonName", "phone", "email", "password"] as const).find(
+      (k) => e[k],
+    );
+    if (firstInvalid) {
+      document.getElementById(FIELD_IDS[firstInvalid])?.focus();
+      return;
+    }
 
+    submittingRef.current = true;
     setGeneralError(null);
     setCreating(true);
-    pushAgendaBelaMainEvent({ event: "lp_form_submitted", form_name: "signup_web" });
+    if (firstTimeInTab("lp_form_submitted")) {
+      pushAgendaBelaMainEvent({ event: "lp_form_submitted", form_name: "signup_web" });
+    }
     const normalizedEmail = email.trim().toLowerCase();
     try {
       const result = await signupWebService.signup({
         name: name.trim(),
         salonName: salonName.trim(),
-        phone: phone.replace(/\D/g, ""),
+        phone: phoneDigitsBR(phone),
         email: normalizedEmail,
         password,
       });
@@ -292,14 +342,14 @@ export const SignupModal = ({
       writeSignupContext(next);
       setCtx(next);
       setPassword("");
-      if (shouldPushSignupCompleted()) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+      if (firstTimeInTab("lp_signup_completed")) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
       setStep("escolha");
     } catch (err) {
       if (err instanceof SignupWebError && err.code === "EMAIL_ALREADY_REGISTERED") {
         if (takeSignupUncertain(normalizedEmail)) {
           // A tentativa anterior desta aba deu erro mas criou a conta.
           pushAgendaBelaMainEvent({ event: "signup_recovered" });
-          if (shouldPushSignupCompleted()) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
+          if (firstTimeInTab("lp_signup_completed")) pushAgendaBelaMainEvent({ event: "lp_signup_completed" });
           setRecoveredEmail(normalizedEmail);
           setPassword("");
           setStep("sem_cartao");
@@ -323,6 +373,7 @@ export const SignupModal = ({
           : "Não consegui criar sua conta agora. Tente de novo em instantes.",
       );
     } finally {
+      submittingRef.current = false;
       setCreating(false);
     }
   };
@@ -360,7 +411,7 @@ export const SignupModal = ({
 
   const handleStartTrial = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (openingCheckout || !ctx) return;
+    if (openingCheckout || submittingRef.current || !ctx) return;
     const digits = taxId.replace(/\D/g, "");
     if (digits.length !== 11 && digits.length !== 14) {
       setTaxIdError("Confira o CPF ou CNPJ.");
@@ -368,6 +419,8 @@ export const SignupModal = ({
     }
     setTaxIdError(null);
     setGeneralError(null);
+    setAlreadyActive(false);
+    submittingRef.current = true;
     setOpeningCheckout(true);
     try {
       const { checkoutUrl } = await signupWebService.startTrial(ctx.profileId, digits);
@@ -380,12 +433,19 @@ export const SignupModal = ({
       window.location.href = checkoutUrl;
       // Mantém o botão travado até a página trocar.
     } catch (err) {
+      submittingRef.current = false;
       setOpeningCheckout(false);
       if (err instanceof SignupWebError && err.code === "ALREADY_SUBSCRIBED") {
         pushAgendaBelaMainEvent({ event: "checkout_returned", checkout_result: "ja_cadastrado" });
-        setChargeDateUnknown(true);
+        // Cartão de antes: data da 1ª cobrança desconhecida aqui.
+        const next = { ...ctx, cardDone: true, cardRegisteredAt: undefined };
+        writeSignupContext(next);
+        setCtx(next);
         setStep("aprovado");
         return;
+      }
+      if (err instanceof SignupWebError && err.code === "ALREADY_ACTIVE") {
+        setAlreadyActive(true);
       }
       const status = err instanceof SignupWebError ? err.status : 0;
       pushAgendaBelaMainEvent({
@@ -466,7 +526,7 @@ export const SignupModal = ({
       </label>
       {input}
       {error && (
-        <p id={`${id}-erro`} className="font-inter text-xs text-red-600">
+        <p id={`${id}-erro`} role="alert" className="font-inter text-xs text-red-600">
           {error}
         </p>
       )}
@@ -484,7 +544,7 @@ export const SignupModal = ({
       <form onSubmit={handleCreate} noValidate className="flex flex-col gap-3.5">
         {stepHeader(() => handleOpenChange(false))}
         <div className="flex flex-col gap-1.5">
-          <AlertDialogTitle className={TITLE}>Crie sua conta</AlertDialogTitle>
+          <AlertDialogTitle data-step-title tabIndex={-1} className={TITLE}>Crie sua conta</AlertDialogTitle>
           <AlertDialogDescription className={BODY}>
             Leva 1 minuto. Você testa tudo por 7 dias grátis, sem cartão.
           </AlertDialogDescription>
@@ -616,11 +676,11 @@ export const SignupModal = ({
         )}
         <p className="font-inter text-xs leading-[1.45] text-ink-muted">
           Ao criar sua conta, você aceita os{" "}
-          <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline-offset-2 hover:underline">
+          <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline underline-offset-2">
             Termos de Uso
           </a>{" "}
           e a{" "}
-          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline-offset-2 hover:underline">
+          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-brand-vinho underline underline-offset-2">
             Política de Privacidade
           </a>
           .
@@ -641,7 +701,7 @@ export const SignupModal = ({
     content = (
       <div className="flex flex-col gap-3.5">
         {stepHeader(() => setStep("cadastro"))}
-        <AlertDialogTitle className={TITLE}>Crie sua conta</AlertDialogTitle>
+        <AlertDialogTitle data-step-title tabIndex={-1} className={TITLE}>Crie sua conta</AlertDialogTitle>
         <AlertDialogDescription className="sr-only">
           Esse e-mail já tem conta no Agenda Bela.
         </AlertDialogDescription>
@@ -696,7 +756,7 @@ export const SignupModal = ({
           </span>
         </div>
         <div className="flex flex-col gap-1.5">
-          <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.18]`}>
+          <AlertDialogTitle data-step-title tabIndex={-1} className={`${TITLE} text-[27px] leading-[1.18]`}>
             Como você quer começar seus 7 dias?
           </AlertDialogTitle>
           <AlertDialogDescription className={BODY}>
@@ -742,7 +802,7 @@ export const SignupModal = ({
     content = (
       <div className="flex flex-col gap-4">
         {closeButton}
-        <AlertDialogTitle className={TITLE}>
+        <AlertDialogTitle data-step-title tabIndex={-1} className={TITLE}>
           {recoveredEmail
             ? "Sua conta foi criada! Agora é no app."
             : firstName
@@ -811,7 +871,7 @@ export const SignupModal = ({
     content = (
       <form onSubmit={handleStartTrial} noValidate className="flex flex-col gap-4">
         {closeButton}
-        <AlertDialogTitle className={TITLE}>Cadastre seu cartão</AlertDialogTitle>
+        <AlertDialogTitle data-step-title tabIndex={-1} className={TITLE}>Cadastre seu cartão</AlertDialogTitle>
         <AlertDialogDescription asChild>
           <div className="flex flex-col gap-2 rounded-2xl border border-surface-alt-border bg-brand-rosa-50 p-4">
             <span className="font-inter text-lg font-bold text-brand-petroleo">
@@ -820,9 +880,11 @@ export const SignupModal = ({
             <span className="font-inter text-sm leading-[1.45] text-[#4A4548]">
               Depois dos 7 dias, R$ 59,90 por mês. Cancele quando quiser.
             </span>
-            <span className="font-inter text-sm text-[#4A4548]">
-              Primeira cobrança em {formatTrialEndDate()}, só se você não cancelar antes.
-            </span>
+            {!alreadyActive && (
+              <span className="font-inter text-sm text-[#4A4548]">
+                Primeira cobrança em {formatTrialEndDate()}, só se você não cancelar antes.
+              </span>
+            )}
           </div>
         </AlertDialogDescription>
         {generalError && (
@@ -866,13 +928,15 @@ export const SignupModal = ({
     content = (
       <div className="flex flex-col gap-4">
         {closeButton}
-        <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.2]`}>
+        <AlertDialogTitle data-step-title tabIndex={-1} className={`${TITLE} text-[27px] leading-[1.2]`}>
           Cartão cadastrado! Seus 7 dias grátis começaram
         </AlertDialogTitle>
         <AlertDialogDescription className={`${BODY} leading-normal`}>
-          {chargeDateUnknown
+          {ctx?.cardDone && !ctx.cardRegisteredAt
             ? "Seu cartão já estava cadastrado. A data da primeira cobrança, de R$ 59,90, está no seu perfil no app. Para cancelar antes, é só entrar no seu perfil."
-            : `Nada foi cobrado hoje. A primeira cobrança, de R$ 59,90, será em ${formatTrialEndDate()}. Para cancelar antes, é só entrar no seu perfil.`}
+            : `Nada foi cobrado hoje. A primeira cobrança, de R$ 59,90, será em ${formatTrialEndDate(
+                ctx?.cardRegisteredAt ? new Date(ctx.cardRegisteredAt) : undefined,
+              )}. Para cancelar antes, é só entrar no seu perfil.`}
         </AlertDialogDescription>
         <div className={SUCCESS_BOX}>
           Em até 1 minuto você recebe no WhatsApp o link para entrar no app Agenda Bela.
@@ -898,7 +962,7 @@ export const SignupModal = ({
     content = (
       <div className="flex flex-col gap-4">
         {closeButton}
-        <AlertDialogTitle className={`${TITLE} text-[27px] leading-[1.2]`}>
+        <AlertDialogTitle data-step-title tabIndex={-1} className={`${TITLE} text-[27px] leading-[1.2]`}>
           Tudo bem, sua conta continua criada.
         </AlertDialogTitle>
         <AlertDialogDescription className={`${BODY} leading-normal`}>
@@ -921,8 +985,24 @@ export const SignupModal = ({
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent
         className={`${fraunces.variable} ${inter.variable} font-inter inset-0 left-0 top-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto rounded-none border-0 bg-white px-[22px] pb-6 pt-[22px] data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-auto sm:max-h-[90vh] sm:max-w-[420px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:border sm:border-surface-alt-border sm:shadow-brand-lg`}
+        onOpenAutoFocus={(e) => {
+          // Primeiro campo (ou o título), não o botão Voltar/Fechar.
+          e.preventDefault();
+          focusStep();
+        }}
+        onCloseAutoFocus={(e) => {
+          if (returnFocusTo && document.contains(returnFocusTo)) {
+            e.preventDefault();
+            returnFocusTo.focus();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          if (busy) e.preventDefault();
+        }}
       >
-        <div className="flex min-h-full flex-1 flex-col">{content}</div>
+        <div ref={contentRef} className="flex min-h-full flex-1 flex-col">
+          {content}
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

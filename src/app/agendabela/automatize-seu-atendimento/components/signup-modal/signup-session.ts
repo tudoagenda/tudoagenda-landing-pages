@@ -1,4 +1,5 @@
 import type { SignupStep } from "@/lib/analytics/dataLayer";
+import { phoneDigitsBR } from "@/lib/signup-rules";
 
 /**
  * Contexto do cadastro sem cartão guardado no sessionStorage da aba.
@@ -14,6 +15,10 @@ export interface SignupContext {
   accessLinkSent: boolean;
   /** true entre o redirect para o checkout e a volta para a landing. */
   checkoutPending?: boolean;
+  /** O cartão entrou (Aprovado). Reabrir leva de volta ao Aprovado. */
+  cardDone?: boolean;
+  /** Quando o cartão entrou nesta aba (ms); ausente = data desconhecida (409). */
+  cardRegisteredAt?: number;
 }
 
 export const SIGNUP_CONTEXT_KEY = "agendabela_signup_web";
@@ -32,6 +37,9 @@ export function readSignupContext(): SignupContext | null {
       firstName: typeof parsed.firstName === "string" ? parsed.firstName : "",
       accessLinkSent: parsed.accessLinkSent === true,
       checkoutPending: parsed.checkoutPending === true,
+      cardDone: parsed.cardDone === true,
+      cardRegisteredAt:
+        typeof parsed.cardRegisteredAt === "number" ? parsed.cardRegisteredAt : undefined,
     };
   } catch {
     return null;
@@ -80,9 +88,14 @@ export function consumeCheckoutReturn(): CheckoutReturn | null {
   }
 
   const ctx = readSignupContext();
-  if (ctx?.checkoutPending) writeSignupContext({ ...ctx, checkoutPending: false });
+  const concluded = checkout === "concluido" || payment === "success";
+  if (ctx && concluded) {
+    writeSignupContext({ ...ctx, checkoutPending: false, cardDone: true, cardRegisteredAt: Date.now() });
+  } else if (ctx?.checkoutPending) {
+    writeSignupContext({ ...ctx, checkoutPending: false });
+  }
 
-  if (checkout === "concluido" || payment === "success") {
+  if (concluded) {
     return { step: ctx ? "aprovado" : "sem_cartao", result: "concluido" };
   }
   if (checkout === "voltou") {
@@ -96,9 +109,12 @@ export function firstNameOf(name: string): string {
   return name.trim().split(/\s+/)[0] ?? "";
 }
 
-/** Celular (11 dígitos) ou fixo (10), igual ao maskPhone da lista de espera. */
+/**
+ * Celular (11 dígitos) ou fixo (10), igual ao maskPhone da lista de espera.
+ * Tira DDI 55 e zero/operadora de número colado (`phoneDigitsBR`).
+ */
 export function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
+  const digits = phoneDigitsBR(value);
   if (digits.length <= 2) return digits;
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   if (digits.length <= 10)
@@ -155,19 +171,19 @@ export function takeSignupUncertain(email: string): boolean {
 }
 
 /**
- * `lp_signup_completed` (CompleteRegistration na Meta) uma vez por aba: não
- * conta de novo a mesma pessoa que cria, fecha e recupera a conta na mesma
- * sessão. Entre sessões (ex.: reaproveitamento do #318) pode contar 2x.
+ * Evento de conversão da Meta uma vez por aba:
+ *  - `lp_signup_completed` (CompleteRegistration): criar, fechar e recuperar a
+ *    conta na mesma sessão não conta 2x. Entre sessões (ex.: reaproveitamento
+ *    do #318) pode contar 2x.
+ *  - `lp_form_submitted` (Lead): várias tentativas viram um Lead só.
  */
-const COMPLETED_KEY = "agendabela_signup_completed";
-
-export function shouldPushSignupCompleted(): boolean {
+export function firstTimeInTab(event: "lp_signup_completed" | "lp_form_submitted"): boolean {
+  const key = `agendabela_once_${event}`;
   try {
-    if (window.sessionStorage.getItem(COMPLETED_KEY)) return false;
-    window.sessionStorage.setItem(COMPLETED_KEY, "1");
+    if (window.sessionStorage.getItem(key)) return false;
+    window.sessionStorage.setItem(key, "1");
     return true;
   } catch {
     return true;
   }
 }
-

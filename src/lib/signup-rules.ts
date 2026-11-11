@@ -8,7 +8,26 @@
  * símbolo (qualquer caractere não alfanumérico).
  */
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** TLD com 2+ letras, como o `@IsEmail` do backend (`a@b.c` não passa). */
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[A-Za-z]{2,}$/;
+
+/**
+ * Só DDD + número (10 ou 11 dígitos), do jeito que a cliente colar:
+ * "+55 (91) 98765-4321", "55 91 98765 4321", "0 15 91 98765-4321" (zero +
+ * operadora) ou "091 98765-4321". Sem isso, o DDI virava DDD e o link de
+ * acesso ia para o número de outra pessoa.
+ */
+export function phoneDigitsBR(value: string): string {
+  let digits = value.replace(/\D/g, "");
+  if (digits.startsWith("0")) {
+    digits = digits.replace(/^0+/, "");
+    // 0 + operadora (2 dígitos) + DDD + número
+    if (digits.length === 12 || digits.length === 13) digits = digits.slice(2);
+  } else if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) {
+    digits = digits.slice(2);
+  }
+  return digits.slice(0, 11);
+}
 
 export const PASSWORD_RULES: {
   label: string;

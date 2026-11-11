@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HeroComponent } from "../hero";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AmplitudeProvider } from "@/contexts/AmplitudeProvider";
@@ -163,6 +163,31 @@ describe("HeroComponent", () => {
     expect(await screen.findByText("Tudo bem, sua conta continua criada.")).toBeInTheDocument();
     expect(JSON.parse(sessionStorage.getItem("agendabela_signup_web")!).checkoutPending).toBe(false);
     sessionStorage.clear();
+  });
+
+  it("depois do Aprovado, o botão reabre no Aprovado (não na Escolha)", async () => {
+    sessionStorage.setItem(
+      "agendabela_signup_web",
+      JSON.stringify({ profileId: "p", email: "a@b.co", firstName: "Ana", accessLinkSent: true, cardDone: true, cardRegisteredAt: Date.now() }),
+    );
+    history.replaceState(null, "", "/agendabela/automatize-seu-atendimento");
+    render(<HeroComponent />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Começar meus 7 dias grátis" })[0]);
+    expect(await screen.findByText("Cartão cadastrado! Seus 7 dias grátis começaram")).toBeInTheDocument();
+    sessionStorage.clear();
+  });
+
+  it("ao fechar, o foco volta para o botão que abriu", async () => {
+    sessionStorage.clear();
+    history.replaceState(null, "", "/agendabela/automatize-seu-atendimento");
+    render(<HeroComponent />);
+    const [btn] = screen.getAllByRole("button", { name: "Começar meus 7 dias grátis" });
+    btn.focus();
+    fireEvent.click(btn);
+    await screen.findByText("Crie sua conta");
+    await waitFor(() => expect(screen.getByLabelText("Seu nome")).toHaveFocus());
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    await waitFor(() => expect(btn).toHaveFocus());
   });
 });
 

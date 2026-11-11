@@ -8,6 +8,7 @@ import {
   readJson,
   str,
 } from "@/lib/server/landing-backend";
+import { phoneDigitsBR } from "@/lib/signup-rules";
 
 /**
  * BFF do cadastro SEM cartão (Opção B): repassa ao backend
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   const name = str(body.name);
   const salonName = str(body.salonName);
   const email = str(body.email).toLowerCase();
-  const phone = str(body.phone).replace(/\D/g, "");
+  const phone = phoneDigitsBR(str(body.phone));
   const password = typeof body.password === "string" ? body.password : "";
 
   if (!name || !salonName) {
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
   if (!EMAIL_REGEX.test(email)) {
     return NextResponse.json({ error: "Confira o e-mail." }, { status: 400 });
   }
-  if (phone.length < 10 || phone.length > 13) {
+  if (phone.length < 10) {
     return NextResponse.json({ error: "Confira o WhatsApp com DDD." }, { status: 400 });
   }
   const pwProblem = passwordProblem(password);
