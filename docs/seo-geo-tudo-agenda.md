@@ -3,7 +3,7 @@ title: Estudo SEO e GEO para o site institucional da Tudo Agenda
 scope: repo:tudoagenda-landing-pages
 language: pt-br
 status: draft
-last_reviewed: 2026-05-25
+last_reviewed: 2026-11-19
 ---
 
 # Estudo SEO e GEO para o site institucional da Tudo Agenda
@@ -117,3 +117,19 @@ recriado com o símbolo da Tudo Agenda, em vez do logo horizontal.
   - PageSpeed Insights;
   - teste manual de `robots.txt` e `sitemap.xml`.
 
+## Atualização de 19/11/2026
+
+- **Sitemap com 6 URLs** (`src/app/sitemap.ts`): home, `/agendabela/automatize-seu-atendimento`,
+  `/agendabela/experimente` (desde 31/10/2026), `/agendabela/app-para-salao-de-beleza`
+  (novembro de 2026), `/privacidade` e `/termos`. A lista de 4 URLs acima é a de maio.
+- **Páginas de campanha** (`/agendabela/reativar`, `/agendabela/lista-de-espera`,
+  `/agendabela/black-friday`): `noindex`, canonical própria, fora do sitemap e sem
+  JSON-LD.
+- **Intenção transacional do Agenda Bela** agora tem duas páginas: a landing
+  principal (secretária digital, cadastro) e `/agendabela/app-para-salao-de-beleza`
+  (cluster "app para salão de beleza", download). Detalhes em
+  `docs/seo-geo-agenda-bela.md`.
+- **`FAQPage`**: pela documentação do Google consultada em 19/11/2026, o resultado
+  visual de FAQ deixou de aparecer em 07/05/2026. Marcar FAQ visível continua
+  permitido, mas não gera mais destaque no resultado.
+- **Pendente**: a home ainda não liga para `/agendabela/app-para-salao-de-beleza`.

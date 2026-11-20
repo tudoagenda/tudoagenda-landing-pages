@@ -3,7 +3,7 @@ title: Estudo SEO e GEO para a landing page do Agenda Bela
 scope: repo:tudoagenda-landing-pages
 language: pt-br
 status: draft
-last_reviewed: 2026-05-25
+last_reviewed: 2026-11-19
 ---
 
 # Estudo SEO e GEO para a landing page do Agenda Bela
@@ -174,3 +174,50 @@ não estiver disponível para o usuário na própria página.
    - indexação do sitemap;
    - elegibilidade do rich result de SoftwareApplication.
 
+## Atualização de 19/11/2026: landings de loja
+
+Este estudo foi escrito para a landing principal. Em novembro de 2026 entraram
+duas rotas que levam direto para a loja do aparelho
+(`src/app/agendabela/_lojas`):
+
+| Rota | Papel na busca |
+|---|---|
+| `/agendabela/app-para-salao-de-beleza` | indexável, canonical própria, no sitemap. Dona do cluster "app para salão de beleza" (categoria/produto): o termo está no title, na description e, em texto visível, na pergunta "O que é o Agenda Bela?" |
+| `/agendabela/black-friday` | página de campanha: `noindex`, fora do sitemap, **sem JSON-LD**. É a mesma página com o tema por cima |
+
+A landing principal continua dona de "secretária digital para salões de beleza"
+e dos termos de dor. São duas intenções: conhecer e se cadastrar × baixar o app.
+
+O que vale nas landings de loja:
+
+- **JSON-LD só na rota indexável** (`_lojas/structured-data.ts`): `Organization`,
+  `WebSite`, `WebPage`, `BreadcrumbList`, `SoftwareApplication` e `FAQPage`. O
+  `SoftwareApplication` repete o `@id` da landing principal (o app é um só);
+  `featureList` descreve só o que aquela página mostra. Sem `aggregateRating`
+  nem `review`: a página não mostra nota. Sem `brand`: no schema.org ela não
+  vale para `SoftwareApplication` (a landing principal ainda tem; corrigir junto
+  com a unificação do nó).
+- **FAQ com fonte única** (`_lojas/faq.ts`): o mesmo array gera as perguntas
+  visíveis e o `FAQPage`, e um teste compara os dois. Isso atende à regra deste
+  estudo ("FAQ schema só com perguntas visíveis").
+- **`FAQPage` não gera mais resultado visual no Google.** Pela documentação do
+  Google consultada em 19/11/2026, o resultado de FAQ deixou de aparecer em
+  07/05/2026 e a página de documentação saiu em 15/06/2026. O nó fica como
+  leitura de máquina barata, sem promessa de ganho. As orientações acima que
+  falam em "adicionar `FAQPage`" devem ser lidas com essa ressalva.
+- **`data-nosnippet`** na demonstração animada (celular do hero, mocks das abas,
+  faixa da Black Friday), para a conversa de exemplo não virar trecho de
+  resultado.
+- **Texto no HTML do servidor**: as seis perguntas e os quatro painéis de
+  diferenciais chegam completos sem JavaScript.
+- **Não criar `llms.txt`**: sem evidência de uso; o Google declara que não usa.
+
+Pendências (fora do PR das landings de loja): link da home e da landing
+principal para `/agendabela/app-para-salao-de-beleza` (hoje ela só é descoberta
+pelo sitemap); um nó único de `SoftwareApplication` para home, landing principal
+e landing de loja; title da landing principal, que sai com 68 caracteres por
+causa do sufixo do layout raiz; imagem de prévia própria da Black Friday.
+
+Validação: o JSON-LD foi conferido contra o vocabulário do schema.org (tipos,
+propriedades e domínios). Rich Results Test, `validator.schema.org` e inspeção
+de URL no Search Console ficam para depois do deploy.

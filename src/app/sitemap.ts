@@ -23,6 +23,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    // Landing de loja indexável. /agendabela/black-friday é noindex e fica fora.
+    {
+      url: `${siteUrl}/agendabela/app-para-salao-de-beleza`,
+      lastModified: new Date("2026-11-19"),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
     {
       url: `${siteUrl}/privacidade`,
       lastModified,

@@ -11,6 +11,8 @@
  * Doc: produtos/agenda-bela/medicao.md no companion-os.
  */
 
+import type { LandingLojasSlug } from "@/config/landing-lojas";
+
 declare global {
   interface Window {
     dataLayer?: Record<string, unknown>[];
@@ -179,6 +181,51 @@ export type ExperimenteEvent =
       device_os: DeviceOs;
     };
 
+/** Navegador interno de onde a visita veio (anúncio da Meta), pelo User-Agent. */
+export type InAppBrowser = "instagram" | "facebook" | "none";
+
+/**
+ * Eventos das landings de loja (/agendabela/app-para-salao-de-beleza e
+ * /agendabela/black-friday): sem cadastro na web, a conversão da página é o
+ * clique na loja. Mesmos nomes e parâmetros do Experimente, mais in_app_browser.
+ */
+export type LojasEvent =
+  | {
+      event: "lp_view";
+      device_os: DeviceOs;
+      /** Origem interna vinda de ?ref= (ex.: qr_desktop); undefined quando não veio. */
+      ref: string | undefined;
+      in_app_browser: InAppBrowser;
+    }
+  | {
+      event: "store_click";
+      store: "app_store" | "google_play";
+      cta_location: LojasStoreCtaLocation;
+      device_os: DeviceOs;
+      in_app_browser: InAppBrowser;
+    }
+  | {
+      /** Link interno: simulador (?ref=...) ou os dois links do rodapé. */
+      event: "cta_click";
+      cta_location:
+        | "simulador_hero"
+        | "simulador_avaliacoes"
+        | "rodape_conheca_agenda_bela"
+        | "rodape_tudo_agenda";
+    };
+
+/** Lugar do selo de loja na página (data-loc no HTML de markup.ts). */
+export type LojasStoreCtaLocation =
+  | "hero"
+  | "preco"
+  | "final"
+  | "sticky_mobile"
+  | "rodape_selo"
+  /* No computador, os dois selos + QR de cada seção. */
+  | "hero_selo"
+  | "preco_selo"
+  | "final_selo";
+
 type LandingContext = {
   product: string;
   landing_type: "main" | "campaign";
@@ -305,11 +352,43 @@ const EXPERIMENTE_RESET_KEYS = [
 ] as const;
 
 /**
+ * Faz push de um evento de uma landing de loja. O landing_slug é o da rota
+ * (app-para-salao-de-beleza ou black-friday), nunca o da landing principal:
+ * as três páginas da campanha são separadas por ele no GA4.
+ */
+export function pushAgendaBelaLojasEvent(
+  landingSlug: LandingLojasSlug,
+  eventData: LojasEvent,
+): void {
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "campaign",
+      landing_slug: landingSlug,
+    },
+    LOJAS_RESET_KEYS,
+  );
+}
+
+/**
+ * Todo parâmetro de LojasEvent, zerado a cada push (mesmo motivo de
+ * MAIN_RESET_KEYS). Parâmetro novo em LojasEvent entra aqui.
+ */
+export const LOJAS_RESET_KEYS = [
+  "cta_location",
+  "store",
+  "device_os",
+  "ref",
+  "in_app_browser",
+] as const;
+
+/**
  * Push genérico — só usar em componentes que sabem o contexto deles.
  * Componentes da landing principal devem usar pushAgendaBelaMainEvent.
  */
 export function pushLandingEvent(
-  eventData: LandingEvent | ExperimenteEvent,
+  eventData: LandingEvent | ExperimenteEvent | LojasEvent,
   context: LandingContext,
   resetKeys: readonly string[] = [],
 ): void {
