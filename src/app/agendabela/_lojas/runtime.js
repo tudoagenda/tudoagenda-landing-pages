@@ -133,9 +133,13 @@ function montar(opts, lp, undo) {
       });
     });
   });
-  qa("a[data-sim]").forEach(function (a) {
+  /* Links internos medidos: simulador (data-sim) e rodapé (data-nav). */
+  qa("a[data-sim], a[data-nav]").forEach(function (a) {
     on(a, "click", function () {
-      track({ event: "cta_click", cta_location: a.getAttribute("data-sim") });
+      track({
+        event: "cta_click",
+        cta_location: a.getAttribute("data-sim") || a.getAttribute("data-nav"),
+      });
     });
   });
   track({

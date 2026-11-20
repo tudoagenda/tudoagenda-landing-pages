@@ -99,7 +99,6 @@
 #lp .storecard img.as{height:56px;width:auto}
 #lp .storecard img.gp{height:84px;width:auto;margin:-14px 0}
 #lp .dt{background:#fff;border-radius:22px;box-shadow:0 4px 12px rgba(33,55,69,.10);padding:18px}
-#lp .dt h3{font-family:var(--fraunces);font-style:italic;font-weight:400;font-size:26px;line-height:30px;letter-spacing:-.02em;color:var(--petro)}
 #lp .dt-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;align-items:center}
 #lp .dt-badges{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 #lp .dt-badges a{display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #E7DDD6;border-radius:12px;padding:6px 8px;height:60px;min-width:176px}
@@ -512,6 +511,8 @@
 
 
 body:has(#lp){background:#FAF6F2}
+/* "Baixe no seu celular" é <p>, não título: mesmo desenho do h3 do protótipo. */
+#lp .dt p.dt-tit{font-family:var(--fraunces);font-style:italic;font-weight:400;font-size:26px;line-height:30px;letter-spacing:-.02em;color:var(--petro)}
 
 /* ---------- bloco 3: tema Black Friday ---------- */
 /* ============================================================
@@ -660,7 +661,10 @@ body:has(#lp[data-tema="bf"]){background:#0D0B0C}
 /* Pausar a demonstração do celular não segura a entrada do título gigante nem
    o halo do tema, que moram dentro do mesmo bloco e têm a própria pausa (faixa). */
 #lp .paused .bf-big *,
-#lp .paused .bf-halo{animation-play-state:running!important}/* Antes do runtime: o script em linha marca #lp com data-pre e o CSS já põe a
+#lp .paused .bf-halo{animation-play-state:running!important}/* Rodapé: "por Tudo Agenda" é link para a home, com a cara do rótulo. */
+#lp .foot-brand a{text-decoration:none}
+#lp .foot-brand a:hover{text-decoration:underline}
+/* Antes do runtime: o script em linha marca #lp com data-pre e o CSS já põe a
    página no estado que o runtime vai montar (abas, um painel, chips), para o
    conteúdo não pular quando o JavaScript termina de carregar. O runtime tira
    o data-pre ao assumir; se ele não chegar em 8 s, o próprio script tira e a

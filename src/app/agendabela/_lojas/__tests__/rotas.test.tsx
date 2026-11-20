@@ -37,7 +37,7 @@ describe.each(ROTAS)("rota /agendabela/%s", (slug, Page) => {
 
     // Todos os links medidos, de todos os aparelhos e do rodapé.
     const links = container.querySelectorAll<HTMLAnchorElement>(
-      "a[data-store], a[data-sim]",
+      "a[data-store], a[data-sim], a[data-nav]",
     );
     expect(links.length).toBeGreaterThan(10);
     links.forEach((a) => a.click());

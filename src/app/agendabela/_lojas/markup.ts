@@ -14,12 +14,15 @@ import {
   GOOGLE_PLAY_BASE_URL,
   STORE_BADGES,
 } from "@/config/app-stores";
+import { LOJAS_FAQ } from "./faq";
 import {
   COMPANY_LEGAL_IDENTIFICATION,
   SUPPORT_WHATSAPP_URL,
 } from "@/config/company";
 
 export type LojasMarkupParams = {
+  /** Último trecho da rota: vai no ?ref= do link do rodapé para a landing principal. */
+  slug: string;
   /** "bf" liga o tema Black Friday por cima da página padrão. */
   tema: "padrao" | "bf";
   /** Epoch (ms) em que o tema deixa de valer. Só com tema "bf". */
@@ -94,7 +97,7 @@ function blocoCta(p: LojasMarkupParams, local: "hero" | "preco" | "final"): stri
   return `<div class="cta"${local === "hero" ? ' id="cta-hero"' : ""} data-loc="${local}">
         <div data-dev="ios">${selo("app_store", "storecard")}</div>
         <div data-dev="android">${selo("google_play", "storecard")}</div>
-        <div data-dev="desktop" data-loc="desktop_selo"><div class="dt"><h3>Baixe no seu celular</h3><div class="dt-row">
+        <div data-dev="desktop" data-loc="desktop_selo"><div class="dt"><p class="dt-tit">Baixe no seu celular</p><div class="dt-row">
           <div class="dt-badges">${selo("app_store", "", true)}${selo("google_play", "", true)}</div>
           <div class="dt-qr"><img src="${p.assets.qr}" width="116" height="116" alt="QR code que abre esta página no celular"><p>Aponte a câmera do celular e abra a loja.</p></div></div></div></div>
         <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo("app_store")}${selo("google_play")}</div></div>
@@ -118,6 +121,14 @@ function blocoMicro(p: LojasMarkupParams): string {
         <div data-dev="desktop">${preco}${simulador}</div>
         <div data-dev="nojs">${preco}${simulador}</div>
       </div>`;
+}
+
+/** Perguntas rápidas, do array único de faq.ts (o mesmo do JSON-LD). */
+function blocoFaq(): string {
+  return LOJAS_FAQ.map(
+    (item) =>
+      `    <details><summary>${item.pergunta}</summary><p>${item.resposta.replace(/R\$ /g, () => "R$&nbsp;")}</p></details>`,
+  ).join("\n");
 }
 
 function seloRodape(): string {
@@ -149,7 +160,7 @@ const METADE_DA_FAIXA = `<div class="rb-half">${[...FRASES_DA_FAIXA, ...FRASES_D
   .join("")}</div>`;
 const FAIXA = `<div class="ribbon so-tema" id="slot-faixa">
   <p class="sr">Black Friday no Agenda Bela</p>
-  <div class="rb-clip" aria-hidden="true"><div class="rb-track">${METADE_DA_FAIXA}${METADE_DA_FAIXA}</div></div>
+  <div class="rb-clip" aria-hidden="true" data-nosnippet><div class="rb-track">${METADE_DA_FAIXA}${METADE_DA_FAIXA}</div></div>
   <button type="button" class="rb-pause" id="faixa-pausar" aria-label="Pausar o movimento da faixa e dos efeitos" hidden><svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg></button>
 </div>`;
 const HALO = `<div class="so-tema bf-halo" aria-hidden="true"></div>`;
@@ -178,7 +189,7 @@ ${blocoMicro(p)}
 
     <div class="hero-art stage" id="hero-stage" aria-label="Demonstração animada do app, em 6 passos" role="group">${bf ? HALO : ""}
       <span class="chip-who" id="hero-quem">Celular da Paula</span>${bf ? TITULO_GIGANTE : ""}
-      <div class="ph" id="hero-aparelho" aria-hidden="true"><div class="scr">
+      <div class="ph" id="hero-aparelho" aria-hidden="true" data-nosnippet><div class="scr">
         <div class="sc" data-n="1"><div class="sb"><span>14:31</span><i></i></div><div class="m-url"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg> agendabela · salao-estilo</div>
   <div class="m-bkh"><span class="m-av">SE</span><div><b>Salão Estilo</b><small>Agendamento online</small></div></div>
   <div class="m-body"><div class="m-prog"><i></i><i></i><i></i></div>
@@ -261,7 +272,7 @@ ${bf ? BLOCO_PRECO : ""}
   <div class="panel" role="tabpanel" id="dif-painel-1" aria-labelledby="dif-tab-1" data-key="avisa">
     <div class="ptx"><span class="mono kick">Aviso e lembrete</span><h3>A Bela avisa sua cliente e te conta quem confirmou.</h3><p>Toda vez que você marca, a Bela manda a confirmação no WhatsApp da sua cliente. Você não liga e não digita.</p><p>Cedinho, antes do salão abrir, você recebe no celular os horários do dia. E cada cliente recebe o lembrete do horário dela. Quando ela confirma, você é avisada.</p><button type="button" class="replay" id="dif-replay-1" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Ver de novo</button></div>
     <div class="mock-area" id="mock-avisa" data-mock data-swap="4500" data-dur="7000" role="img" aria-label="Exemplo animado. No WhatsApp da Camila: confirmação do agendamento de Manicure com Paula, amanhã (sex), 15h, e o lembrete do dia com os botões Confirmar, Remarcar e Cancelar. No celular da Paula: aviso das 07:30 com os atendimentos do dia e aviso das 08:12, Camila confirmou.">
-    <div class="mock-row" aria-hidden="true">
+    <div class="mock-row" aria-hidden="true" data-nosnippet>
       <div class="mock-col duo-f" data-f="1"><span class="lbl">No WhatsApp da cliente</span><div class="mf"><div class="scr"><div class="sc wa" style="position:relative;display:flex;flex-direction:column;height:100%;background:#ECE5DD"><div class="sb"><span>14:32</span><i></i></div><div class="w-hd"><span aria-hidden="true">‹</span><b>SE</b><div><span>Salão Estilo</span><small>online</small></div></div>
   <div class="w-bd"><span class="w-day">Hoje</span>
     <div class="w-m u" style="--d:.3s"><div class="w-t">Oi Camila! ✨ Seu agendamento foi confirmado:<br><strong>Manicure com Paula</strong><br>amanhã (sex), 15h<time>14:32</time></div></div>
@@ -277,7 +288,7 @@ ${bf ? BLOCO_PRECO : ""}
   <div class="panel" role="tabpanel" id="dif-painel-2" aria-labelledby="dif-tab-2" data-key="sinal">
     <div class="ptx"><span class="mono kick">Sinal no Pix</span><h3>A cliente paga o sinal para garantir o horário.</h3><p>Ligue o sinal no serviço e escolha o valor. A cliente que marca pelo seu link paga um Pix para garantir o horário, e o dinheiro cai no seu saldo.</p><p class="note">Do sinal, descontamos a tarifa do Pix e 1,49% do Agenda Bela. Vale para quem marca pelo seu link, em serviço simples (não vale para combo).</p><button type="button" class="replay" id="dif-replay-2" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Ver de novo</button></div>
     <div class="mock-area" id="mock-sinal" data-mock data-swap="4500" data-dur="6200" role="img" aria-label="Exemplo animado. Na tela do link do Salão Estilo, a Camila paga o sinal de R$ 20,00 no Pix e a tela mostra Sinal pago. No celular da Paula chega o aviso: Sinal de R$ 20,00 pago, R$ 19,20 já estão no saldo.">
-    <div class="mock-row" aria-hidden="true">
+    <div class="mock-row" aria-hidden="true" data-nosnippet>
       <div class="mock-col duo-f" data-f="1"><span class="lbl">No link da cliente</span><div class="mf"><div class="scr"><div class="sc" style="position:relative;display:flex;flex-direction:column;height:100%;background:#fff"><div class="sb"><span>14:32</span><i></i></div><div class="m-bkh"><span class="m-av">SE</span><div><b>Salão Estilo</b><small>Agendamento online</small></div></div><div class="m-body" style="padding-top:10px"><div class="m-h1 u">Pague o sinal para confirmar</div><p class="m-p u" style="--d:.05s">Seu horário está reservado enquanto o tempo corre.</p>
     <div class="m-pix u" style="--d:.15s"><div class="m-pt"><div><small>Sinal</small><b class="v">R$&nbsp;20,00</b></div>
       <div class="m-slot"><div class="m-timer gone" style="--d:2.8s"><small>Pague em até</small><b data-from="892" data-to="889" data-delay="0" data-dur="2600" data-fmt="mmss">14:52</b></div><div class="m-paid show" style="--d:2.8s"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3D8B68" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> Sinal pago</div></div></div>
@@ -292,7 +303,7 @@ ${bf ? BLOCO_PRECO : ""}
   </div>
   <div class="panel" role="tabpanel" id="dif-painel-3" aria-labelledby="dif-tab-3" data-key="caixa">
     <div class="ptx"><span class="mono kick">Fluxo de caixa</span><h3>Você sabe quanto entrou, quanto saiu e quanto sobrou.</h3><p>Os atendimentos feitos entram sozinhos no Fluxo de caixa; você só escolhe se foi Pix, cartão ou dinheiro. Compra de material e outras saídas você lança em um toque.</p><button type="button" class="replay" id="dif-replay-3" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Ver de novo</button></div>
-    <div class="mock-area" id="mock-caixa" data-mock data-dur="3500" role="img" aria-label="Exemplo animado. Tela Fluxo de caixa do dia: o saldo sobe de R$ 50,00 para R$ 110,00 quando entra o atendimento da Camila, Manicure, Pix, mais R$ 60,00. Também aparecem Maria, Escova, cartão, mais R$ 80,00, e a saída Esmaltes, menos R$ 30,00."><div class="mock-row" aria-hidden="true"><div class="mock-col" data-f="1"><span class="lbl">No celular da Paula</span><div class="mf"><div class="scr"><div class="sc" style="position:relative;display:flex;flex-direction:column;height:100%"><div class="sb"><span>16:05</span><i></i></div><div class="m-cxh"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#213745" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><h4>Fluxo de caixa</h4></div>
+    <div class="mock-area" id="mock-caixa" data-mock data-dur="3500" role="img" aria-label="Exemplo animado. Tela Fluxo de caixa do dia: o saldo sobe de R$ 50,00 para R$ 110,00 quando entra o atendimento da Camila, Manicure, Pix, mais R$ 60,00. Também aparecem Maria, Escova, cartão, mais R$ 80,00, e a saída Esmaltes, menos R$ 30,00."><div class="mock-row" aria-hidden="true" data-nosnippet><div class="mock-col" data-f="1"><span class="lbl">No celular da Paula</span><div class="mf"><div class="scr"><div class="sc" style="position:relative;display:flex;flex-direction:column;height:100%"><div class="sb"><span>16:05</span><i></i></div><div class="m-cxh"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#213745" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><h4>Fluxo de caixa</h4></div>
   <div class="m-cxb"><div class="m-sel"><span>Visualizar: <b>Dia</b></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6F6A6D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div><div class="m-nav">Hoje</div>
     <div class="m-bal"><small>Saldo do dia</small><div class="v" data-from="5000" data-to="11000" data-delay="1500" data-dur="1000" data-fmt="brl">R$&nbsp;110,00</div>
       <div class="bl"><div><small>Entradas</small><b data-from="8000" data-to="14000" data-delay="1500" data-dur="1000" data-fmt="brl">R$&nbsp;140,00</b></div><div><small>Saídas</small><b>R$&nbsp;30,00</b></div></div></div>
@@ -307,7 +318,7 @@ ${bf ? BLOCO_PRECO : ""}
   <div class="panel" role="tabpanel" id="dif-painel-4" aria-labelledby="dif-tab-4" data-key="pacote">
     <div class="ptx"><span class="mono kick">Pacote de sessões</span><h3>Venda um pacote na ficha da cliente e conte as sessões.</h3><p>Registre o pacote, quantas sessões e quanto ela pagou: o valor entra no caixa no dia. A cada atendimento, toque em <b>Usar 1 sessão</b>.</p><button type="button" class="replay" id="dif-replay-4" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Ver de novo</button></div>
     <div class="mock-area" id="mock-pacote" data-mock data-swap="4500" data-dur="7800" role="img" aria-label="Exemplo animado. Na ficha da Camila, o pacote Mão e pé passa de 1 de 4 usadas para 2 de 4 usadas quando a Paula toca em Usar 1 sessão. No formulário do pacote: 4 sessões e R$ 200,00 pagos, que entram no Caixa hoje.">
-    <div class="mock-row" aria-hidden="true">
+    <div class="mock-row" aria-hidden="true" data-nosnippet>
       <div class="mock-col duo-f" data-f="1"><span class="lbl">Novo pacote</span><div class="mf"><div class="scr"><div class="sc dk" style="position:relative;display:flex;flex-direction:column;height:100%"><div class="sb"><span>14:10</span><i></i></div><div class="m-hd"><small>&nbsp;</small><b>Novo pacote</b></div>
   <div class="m-pn"><div class="m-fc"><div class="fl">Nome do pacote</div><div class="m-chips"><span class="m-ch on co" style="--d:.5s">Mão e pé</span><span class="m-ch">Depilação a laser</span></div></div>
     <div class="m-fc"><div class="fl">Quantas sessões?</div><div class="m-chips"><span class="m-ch on co" style="--d:1.3s">4</span><span class="m-ch">5</span><span class="m-ch">10</span></div></div>
@@ -369,11 +380,7 @@ ${blocoCta(p, "preco")}
 <section class="sec faq" aria-labelledby="faq-titulo"><div class="wrap">
   <div class="sec-head"><h2 class="t" id="faq-titulo">Perguntas rápidas</h2></div>
   <div class="faq-list">
-    <details><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
-    <details><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
-    <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
-    <details><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
-    <details><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>
+${blocoFaq()}
   </div>
 </div></section>
 
@@ -385,13 +392,14 @@ ${blocoCta(p, "final")}
 
 <footer class="foot" id="rodape"><div class="wrap">
   <div class="foot-in">
-    <div class="foot-brand"><img src="${p.assets.logo}" alt="Agenda Bela"><span class="mono">por Tudo Agenda</span></div>
+    <div class="foot-brand"><img src="${p.assets.logo}" alt="Agenda Bela"><a class="mono" href="/" data-nav="rodape_tudo_agenda">por Tudo Agenda</a></div>
     <section class="foot-dl" aria-labelledby="rodape-baixe">
       <h2 id="rodape-baixe">Baixe o app</h2>
       ${seloRodape()}
       <p>Baixe o app e teste 7 dias grátis, sem cartão.</p>
     </section>
     <nav aria-label="Links do rodapé">
+      <a href="/agendabela/automatize-seu-atendimento?ref=${p.slug}_rodape" data-nav="rodape_conheca_agenda_bela">Conheça o Agenda Bela</a>
       <a href="/termos">Termos de serviço</a>
       <a href="/privacidade">Política de privacidade</a>
       <a href="mailto:contato@tudoagenda.com.br">contato@tudoagenda.com.br</a>

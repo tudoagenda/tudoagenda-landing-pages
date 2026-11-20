@@ -35,6 +35,17 @@ export function buildLojasMetadata({
     title: { absolute: title },
     description,
     alternates: { canonical: url },
+    // Ícone do app na aba, como no Experimente.
+    icons: {
+      icon: [
+        {
+          url: "/images/experimente/agenda-bela-icone.png",
+          type: "image/png",
+          sizes: "256x256",
+        },
+      ],
+      apple: [{ url: "/images/experimente/agenda-bela-icone.png" }],
+    },
     ...(index ? {} : { robots: { index: false } }),
     openGraph: {
       type: "website",
@@ -67,8 +78,16 @@ export function buildLojasMetadata({
  * servidor (funciona sem JavaScript, com os dois selos); LojasRuntime liga
  * animações, links das lojas e eventos.
  */
-export function LandingLojas({ config }: { config: LandingLojasConfig }) {
+export function LandingLojas({
+  config,
+  structuredData,
+}: {
+  config: LandingLojasConfig;
+  /** JSON-LD da rota (structured-data.ts). Só a rota indexável passa. */
+  structuredData?: object;
+}) {
   const html = buildLojasMarkup({
+    slug: config.slug,
     tema: config.tema,
     temaExpiraEm: config.temaExpiraEm,
     refSimulador: config.refSimulador,
@@ -82,6 +101,14 @@ export function LandingLojas({ config }: { config: LandingLojasConfig }) {
   });
   return (
     <>
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
       {/* O script em linha grava data-os/data-tema em #lp antes da hidratação:
           o HTML deixa de bater com a string de propósito. */}
       <div

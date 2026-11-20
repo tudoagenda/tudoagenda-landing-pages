@@ -37,12 +37,15 @@ const CTA_LOCATIONS = [
   "desktop_selo",
   "simulador_hero",
   "simulador_avaliacoes",
+  "rodape_conheca_agenda_bela",
+  "rodape_tudo_agenda",
 ];
 
 const css = fs.readFileSync(path.join(__dirname, "../lojas.css"), "utf8");
 
 function markup(config: LandingLojasConfig): string {
   return buildLojasMarkup({
+    slug: config.slug,
     tema: config.tema,
     temaExpiraEm: config.temaExpiraEm,
     refSimulador: config.refSimulador,
@@ -291,8 +294,10 @@ describe.each(PAGINAS)("landing de loja $slug: medição", (config) => {
     "%s: todo evento sai com o landing_slug desta rota, nunca o da landing principal",
     (_nome, ua, os) => {
       mount(config, { ua });
-      const links = linksDoAparelho("a[data-store], a[data-sim]");
-      expect(links.length).toBeGreaterThan(3);
+      const links = linksDoAparelho(
+        "a[data-store], a[data-sim], a[data-nav]",
+      );
+      expect(links.length).toBeGreaterThan(5);
       links.forEach((a) => a.click());
 
       expect(eventos()).toHaveLength(links.length + 1); // + lp_view
@@ -656,5 +661,35 @@ describe("estado antes do runtime (sem salto de layout)", () => {
     track.mockClear();
     linksDoAparelho("a[data-store]").forEach((a) => a.click());
     expect(track).not.toHaveBeenCalled();
+  });
+});
+
+describe.each(PAGINAS)("landing de loja $slug: rodapé", (config) => {
+  it("liga para a home e para a landing principal, com ?ref= da página", () => {
+    mount(config, { ua: UA.iphone });
+    const home = lp().querySelector<HTMLAnchorElement>(".foot-brand a");
+    expect(home?.getAttribute("href")).toBe("/");
+    expect(home?.textContent).toBe("por Tudo Agenda");
+    const principal = lp().querySelector<HTMLAnchorElement>(
+      '.foot nav a[data-nav="rodape_conheca_agenda_bela"]',
+    );
+    expect(principal?.getAttribute("href")).toBe(
+      `/agendabela/automatize-seu-atendimento?ref=${config.slug}_rodape`,
+    );
+  });
+
+  it("os dois links saem como cta_click com o landing_slug da página", () => {
+    mount(config, { ua: UA.iphone });
+    lp()
+      .querySelectorAll<HTMLAnchorElement>("a[data-nav]")
+      .forEach((a) => a.click());
+    expect(
+      eventos()
+        .filter((e) => e.event === "cta_click")
+        .map((e) => `${e.cta_location}@${e.landing_slug}`),
+    ).toEqual([
+      `rodape_tudo_agenda@${config.slug}`,
+      `rodape_conheca_agenda_bela@${config.slug}`,
+    ]);
   });
 });

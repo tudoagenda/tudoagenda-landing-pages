@@ -205,9 +205,13 @@ export type LojasEvent =
       in_app_browser: InAppBrowser;
     }
   | {
-      /** Link para o simulador (/agendabela/experimente?ref=...). */
+      /** Link interno: simulador (?ref=...) ou os dois links do rodapé. */
       event: "cta_click";
-      cta_location: "simulador_hero" | "simulador_avaliacoes";
+      cta_location:
+        | "simulador_hero"
+        | "simulador_avaliacoes"
+        | "rodape_conheca_agenda_bela"
+        | "rodape_tudo_agenda";
     };
 
 /** Lugar do selo de loja na página (data-loc no HTML de markup.ts). */
