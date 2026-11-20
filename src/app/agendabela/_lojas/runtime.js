@@ -44,69 +44,68 @@ function ease(p) {
 export function initLandingLojas(opts) {
   const lp = document.getElementById("lp");
   if (!lp) return function () {};
-  /* tudo que o cleanup desfaz */
-  const undo = [];
-  const cleanup = function () {
-    undo.forEach(function (fn) {
+
+  /* Medição e animação têm listas de cleanup separadas, e a medição é ligada
+     primeiro: se a animação quebrar (HTML alterado por extensão ou tradutor),
+     só ela é desfeita. Os links das lojas e os eventos seguem funcionando. */
+  const undoMedicao = [];
+  const undoAnimacao = [];
+  const desfazer = function (lista) {
+    lista.splice(0).forEach(function (fn) {
       fn();
     });
+  };
+
+  let os = detectDeviceOs();
+  try {
+    os = medir(opts, lp, undoMedicao);
+  } catch {
+    /* Sem medição a página continua inteira; a animação é tentada assim mesmo. */
+    desfazer(undoMedicao);
+  }
+  try {
+    animar(lp, undoAnimacao, os);
+  } catch {
+    /* Desfaz só a animação: a página fica como chegou do servidor, que
+       funciona sem JavaScript, e a medição já ligada continua valendo. */
+    desfazer(undoAnimacao);
+    lp.classList.remove("bf-live");
+  }
+  /* Com ou sem animação, sai o estado provisório do CSS. */
+  lp.removeAttribute("data-pre");
+
+  return function cleanup() {
+    desfazer(undoAnimacao);
+    desfazer(undoMedicao);
     lp.classList.remove("bf-live");
   };
-  try {
-    montar(opts, lp, undo);
-  } catch {
-    /* HTML alterado por extensão ou tradutor: desfaz o que já foi ligado e
-       deixa a página como chegou do servidor, que funciona sem JavaScript. */
-    cleanup();
-    lp.removeAttribute("data-pre");
-    return function () {};
-  }
-  /* A página já está no estado do runtime: sai o estado provisório do CSS. */
-  lp.removeAttribute("data-pre");
-  return cleanup;
 }
 
-function montar(opts, lp, undo) {
+function listen(undo, target, type, fn, options) {
+  target.addEventListener(type, fn, options);
+  undo.push(function () {
+    target.removeEventListener(type, fn, options);
+  });
+}
 
+/**
+ * Aparelho, validade do tema, links das lojas e eventos (lp_view, store_click,
+ * cta_click). Não depende de nada da animação. Devolve o aparelho detectado.
+ */
+function medir(opts, lp, undo) {
   const track = opts.track;
-  const $ = function (id) {
-    return document.getElementById(id);
-  };
-  const qa = function (sel, root) {
-    return Array.prototype.slice.call((root || lp).querySelectorAll(sel));
+  const qa = function (sel) {
+    return Array.prototype.slice.call(lp.querySelectorAll(sel));
   };
 
-  const on = function (target, type, fn, options) {
-    target.addEventListener(type, fn, options);
-    undo.push(function () {
-      target.removeEventListener(type, fn, options);
-    });
-  };
-  const media = function (query) {
-    return window.matchMedia ? window.matchMedia(query) : { matches: false };
-  };
-  const onMedia = function (mq, fn) {
-    if (mq.addEventListener) on(mq, "change", fn);
-  };
-  const observe = function (callback, options) {
-    const io = new IntersectionObserver(callback, options);
-    undo.push(function () {
-      io.disconnect();
-    });
-    return io;
-  };
-
-  /* ============ aparelho e validade do tema ============ */
-  /* O script em linha do markup já fez as duas coisas antes da pintura; aqui
-     elas são refeitas para a chegada por navegação client-side. */
+  /* O script em linha do markup já gravou aparelho e validade do tema antes
+     da pintura; aqui são refeitos para a chegada por navegação client-side. */
   const os = detectDeviceOs();
   const inApp = detectInAppBrowser();
   lp.setAttribute("data-os", os);
   const temaFim = Number(lp.getAttribute("data-tema-fim"));
   if (temaFim && Date.now() >= temaFim) lp.setAttribute("data-tema", "padrao");
-  const bf = lp.getAttribute("data-tema") === "bf";
 
-  /* ============ lojas, simulador e medição ============ */
   const playHref = googlePlayUrl(
     buildPlayReferrerAttribution(opts.attribution, opts.slug),
   );
@@ -123,11 +122,13 @@ function montar(opts, lp, undo) {
       hint.textContent = " (abre em nova aba)";
       a.appendChild(hint);
     }
-    on(a, "click", function () {
+    listen(undo, a, "click", function () {
+      const loc = a.closest("[data-loc]");
+      if (!loc) return;
       track({
         event: "store_click",
         store: store,
-        cta_location: a.closest("[data-loc]").getAttribute("data-loc"),
+        cta_location: loc.getAttribute("data-loc"),
         device_os: os,
         in_app_browser: inApp,
       });
@@ -135,7 +136,7 @@ function montar(opts, lp, undo) {
   });
   /* Links internos medidos: simulador (data-sim) e rodapé (data-nav). */
   qa("a[data-sim], a[data-nav]").forEach(function (a) {
-    on(a, "click", function () {
+    listen(undo, a, "click", function () {
       track({
         event: "cta_click",
         cta_location: a.getAttribute("data-sim") || a.getAttribute("data-nav"),
@@ -148,6 +149,34 @@ function montar(opts, lp, undo) {
     ref: new URLSearchParams(window.location.search).get("ref") || undefined,
     in_app_browser: inApp,
   });
+  return os;
+}
+
+/** CTA fixo do celular, demonstração do hero, abas, chips e tema Black Friday. */
+function animar(lp, undo, os) {
+  const $ = function (id) {
+    return document.getElementById(id);
+  };
+  const qa = function (sel, root) {
+    return Array.prototype.slice.call((root || lp).querySelectorAll(sel));
+  };
+  const on = function (target, type, fn, options) {
+    listen(undo, target, type, fn, options);
+  };
+  const media = function (query) {
+    return window.matchMedia ? window.matchMedia(query) : { matches: false };
+  };
+  const onMedia = function (mq, fn) {
+    if (mq.addEventListener) on(mq, "change", fn);
+  };
+  const observe = function (callback, options) {
+    const io = new IntersectionObserver(callback, options);
+    undo.push(function () {
+      io.disconnect();
+    });
+    return io;
+  };
+  const bf = lp.getAttribute("data-tema") === "bf";
 
   /* ============ CTA fixo do celular ============ */
   /* Só aparece depois que o CTA do hero saiu da tela e antes do rodapé: nunca

@@ -25,7 +25,7 @@ sem JavaScript → dois selos).
 
 Todo evento sai por `pushAgendaBelaLojasEvent(slug, …)` com
 `landing_type: "campaign"` e o `landing_slug` da rota. Eventos: `lp_view`,
-`store_click` e `cta_click`. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
+`store_click` e `cta_click`. A medição é ligada antes da animação e não cai com ela. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
 `__tests__/rotas.test.tsx` falha se um evento sair com o slug de outra página.
 
 ## Fim da Black Friday

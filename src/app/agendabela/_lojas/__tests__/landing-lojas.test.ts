@@ -34,7 +34,9 @@ const CTA_LOCATIONS = [
   "final",
   "sticky_mobile",
   "rodape_selo",
-  "desktop_selo",
+  "hero_selo",
+  "preco_selo",
+  "final_selo",
   "simulador_hero",
   "simulador_avaliacoes",
   "rodape_conheca_agenda_bela",
@@ -357,14 +359,86 @@ describe.each(PAGINAS)("landing de loja $slug: medição", (config) => {
     ]);
   });
 
-  it("no computador os selos saem como desktop_selo", () => {
+  it("no computador os selos dizem a seção: hero_selo, preco_selo, final_selo", () => {
     mount(config, { ua: UA.desktop });
-    linksDoAparelho("#cta-hero a[data-store]").forEach((a) => a.click());
+    linksDoAparelho(".cta a[data-store]").forEach((a) => a.click());
+    linksDoAparelho(".foot-badges a[data-store]").forEach((a) => a.click());
     expect(
       eventos()
         .filter((e) => e.event === "store_click")
         .map((e) => `${e.store}@${e.cta_location}`),
-    ).toEqual(["app_store@desktop_selo", "google_play@desktop_selo"]);
+    ).toEqual([
+      "app_store@hero_selo",
+      "google_play@hero_selo",
+      "app_store@preco_selo",
+      "google_play@preco_selo",
+      "app_store@final_selo",
+      "google_play@final_selo",
+      "app_store@rodape_selo",
+      "google_play@rodape_selo",
+    ]);
+  });
+
+  it("todo selo de loja está dentro de um lugar conhecido (data-loc)", () => {
+    document.body.innerHTML = markup(config);
+    const lugares = new Set(
+      [...lp().querySelectorAll("a[data-store]")].map((a) =>
+        a.closest("[data-loc]")?.getAttribute("data-loc"),
+      ),
+    );
+    expect([...lugares].sort()).toEqual(
+      [
+        "hero",
+        "preco",
+        "final",
+        "sticky_mobile",
+        "rodape_selo",
+        "hero_selo",
+        "preco_selo",
+        "final_selo",
+      ].sort(),
+    );
+  });
+
+  it("se a animação quebrar, a medição continua: store_click sai com o slug certo", () => {
+    setNavigator(UA.android);
+    setMotion(false);
+    history.replaceState(null, "", config.path);
+    window.dataLayer = [];
+    document.body.innerHTML = markup(config);
+    runScriptAntesDaPintura();
+    // HTML alterado por fora (extensão, tradutor): somem peças que a animação espera.
+    document.getElementById("hero-legenda")?.remove();
+    document.getElementById("dif-tabs")?.remove();
+    expect(() => {
+      cleanup = initLandingLojas({
+        slug: config.slug,
+        track: (event) => pushAgendaBelaLojasEvent(config.slug, event),
+      });
+    }).not.toThrow();
+    // A animação não subiu (controles seguem escondidos)...
+    expect(document.getElementById("mais-chips")?.hasAttribute("hidden")).toBe(
+      true,
+    );
+    expect(lp().hasAttribute("data-pre")).toBe(false);
+    // ...mas a página mediu a visita e mede os cliques.
+    linksDoAparelho("#cta-hero a[data-store]")[0].click();
+    linksDoAparelho(".final a[data-store]")[0].click();
+    lp().querySelector<HTMLAnchorElement>("a[data-sim]")?.click();
+    expect(
+      eventos().map(
+        (e) => `${e.event}:${e.cta_location ?? ""}@${e.landing_slug}`,
+      ),
+    ).toEqual([
+      `lp_view:@${config.slug}`,
+      `store_click:hero@${config.slug}`,
+      `store_click:final@${config.slug}`,
+      `cta_click:simulador_hero@${config.slug}`,
+    ]);
+    // O link da Play segue com a origem, mesmo sem animação.
+    expect(linksDoAparelho("#cta-hero a[data-store]")[0].href).toContain(
+      "&referrer=",
+    );
   });
 
   it("link do simulador sai como cta_click, sem herdar a loja do clique anterior", () => {
@@ -647,7 +721,7 @@ describe("estado antes do runtime (sem salto de layout)", () => {
     jest.useRealTimers();
   });
 
-  it("HTML alterado por fora: o runtime não quebra a página nem deixa listener", () => {
+  it("HTML alterado por fora: o runtime não quebra a página e o cleanup tira os listeners", () => {
     setNavigator(UA.iphone);
     setMotion(false);
     document.body.innerHTML = markup(LP2);
@@ -658,6 +732,8 @@ describe("estado antes do runtime (sem salto de layout)", () => {
       cleanup = initLandingLojas({ slug: LP2.slug, track });
     }).not.toThrow();
     expect(lp().hasAttribute("data-pre")).toBe(false);
+    cleanup?.();
+    cleanup = undefined;
     track.mockClear();
     linksDoAparelho("a[data-store]").forEach((a) => a.click());
     expect(track).not.toHaveBeenCalled();

@@ -97,7 +97,7 @@ function blocoCta(p: LojasMarkupParams, local: "hero" | "preco" | "final"): stri
   return `<div class="cta"${local === "hero" ? ' id="cta-hero"' : ""} data-loc="${local}">
         <div data-dev="ios">${selo("app_store", "storecard")}</div>
         <div data-dev="android">${selo("google_play", "storecard")}</div>
-        <div data-dev="desktop" data-loc="desktop_selo"><div class="dt"><p class="dt-tit">Baixe no seu celular</p><div class="dt-row">
+        <div data-dev="desktop" data-loc="${local}_selo"><div class="dt"><p class="dt-tit">Baixe no seu celular</p><div class="dt-row">
           <div class="dt-badges">${selo("app_store", "", true)}${selo("google_play", "", true)}</div>
           <div class="dt-qr"><img src="${p.assets.qr}" width="116" height="116" alt="QR code que abre esta página no celular"><p>Aponte a câmera do celular e abra a loja.</p></div></div></div></div>
         <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo("app_store")}${selo("google_play")}</div></div>

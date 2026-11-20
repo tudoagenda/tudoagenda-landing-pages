@@ -221,9 +221,20 @@ describe("Black Friday: fora do índice, sem dado estruturado", () => {
     expect(htmlLp3).not.toContain("application/ld+json");
   });
 
-  it("não tem palavra de promoção no texto visível (\"apenas\" é permitido)", () => {
-    expect(texto(dom(htmlLp3).getElementById("lp"))).not.toMatch(
-      /desconto|oferta|promo|% ?off|o preço é um só|preço de sempre/i,
+  it("não tem palavra de promoção nem data no texto visível (\"apenas\" é permitido)", () => {
+    const doc = dom(htmlLp3);
+    // Rodapé legal fora: o CNPJ tem ponto e barra entre números.
+    doc.querySelectorAll(".legal").forEach((el) => el.remove());
+    const visivel = texto(doc.getElementById("lp"));
+    expect(visivel).not.toMatch(
+      /desconto|oferta|promo|% ?off|o preço é um só|preço de sempre|aproveite|garanta|cupom/i,
     );
+    // Sem data (27/11, 30.11): a página roda o mês todo. Preço (59,90),
+    // taxa (1,49%) e hora (14:32) usam vírgula ou dois-pontos e não casam.
+    const DATA = /(?<![\d.,/])\d{1,2}[/.]\d{1,2}(?![\d.,/-])/;
+    expect(visivel).not.toMatch(DATA);
+    expect("Black Friday · 27/11").toMatch(DATA);
+    expect("até 30.11").toMatch(DATA);
+    expect("R$ 59,90 e 1,49% às 14:32").not.toMatch(DATA);
   });
 });

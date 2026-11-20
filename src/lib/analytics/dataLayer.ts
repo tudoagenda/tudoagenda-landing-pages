@@ -221,7 +221,10 @@ export type LojasStoreCtaLocation =
   | "final"
   | "sticky_mobile"
   | "rodape_selo"
-  | "desktop_selo";
+  /* No computador, os dois selos + QR de cada seção. */
+  | "hero_selo"
+  | "preco_selo"
+  | "final_selo";
 
 type LandingContext = {
   product: string;
