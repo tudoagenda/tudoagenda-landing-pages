@@ -18,7 +18,6 @@ import {
   COMPANY_LEGAL_IDENTIFICATION,
   SUPPORT_WHATSAPP_URL,
 } from "@/config/company";
-import { GOOGLE_PLAY_PRICE } from "@/config/landing-lojas";
 
 export type LojasMarkupParams = {
   /** "bf" liga o tema Black Friday por cima da página padrão. */
@@ -37,9 +36,6 @@ export type LojasMarkupParams = {
 };
 
 const EXPERIMENTE_PATH = "/agendabela/experimente";
-
-/** "R$ 59,99" com espaço que não quebra, como o resto dos preços da página. */
-const PRECO_PLAY = GOOGLE_PLAY_PRICE.replace(" ", "&nbsp;");
 
 function atributo(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
@@ -114,14 +110,13 @@ function linkSimulador(
 }
 
 function blocoMicro(p: LojasMarkupParams): string {
-  const preco = "7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês";
-  const comPlay = `<p class="micro">${preco} (no Google Play, ${PRECO_PLAY}).</p>`;
+  const preco = `<p class="micro">7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p>`;
   const simulador = `<p class="micro">${linkSimulador(p, "hero", "Prefere ver antes? Teste o app sem cadastro →")}</p>`;
   return `<div id="micro">
-        <div data-dev="ios"><p class="micro">${preco}.</p><p class="micro">Você abre a App Store, baixa o app e marca sua primeira cliente.</p></div>
-        <div data-dev="android">${comPlay}<p class="micro">Você abre o Google Play, baixa o app e marca sua primeira cliente.</p></div>
-        <div data-dev="desktop">${comPlay}${simulador}</div>
-        <div data-dev="nojs">${comPlay}${simulador}</div>
+        <div data-dev="ios">${preco}<p class="micro">Você abre a App Store, baixa o app e marca sua primeira cliente.</p></div>
+        <div data-dev="android">${preco}<p class="micro">Você abre o Google Play, baixa o app e marca sua primeira cliente.</p></div>
+        <div data-dev="desktop">${preco}${simulador}</div>
+        <div data-dev="nojs">${preco}${simulador}</div>
       </div>`;
 }
 
@@ -137,7 +132,7 @@ function blocoFixo(): string {
     <div data-dev="android">${selo("google_play", "storecard")}</div>
   </div>
   <small data-dev="ios">7 dias grátis · depois R$&nbsp;59,90/mês</small>
-  <small data-dev="android">7 dias grátis · depois R$&nbsp;59,90/mês · no Google Play, ${PRECO_PLAY}</small>
+  <small data-dev="android">7 dias grátis · depois R$&nbsp;59,90/mês</small>
 </div>`;
 }
 
@@ -159,7 +154,7 @@ const FAIXA = `<div class="ribbon so-tema" id="slot-faixa">
 </div>`;
 const HALO = `<div class="so-tema bf-halo" aria-hidden="true"></div>`;
 const TITULO_GIGANTE = `<p class="so-tema bf-big" aria-hidden="true"><span class="bf-l"><span class="bf-w">Black</span></span><span class="bf-l"><span class="bf-w">Friday</span></span></p>`;
-const BLOCO_PRECO = `<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo">O preço de sempre: <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p><p style="font-size:13px;line-height:18px;margin-top:8px">No Google Play, ${PRECO_PLAY}.</p></div></div></div></section>`;
+const BLOCO_PRECO = `<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo">Apenas <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p></div></div></div></section>`;
 
 export function buildLojasMarkup(p: LojasMarkupParams): string {
   const bf = p.tema === "bf";
@@ -345,7 +340,6 @@ ${bf ? BLOCO_PRECO : ""}
     <span class="mono">Quanto custa</span>
     <h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>
-    <p class="small">No Google Play, o valor é ${PRECO_PLAY}.</p>
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
   <div>
@@ -376,7 +370,7 @@ ${blocoCta(p, "preco")}
   <div class="sec-head"><h2 class="t" id="faq-titulo">Perguntas rápidas</h2></div>
   <div class="faq-list">
     <details><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
-    <details><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. No Google Play, o valor é ${PRECO_PLAY}. Cancele quando quiser.</p></details>
+    <details><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
     <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
     <details><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
     <details><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>

@@ -43,6 +43,9 @@ describe.each(ROTAS)("rota /agendabela/%s", (slug, Page) => {
     links.forEach((a) => a.click());
 
     const eventos = (window.dataLayer ?? []) as Record<string, unknown>[];
+    // Decisão de 19/11/2026: nenhuma das duas rotas cita o preço do Google Play.
+    expect(container.innerHTML).not.toContain("59,99");
+
     expect(eventos).toHaveLength(links.length + 1);
     expect(eventos[0].event).toBe("lp_view");
     expect(new Set(eventos.map((e) => e.landing_slug))).toEqual(new Set([slug]));

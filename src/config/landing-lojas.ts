@@ -5,12 +5,6 @@
  */
 
 /**
- * Preço da assinatura no Google Play, mostrado ao lado do R$ 59,90.
- * Fonte única: muda aqui quando o console da Play for ajustado.
- */
-export const GOOGLE_PLAY_PRICE = "R$ 59,99";
-
-/**
  * Fim do tema Black Friday: 30/11/2026 às 23:59 em São Paulo (UTC-3, sem
  * horário de verão), ou seja, o primeiro instante de 01/12. A partir dele a
  * faixa, o título gigante, o bloco de preço, o halo e as cores somem no

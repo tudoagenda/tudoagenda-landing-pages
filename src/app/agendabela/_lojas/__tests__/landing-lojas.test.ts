@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
 import {
-  GOOGLE_PLAY_PRICE,
   LANDING_LOJAS,
   type LandingLojasConfig,
 } from "@/config/landing-lojas";
@@ -183,10 +182,10 @@ describe.each(PAGINAS)("landing de loja $slug: HTML do servidor", (config) => {
     }
   });
 
-  it("o preço da Google Play vem da constante única", () => {
-    const precoPlay = GOOGLE_PLAY_PRICE.replace(" ", "&nbsp;");
-    expect(html).toContain(`No Google Play, o valor é ${precoPlay}.`);
-    expect(html.match(/59,99/g)).toHaveLength(html.split(precoPlay).length - 1);
+  it("não cita o preço do Google Play: o único preço da página é R$ 59,90", () => {
+    expect(html).not.toContain("59,99");
+    expect(html).not.toMatch(/no Google Play, (o valor|R\$)/i);
+    expect(html).toContain("R$&nbsp;59,90 por mês");
   });
 
   it("links internos usam ?ref= e nunca utm_", () => {
@@ -442,7 +441,10 @@ describe("validade do tema Black Friday", () => {
     expect(lp().textContent).not.toMatch(
       /desconto|promo[çc][ãa]o|oferta|% ?off|imperd[íi]vel|só hoje|últimas/i,
     );
-    expect(lp().textContent).toContain("O preço de sempre: R$ 59,90 por mês.");
+    expect(
+      document.getElementById("bloco-titulo")?.textContent?.replace(/\s/g, " "),
+    ).toBe("Apenas R$ 59,90 por mês.");
+    expect(lp().textContent).not.toContain("O preço de sempre");
   });
 
   it("antes da data: tema ligado, com faixa, título, bloco de preço e halo", () => {

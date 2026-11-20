@@ -40,7 +40,9 @@ describe("robots, canonical e title de cada rota", () => {
 
   it("a Black Friday não promete desconto nem junta o nome com os 7 dias grátis", () => {
     const texto = `${JSON.stringify(blackFridayMetadata.title)} ${blackFridayMetadata.description}`;
-    expect(texto).not.toMatch(/o preço é um só|7 dias|grátis|desconto|oferta|promo/i);
+    expect(texto).not.toMatch(
+      /o preço é um só|o preço de sempre|59,99|7 dias|grátis|desconto|oferta|promo/i,
+    );
     expect(texto).toContain("R$ 59,90");
   });
 });

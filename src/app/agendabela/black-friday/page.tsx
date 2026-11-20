@@ -10,7 +10,7 @@ export const metadata = buildLojasMetadata({
   config,
   title: "Black Friday no Agenda Bela: a Bela cuida da sua agenda",
   description:
-    "Nesta Black Friday o preço é o de sempre: R$ 59,90 por mês. A Bela lembra suas clientes enquanto você atende. Baixe o app no iPhone ou no Android.",
+    "Nesta Black Friday, apenas R$ 59,90 por mês. A Bela lembra suas clientes enquanto você atende. Baixe o app no iPhone ou no Android.",
   index: false,
 });
 
