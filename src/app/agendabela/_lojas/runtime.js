@@ -6,6 +6,9 @@
  * - links das lojas com a origem da sessão e medição (lp_view, store_click,
  *   cta_click);
  * - fim do tema Black Friday pela validade gravada em #lp;
+ * - Oferta Agenda Bela (data-oferta em #lp, protótipo lp4-oferta): legendas
+ *   em "você", CTA fixo que some com qualquer CTA da página à vista e a
+ *   animação do bloco de preço;
  * - devolve um cleanup (a página pode sair por navegação client-side).
  *
  * Sem JavaScript, ou com movimento reduzido, a página já está completa: todo
@@ -24,6 +27,16 @@ const CAPS = [
   "A Paula é avisada no celular, com o sinal já no saldo. Ela segue atendendo.",
   "No dia, a Bela lembra a Camila. Ela confirma com um toque e a Paula é avisada.",
   "Atendeu: o valor entra no caixa. O que entrou, o que saiu e quanto sobrou.",
+];
+/* Oferta Agenda Bela: a legenda fala com a leitora ("você"), não da Paula.
+   As mesmas frases de PASSOS_OFERTA em markup.ts. */
+const CAPS_OFERTA = [
+  "A Camila marca sozinha, pelo seu link.",
+  "Ela paga o sinal de R$" + NB + "20,00 no Pix e o horário fica garantido.",
+  "A confirmação chega no WhatsApp dela. Você não precisa escrever nada.",
+  "Você é avisada no celular, com o sinal já no saldo. Segue atendendo.",
+  "No dia, a Bela lembra a Camila. Ela confirma com um toque e você é avisada.",
+  "Atendeu: o valor entra no caixa. Você vê o que entrou, o que saiu e quanto sobrou.",
 ];
 
 function fmt(v, f) {
@@ -152,7 +165,7 @@ function medir(opts, lp, undo) {
   return os;
 }
 
-/** CTA fixo do celular, demonstração do hero, abas, chips e tema Black Friday. */
+/** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */
 function animar(lp, undo, os) {
   const $ = function (id) {
     return document.getElementById(id);
@@ -177,20 +190,34 @@ function animar(lp, undo, os) {
     return io;
   };
   const bf = lp.getAttribute("data-tema") === "bf";
+  const oferta = lp.hasAttribute("data-oferta");
+  const caps = oferta ? CAPS_OFERTA : CAPS;
+  const celularDaDona = oferta ? "Seu celular" : "Celular da Paula";
 
   /* ============ CTA fixo do celular ============ */
   /* Só aparece depois que o CTA do hero saiu da tela e antes do rodapé: nunca
-     dois botões iguais à vista por causa dele. */
+     dois botões iguais à vista por causa dele. Na oferta some também enquanto
+     o botão da seção de preço ou o do final estiver na tela. */
   const sticky = $("cta-fixo");
   const heroCta = $("cta-hero");
   const foot = $("rodape");
+  const ctas = qa(".cta");
   const mq = media("(max-width:767px)");
+  function ctaDaPaginaNaTela() {
+    for (let i = 0; i < ctas.length; i++) {
+      const r = ctas[i].getBoundingClientRect();
+      if (r.height > 0 && r.bottom > 0 && r.top < window.innerHeight) return true;
+    }
+    return false;
+  }
   function updateSticky() {
     let show = false;
     if (os !== "desktop" && mq.matches) {
       const h = heroCta.getBoundingClientRect();
       const f = foot.getBoundingClientRect();
-      show = h.bottom < 0 && f.top > window.innerHeight;
+      show = oferta
+        ? !ctaDaPaginaNaTela() && h.top < window.innerHeight && f.top > window.innerHeight
+        : h.bottom < 0 && f.top > window.innerHeight;
     }
     sticky.hidden = !show;
   }
@@ -292,8 +319,8 @@ function animar(lp, undo, os) {
     quem: function () {
       const c = this.cur;
       if (c < 3) return "Celular da Camila";
-      if (c === 4) return RM ? "Celular da Paula" : this.e < 3400 ? "Celular da Camila" : "Celular da Paula";
-      return "Celular da Paula";
+      if (c === 4) return RM ? celularDaDona : this.e < 3400 ? "Celular da Camila" : celularDaDona;
+      return celularDaDona;
     },
     go: function (n) {
       this.cur = n;
@@ -309,7 +336,7 @@ function animar(lp, undo, os) {
         placeTaps(sc);
         counters(sc, 0, 0);
       }
-      this.cap.textContent = CAPS[n];
+      this.cap.textContent = caps[n];
       this.pas.textContent = "Passo " + (n + 1) + " de 6";
       this.who.textContent = this.quem();
       for (let d = 0; d < this.dots.length; d++) {
@@ -612,6 +639,29 @@ function animar(lp, undo, os) {
       folha.textContent = c.getAttribute("data-t");
     });
   });
+
+  /* ============ Oferta Agenda Bela: bloco de preço ============ */
+  /* Risca o preço cheio, entra o novo e a linha do tempo se preenche, uma vez,
+     quando o cartão entra na tela. Sem IntersectionObserver ou com movimento
+     reduzido nada é armado: o estado final já está no CSS. */
+  const cartaoOferta = oferta ? $("oferta-card") : null;
+  if (cartaoOferta && hasIO && !RM) {
+    cartaoOferta.classList.add("arm");
+    undo.push(function () {
+      cartaoOferta.classList.remove("arm", "on");
+    });
+    void cartaoOferta.offsetWidth;
+    const ofertaIo = observe(
+      function (en) {
+        if (en[0].isIntersecting) {
+          cartaoOferta.classList.add("on");
+          ofertaIo.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    ofertaIo.observe(cartaoOferta);
+  }
 
   /* ============ tema Black Friday ============ */
   if (bf) {

@@ -26,7 +26,8 @@ const UA = {
 
 const LP2 = LANDING_LOJAS.appParaSalaoDeBeleza;
 const LP3 = LANDING_LOJAS.blackFriday;
-const PAGINAS: LandingLojasConfig[] = [LP2, LP3];
+const OFERTA = LANDING_LOJAS.oferta;
+const PAGINAS: LandingLojasConfig[] = [LP2, LP3, OFERTA];
 const SLUG_DA_LP1 = "automatize-seu-atendimento";
 const CTA_LOCATIONS = [
   "hero",
@@ -51,6 +52,7 @@ function markup(config: LandingLojasConfig): string {
     tema: config.tema,
     temaExpiraEm: config.temaExpiraEm,
     refSimulador: config.refSimulador,
+    oferta: config.oferta,
     assets: {
       logo: "/logo.png",
       qr: `/qr-${config.slug}.svg`,
@@ -187,7 +189,7 @@ describe.each(PAGINAS)("landing de loja $slug: HTML do servidor", (config) => {
     }
   });
 
-  it("não cita o preço do Google Play: o único preço da página é R$ 59,90", () => {
+  it("não cita o preço do Google Play: o preço cheio da página é R$ 59,90", () => {
     expect(html).not.toContain("59,99");
     expect(html).not.toMatch(/no Google Play, (o valor|R\$)/i);
     expect(html).toContain("R$&nbsp;59,90 por mês");
@@ -740,7 +742,309 @@ describe("estado antes do runtime (sem salto de layout)", () => {
   });
 });
 
-describe.each(PAGINAS)("landing de loja $slug: rodapé", (config) => {
+describe("Oferta Agenda Bela: comportamento", () => {
+  /** jsdom não tem IntersectionObserver: este guarda o callback para o teste disparar. */
+  function mockIntersectionObserver() {
+    const observers: { cb: IntersectionObserverCallback; alvo?: Element }[] = [];
+    const original = window.IntersectionObserver;
+    window.IntersectionObserver = class {
+      private registro: { cb: IntersectionObserverCallback; alvo?: Element };
+      constructor(cb: IntersectionObserverCallback) {
+        this.registro = { cb };
+        observers.push(this.registro);
+      }
+      observe(alvo: Element) {
+        this.registro.alvo = alvo;
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() {
+        return [];
+      }
+    } as unknown as typeof IntersectionObserver;
+    return {
+      entrar(alvo: Element) {
+        for (const o of observers.filter((x) => x.alvo === alvo)) {
+          o.cb(
+            [{ isIntersecting: true, target: alvo } as IntersectionObserverEntry],
+            {} as IntersectionObserver,
+          );
+        }
+      },
+      restaurar() {
+        if (original) window.IntersectionObserver = original;
+        else delete (window as { IntersectionObserver?: unknown }).IntersectionObserver;
+      },
+    };
+  }
+
+  /** Posição na tela de cada bloco, para o CTA fixo (jsdom não faz layout). */
+  function posicionar(posicoes: Record<string, { top: number; bottom: number }>) {
+    const rect = (top: number, bottom: number) =>
+      ({ top, bottom, height: bottom - top }) as DOMRect;
+    lp()
+      .querySelectorAll<HTMLElement>(".cta")
+      .forEach((cta) => {
+        const p = posicoes[cta.getAttribute("data-loc") ?? ""];
+        cta.getBoundingClientRect = () => rect(p.top, p.bottom);
+      });
+    const rodape = document.getElementById("rodape") as HTMLElement;
+    rodape.getBoundingClientRect = () =>
+      rect(posicoes.rodape.top, posicoes.rodape.bottom);
+  }
+
+  /** Roda o updateSticky do runtime (o scroll passa por requestAnimationFrame). */
+  function rolar() {
+    jest
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback) => {
+        cb(0);
+        return 0;
+      });
+    window.dispatchEvent(new Event("scroll"));
+  }
+
+  const fixo = () => document.getElementById("cta-fixo") as HTMLElement;
+
+  /** iPhone com tela de celular (max-width:767px), que é onde o CTA fixo existe. */
+  function montarNoCelular(config: LandingLojasConfig) {
+    setNavigator(UA.iphone);
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes("max-width:767px"),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+    Object.defineProperty(window, "innerHeight", {
+      value: 640,
+      configurable: true,
+    });
+    history.replaceState(null, "", config.path);
+    window.dataLayer = [];
+    document.body.innerHTML = markup(config);
+    runScriptAntesDaPintura();
+    cleanup = initLandingLojas({ slug: config.slug, track: jest.fn() });
+  }
+
+  it("CTA fixo: some enquanto qualquer botão de loja da página está na tela", () => {
+    montarNoCelular(OFERTA);
+
+    // Topo da página: o botão do hero está na tela.
+    posicionar({
+      hero: { top: 500, bottom: 576 },
+      preco: { top: 5000, bottom: 5076 },
+      final: { top: 8000, bottom: 8076 },
+      rodape: { top: 8300, bottom: 8900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Rolou: nenhum botão da página à vista, rodapé longe.
+    posicionar({
+      hero: { top: -900, bottom: -824 },
+      preco: { top: 3000, bottom: 3076 },
+      final: { top: 6000, bottom: 6076 },
+      rodape: { top: 6300, bottom: 6900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(false);
+
+    // Botão da seção "Quanto custa" na tela: o fixo some (não ficam dois iguais).
+    posicionar({
+      hero: { top: -3900, bottom: -3824 },
+      preco: { top: 300, bottom: 376 },
+      final: { top: 3000, bottom: 3076 },
+      rodape: { top: 3300, bottom: 3900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Botão do final na tela.
+    posicionar({
+      hero: { top: -6900, bottom: -6824 },
+      preco: { top: -2700, bottom: -2624 },
+      final: { top: 200, bottom: 276 },
+      rodape: { top: 700, bottom: 1300 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Rodapé na tela.
+    posicionar({
+      hero: { top: -7900, bottom: -7824 },
+      preco: { top: -3700, bottom: -3624 },
+      final: { top: -800, bottom: -724 },
+      rodape: { top: 100, bottom: 700 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+  });
+
+  it("CTA fixo das outras landings de loja segue a regra de antes (só o botão do hero)", () => {
+    montarNoCelular(LP2);
+    // Botão da seção de preço na tela: na landing padrão o fixo continua.
+    posicionar({
+      hero: { top: -3900, bottom: -3824 },
+      preco: { top: 300, bottom: 376 },
+      final: { top: 3000, bottom: 3076 },
+      rodape: { top: 3300, bottom: 3900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(false);
+  });
+
+  it("no computador o CTA fixo nunca aparece", () => {
+    mount(OFERTA, { ua: UA.desktop });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+  });
+
+  it("bloco de preço: arma a animação e solta quando o cartão entra na tela", () => {
+    const io = mockIntersectionObserver();
+    try {
+      mount(OFERTA);
+      const cartao = document.getElementById("oferta-card") as HTMLElement;
+      expect(cartao.classList.contains("arm")).toBe(true);
+      expect(cartao.classList.contains("on")).toBe(false);
+      io.entrar(cartao);
+      expect(cartao.classList.contains("on")).toBe(true);
+      // Saiu da página: volta ao estado final do CSS.
+      cleanup?.();
+      cleanup = undefined;
+      expect(cartao.className).toBe("of-card");
+    } finally {
+      io.restaurar();
+    }
+  });
+
+  it("movimento reduzido: o bloco de preço já chega no estado final, sem armar", () => {
+    const io = mockIntersectionObserver();
+    try {
+      mount(OFERTA, { reduce: true });
+      expect(document.getElementById("oferta-card")?.className).toBe("of-card");
+      expect(document.getElementById("hero-passo")?.textContent).toBe(
+        "Passo 5 de 6",
+      );
+      expect(lp().querySelectorAll(".play")).toHaveLength(0);
+    } finally {
+      io.restaurar();
+    }
+  });
+
+  it("sem IntersectionObserver nada é armado (preço e linha do tempo completos)", () => {
+    mount(OFERTA);
+    expect(document.getElementById("oferta-card")?.className).toBe("of-card");
+  });
+
+  it("o CSS da oferta só anima com movimento liberado e nunca esconde o preço", () => {
+    const cssOferta = fs
+      .readFileSync(path.join(__dirname, "../oferta.css"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const [parado, movimento] = cssOferta.split(
+      "@media (prefers-reduced-motion:no-preference){",
+    );
+    // Animação, transição e estado armado só existem com movimento liberado.
+    expect(parado).not.toMatch(/animation:|transition:|\.arm\b|\[data-pre\]/);
+    expect(movimento).toContain(".of-card.arm");
+    // Preço, legenda, linha do tempo e condição nunca ficam transparentes
+    // (só o selo de -50% entra com opacidade).
+    expect(movimento.match(/opacity/g)).toHaveLength(2);
+    expect(movimento).toMatch(/@keyframes lj-of-stkIn\{from\{opacity:0;/);
+    // Toda regra vale só com data-oferta: as outras landings de loja não mudam.
+    expect(
+      cssOferta.match(/#lp(?!\[data-oferta\]|\[data-pre\]\[data-oferta\])/g),
+    ).toBeNull();
+    expect(css).not.toContain("data-oferta");
+  });
+
+  it("legendas da demonstração: as do runtime são as do HTML, e falam com a leitora", () => {
+    mount(OFERTA);
+    const lista = [...lp().querySelectorAll("#hero-stage ol.sr li")].map(
+      (li) => li.textContent,
+    );
+    expect(lista).toHaveLength(6);
+    lista.forEach((frase, i) => {
+      document.getElementById(`hero-passo-${i + 1}`)?.click();
+      expect(document.getElementById("hero-legenda")?.textContent).toBe(frase);
+      expect(
+        document.getElementById(`hero-passo-${i + 1}`)?.getAttribute("aria-label"),
+      ).toBe(`Passo ${i + 1} de 6: ${frase}`);
+    });
+    expect(lista.join(" ")).not.toMatch(/a Paula/);
+    document.getElementById("hero-passo-6")?.click();
+    expect(document.getElementById("hero-quem")?.textContent).toBe("Seu celular");
+    document.getElementById("hero-passo-1")?.click();
+    expect(document.getElementById("hero-quem")?.textContent).toBe(
+      "Celular da Camila",
+    );
+  });
+
+  it("as outras landings de loja seguem com as legendas e o chip de antes", () => {
+    mount(LP2);
+    document.getElementById("hero-passo-4")?.click();
+    expect(document.getElementById("hero-legenda")?.textContent).toBe(
+      "A Paula é avisada no celular, com o sinal já no saldo. Ela segue atendendo.",
+    );
+    expect(document.getElementById("hero-quem")?.textContent).toBe(
+      "Celular da Paula",
+    );
+    expect(lp().hasAttribute("data-oferta")).toBe(false);
+  });
+
+  it("medição: mesmos eventos e lugares das outras landings, com o slug oferta", () => {
+    mount(OFERTA, { ua: UA.android, url: `${OFERTA.path}?ref=qr_desktop` });
+    linksDoAparelho("a[data-store], a[data-sim], a[data-nav]").forEach((a) =>
+      a.click(),
+    );
+    // Os links novos da oferta (faixa, cartão, perguntas, WhatsApp) não criam evento.
+    lp()
+      .querySelectorAll<HTMLAnchorElement>("#faixa, .ofr, .of-link, .faq a")
+      .forEach((a) => a.click());
+    expect(new Set(eventos().map((e) => e.landing_slug))).toEqual(
+      new Set(["oferta"]),
+    );
+    expect(new Set(eventos().map((e) => e.event))).toEqual(
+      new Set(["lp_view", "store_click", "cta_click"]),
+    );
+    expect(eventos()[0].ref).toBe("qr_desktop");
+    expect(
+      new Set(
+        eventos()
+          .filter((e) => e.event !== "lp_view")
+          .map((e) => e.cta_location),
+      ),
+    ).toEqual(
+      new Set([
+        "hero",
+        "preco",
+        "final",
+        "sticky_mobile",
+        "rodape_selo",
+        "simulador_avaliacoes",
+        "rodape_tudo_agenda",
+      ]),
+    );
+  });
+});
+
+describe("Oferta Agenda Bela: rodapé", () => {
+  it("liga para a home, mas não para a landing principal (cadastro pela web, outro preço)", () => {
+    mount(OFERTA, { ua: UA.iphone });
+    expect(
+      lp().querySelector<HTMLAnchorElement>(".foot-brand a")?.getAttribute("href"),
+    ).toBe("/");
+    expect(lp().innerHTML).not.toContain("automatize-seu-atendimento");
+    expect(
+      [...lp().querySelectorAll(".foot nav a")].map((a) => a.getAttribute("href")),
+    ).toEqual([
+      "/termos",
+      "/privacidade",
+      "mailto:contato@tudoagenda.com.br",
+      "https://wa.me/5519936180533?text=Oi!%20Preciso%20de%20ajuda%20com%20o%20Agenda%20Bela",
+    ]);
+  });
+});
+
+describe.each([LP2, LP3])("landing de loja $slug: rodapé", (config) => {
   it("liga para a home e para a landing principal, com ?ref= da página", () => {
     mount(config, { ua: UA.iphone });
     const home = lp().querySelector<HTMLAnchorElement>(".foot-brand a");

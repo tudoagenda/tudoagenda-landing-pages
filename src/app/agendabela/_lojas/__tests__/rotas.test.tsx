@@ -3,9 +3,10 @@ import path from "path";
 import { render } from "@testing-library/react";
 import AppParaSalaoDeBelezaPage from "../../app-para-salao-de-beleza/page";
 import BlackFridayPage from "../../black-friday/page";
+import OfertaPage from "../../oferta/page";
 
 /**
- * Garantia pedida no plano de medição: as três páginas da campanha são
+ * Garantia pedida no plano de medição: as páginas da campanha são
  * separadas no GA4 pelo landing_slug. Este teste monta cada rota inteira
  * (página, config e runtime de verdade) e falha se qualquer evento sair com o
  * slug de outra página, em especial o da landing principal.
@@ -13,6 +14,7 @@ import BlackFridayPage from "../../black-friday/page";
 const ROTAS = [
   ["app-para-salao-de-beleza", AppParaSalaoDeBelezaPage],
   ["black-friday", BlackFridayPage],
+  ["oferta", OfertaPage],
 ] as const;
 
 const preventNavigation = (event: Event) => {
@@ -43,7 +45,7 @@ describe.each(ROTAS)("rota /agendabela/%s", (slug, Page) => {
     links.forEach((a) => a.click());
 
     const eventos = (window.dataLayer ?? []) as Record<string, unknown>[];
-    // Decisão de 19/11/2026: nenhuma das duas rotas cita o preço do Google Play.
+    // Decisão de 19/11/2026: nenhuma das rotas cita o preço do Google Play.
     expect(container.innerHTML).not.toContain("59,99");
 
     expect(eventos).toHaveLength(links.length + 1);

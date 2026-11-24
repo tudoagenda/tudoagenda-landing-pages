@@ -5,6 +5,7 @@ import foundersClub from "@/app/agendabela/automatize-seu-atendimento/assets/fou
 import logoApp from "./assets/logo-app.png";
 import qrAppParaSalaoDeBeleza from "./assets/qr-app-para-salao-de-beleza.svg";
 import qrBlackFriday from "./assets/qr-black-friday.svg";
+import qrOferta from "./assets/qr-oferta.svg";
 import { fraunces, inter, spaceMono } from "./fonts";
 import { LojasRuntime } from "./lojas-runtime";
 import { buildLojasMarkup } from "./markup";
@@ -16,6 +17,7 @@ const SITE_URL = "https://tudoagenda.com.br";
 const QR_BY_SLUG = {
   "app-para-salao-de-beleza": qrAppParaSalaoDeBeleza,
   "black-friday": qrBlackFriday,
+  oferta: qrOferta,
 } as const;
 
 /** Metadata comum às landings de loja; cada rota passa título, descrição e indexação. */
@@ -73,8 +75,8 @@ export function buildLojasMetadata({
 }
 
 /**
- * Página de loja do Agenda Bela. Uma página só para as duas rotas: a config
- * diz o slug (medição), o tema e a validade dele. O HTML vem pronto do
+ * Página de loja do Agenda Bela. Uma página só para as três rotas: a config
+ * diz o slug (medição), o tema e a validade dele, e a oferta. O HTML vem pronto do
  * servidor (funciona sem JavaScript, com os dois selos); LojasRuntime liga
  * animações, links das lojas e eventos.
  */
@@ -91,6 +93,7 @@ export function LandingLojas({
     tema: config.tema,
     temaExpiraEm: config.temaExpiraEm,
     refSimulador: config.refSimulador,
+    oferta: config.oferta,
     assets: {
       logo: logoApp.src,
       qr: QR_BY_SLUG[config.slug].src,

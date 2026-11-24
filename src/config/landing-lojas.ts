@@ -1,7 +1,8 @@
 /**
  * Landings de loja do Agenda Bela: a visitante vai direto para a loja do
  * aparelho, sem cadastro na web. A Black Friday é a mesma página com o tema
- * por cima (src/app/agendabela/_lojas).
+ * por cima; a Oferta Agenda Bela é a mesma página com os blocos da oferta
+ * (src/app/agendabela/_lojas).
  */
 
 /**
@@ -14,7 +15,52 @@
  */
 export const BLACK_FRIDAY_THEME_ENDS_AT = "2026-12-01T00:00:00-03:00";
 
-export type LandingLojasSlug = "app-para-salao-de-beleza" | "black-friday";
+/**
+ * Oferta Agenda Bela (/agendabela/oferta): desconto nos primeiros meses para
+ * quem assina pela primeira vez, pelo app. O desconto é configurado nas lojas
+ * (App Store e Google Play); a página só anuncia.
+ *
+ * ÚNICO lugar dos valores. Todo preço, prazo e economia da página saem daqui
+ * (markup.ts, faq-oferta.ts e a metadata da rota); nenhum é escrito à mão.
+ * Para trocar o valor, mude só `precoPromoCentavos`: a economia é calculada
+ * (economiaDaOfertaCentavos) e o teste de config confere que o preço continua
+ * batendo com o percentual anunciado.
+ *
+ * `precoPromoCentavos` é PROVISÓRIO (R$ 29,95 = metade de R$ 59,90): falta o
+ * valor exato cadastrado nas lojas.
+ */
+export const OFERTA_AGENDA_BELA = {
+  /** Preço normal da assinatura, por mês. */
+  precoCheioCentavos: 5990,
+  /** Preço por mês durante a oferta. */
+  precoPromoCentavos: 2995,
+  /** Quantos meses o preço promocional vale. */
+  meses: 3,
+  /** Percentual anunciado ("50% nos 3 primeiros meses"). */
+  percentual: 50,
+} as const satisfies OfertaConfig;
+
+export type OfertaConfig = {
+  precoCheioCentavos: number;
+  precoPromoCentavos: number;
+  meses: number;
+  percentual: number;
+};
+
+/** Quanto a assinante deixa de pagar se ficar todos os meses da oferta. */
+export function economiaDaOfertaCentavos(oferta: OfertaConfig): number {
+  return (oferta.precoCheioCentavos - oferta.precoPromoCentavos) * oferta.meses;
+}
+
+/** 2995 vira "29,95" (sem o "R$": cada lugar decide o espaço que usa). */
+export function formatarCentavos(centavos: number): string {
+  return (centavos / 100).toFixed(2).replace(".", ",");
+}
+
+export type LandingLojasSlug =
+  | "app-para-salao-de-beleza"
+  | "black-friday"
+  | "oferta";
 
 export type LandingLojasConfig = {
   /** Último trecho da rota; é o landing_slug de todo evento da página. */
@@ -25,6 +71,8 @@ export type LandingLojasConfig = {
   temaExpiraEm?: number;
   /** Prefixo do ?ref= nos links para o simulador (ex.: ref=app_hero). */
   refSimulador: string;
+  /** Liga os blocos e textos da oferta. Independente do tema visual. */
+  oferta?: OfertaConfig;
 };
 
 export const LANDING_LOJAS = {
@@ -40,6 +88,13 @@ export const LANDING_LOJAS = {
     tema: "bf",
     temaExpiraEm: Date.parse(BLACK_FRIDAY_THEME_ENDS_AT),
     refSimulador: "bf",
+  },
+  oferta: {
+    slug: "oferta",
+    path: "/agendabela/oferta",
+    tema: "padrao",
+    refSimulador: "oferta",
+    oferta: OFERTA_AGENDA_BELA,
   },
 } as const satisfies Record<string, LandingLojasConfig>;
 

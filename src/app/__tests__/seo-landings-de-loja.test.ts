@@ -3,8 +3,10 @@ import path from "path";
 import sitemap from "../sitemap";
 import { metadata as appParaSalaoMetadata } from "../agendabela/app-para-salao-de-beleza/page";
 import { metadata as blackFridayMetadata } from "../agendabela/black-friday/page";
+import { metadata as ofertaMetadata } from "../agendabela/oferta/page";
 import nextConfig, {
   BLACK_FRIDAY_REDIRECT_ATIVO,
+  OFERTA_REDIRECT_ATIVO,
   buildRedirects,
 } from "../../../next.config";
 
@@ -20,11 +22,16 @@ describe("sitemap", () => {
   it("deixa a Black Friday de fora", () => {
     expect(urls.join("\n")).not.toContain("black-friday");
   });
+
+  it("deixa a Oferta Agenda Bela de fora", () => {
+    expect(urls.join("\n")).not.toContain("oferta");
+  });
 });
 
 describe.each([
   ["app-para-salao-de-beleza", appParaSalaoMetadata],
   ["black-friday", blackFridayMetadata],
+  ["oferta", ofertaMetadata],
 ] as const)("metadata de /agendabela/%s", (slug, metadata) => {
   const title = (metadata.title as { absolute: string }).absolute;
   const description = metadata.description as string;
@@ -101,6 +108,49 @@ describe("indexação de cada rota", () => {
       /o preço é um só|preço de sempre|59,99|7 dias|grátis|desconto|oferta|promo|% ?off/i,
     );
     expect(texto).toContain("R$ 59,90");
+  });
+});
+
+describe("Oferta Agenda Bela: página de campanha", () => {
+  const texto = `${JSON.stringify(ofertaMetadata.title)} ${ofertaMetadata.description}`;
+
+  it("é noindex, com o nome fechado no title", () => {
+    expect(ofertaMetadata.robots).toEqual({ index: false });
+    expect(ofertaMetadata.title).toEqual({
+      absolute: "Oferta Agenda Bela: 50% nos 3 primeiros meses",
+    });
+  });
+
+  it("title e description não levam valor em reais, data nem promessa fora da oferta", () => {
+    expect(texto).not.toMatch(
+      /R\$|grátis|59,99|black friday|boas-vindas|até (o dia )?\d|janeiro|dezembro|\d{1,2}\/\d{1,2}/i,
+    );
+    expect(texto).toContain("7 dias, sem cartão");
+  });
+
+  it("redirect de encerramento está pronto, mas não ativo", async () => {
+    expect(OFERTA_REDIRECT_ATIVO).toBe(false);
+    const redirects = await nextConfig.redirects!();
+    expect(redirects.map((r) => r.source)).not.toContain("/agendabela/oferta");
+  });
+
+  it("quando ligado, é temporário (307), leva para a landing de loja padrão e não liga o da Black Friday", () => {
+    const redirects = buildRedirects(false, true);
+    expect(redirects).toContainEqual({
+      source: "/agendabela/oferta",
+      destination: "/agendabela/app-para-salao-de-beleza",
+      permanent: false,
+      basePath: false,
+    });
+    expect(redirects.map((r) => r.source)).toEqual([
+      "/agendabela",
+      "/agendabela/oferta",
+    ]);
+    // E o da Black Friday sozinho não liga o da oferta.
+    expect(buildRedirects(true).map((r) => r.source)).toEqual([
+      "/agendabela",
+      "/agendabela/black-friday",
+    ]);
   });
 });
 
