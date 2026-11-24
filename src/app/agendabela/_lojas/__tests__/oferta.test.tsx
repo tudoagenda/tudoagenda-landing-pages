@@ -226,10 +226,10 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
       "Mais de 2 mil avisos enviados às clientes pelo WhatsApp",
     );
     expect(texto(prova?.querySelector("blockquote"))).toBe(
-      "“…Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.”",
+      "“Sou manicure e estava procurando uma forma mais prática de organizar meus horários…”",
     );
     expect(texto(prova?.querySelector("figcaption"))).toBe(
-      "Tatiane C., avaliação no Google Play, set/2026",
+      "Cintia, avaliação na App Store, set/2026",
     );
     // A palavra é "avisos": o número soma confirmações e lembretes.
     expect(texto(prova)).not.toMatch(/lembretes/);

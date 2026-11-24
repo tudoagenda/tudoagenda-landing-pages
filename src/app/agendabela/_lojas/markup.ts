@@ -234,14 +234,15 @@ function blocoMicroOferta(p: LojasMarkupParams, o: OfertaConfig): string {
 }
 
 /**
- * Prova perto do botão: número de uso (config, com fonte e data) e uma
- * avaliação curta (o trecho começa no meio do texto da loja: por isso o "…").
+ * Prova perto do botão: número de uso (config, com fonte e data) e o começo
+ * de uma avaliação da loja, a mesma das outras landings (é o início literal
+ * do texto, com a profissão: o "…" fica só no fim, onde o trecho é cortado).
  * Nota e número de avaliações das lojas não entram.
  */
 function blocoProva(): string {
   return `<div class="prova">
         <p class="prova-num"><b>${avisosEnviadosEmTexto(OFERTA_PROVA_DE_USO.avisosEnviados)}</b> enviados às clientes pelo WhatsApp</p>
-        <figure><blockquote>&ldquo;…Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.&rdquo;</blockquote><figcaption>Tatiane C., avaliação no Google Play, set/2026</figcaption></figure>
+        <figure><blockquote>&ldquo;Sou manicure e estava procurando uma forma mais prática de organizar meus horários…&rdquo;</blockquote><figcaption>Cintia, avaliação na App Store, set/2026</figcaption></figure>
       </div>`;
 }
 
