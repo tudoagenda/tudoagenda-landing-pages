@@ -213,6 +213,13 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     expect(marca?.querySelector("img")?.getAttribute("alt")).toBe("");
   });
 
+  it("o ícone do app é ampliado: o desenho ocupa menos da metade do PNG", () => {
+    const css = fs.readFileSync(path.join(__dirname, "../oferta.css"), "utf8");
+    expect(css).toMatch(
+      /#lp\[data-oferta\] \.hdr img\{[^}]*transform:scale\(1\.7\);transform-origin:center\}/,
+    );
+  });
+
   it("prova perto do botão: número de uso da config e uma avaliação curta", () => {
     const prova = doc.querySelector(".prova");
     expect(texto(prova?.querySelector(".prova-num"))).toBe(

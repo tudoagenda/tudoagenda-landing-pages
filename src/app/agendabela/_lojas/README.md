@@ -45,7 +45,10 @@ pela web.
   `src/config/landing-lojas.ts` (preço cheio, preço promocional, meses e
   percentual, em centavos). Para trocar o valor, mude `precoPromoCentavos`: a
   economia é calculada e o teste da config confere que o preço bate com o
-  percentual. Nenhum valor é escrito à mão em `markup.ts` nem em
+  percentual. **Os testes de valor travam o preço publicado de propósito e
+  precisam ser atualizados junto** (`src/config/__tests__/landing-lojas.test.ts`
+  e `_lojas/__tests__/oferta.test.tsx`): trocar só a config deixa a suíte
+  vermelha, que é o aviso de que o preço mudou. Nenhum valor é escrito à mão em `markup.ts` nem em
   `faq-oferta.ts` (o teste `oferta.test.tsx` troca a config e procura sobras).
 - **Sem data**: a página não diz quando a oferta acaba. Para encerrar:
   `OFERTA_REDIRECT_ATIVO = true` em `next.config.ts`, deploy e invalidação de

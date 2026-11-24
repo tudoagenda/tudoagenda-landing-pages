@@ -158,7 +158,11 @@
 /* ---------- bloco 4: ajustes de 24/11/2026 (por cima do protótipo) ---------- */
 /* Marca: ícone do app e "Agenda Bela" escrito, na primeira tela. */
 #lp[data-oferta] .hdr{height:44px;gap:10px}
-#lp[data-oferta] .hdr img{width:44px;height:44px;border-radius:10px}
+/* O desenho ocupa só ~43% da largura do PNG (o resto é transparente): a
+   ampliação é o que o deixa do tamanho do protótipo (~32 px no celular, ~41 px
+   no computador). É transform: não muda a caixa, não empurra o nome nem a
+   altura da primeira tela. */
+#lp[data-oferta] .hdr img{width:44px;height:44px;border-radius:10px;object-fit:cover;transform:scale(1.7);transform-origin:center}
 #lp[data-oferta] .marca{display:flex;flex-direction:column;justify-content:center}
 #lp[data-oferta] .marca-nome{font:700 17px/20px var(--inter);color:var(--petro)}
 #lp[data-oferta] .hdr .mono{line-height:14px}
