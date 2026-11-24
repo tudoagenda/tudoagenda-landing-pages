@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
+import {
+  APP_STORE_URL,
+  GOOGLE_PLAY_BASE_URL,
+  appStoreUrl,
+} from "@/config/app-stores";
 import {
   LANDING_LOJAS,
   OFERTA_AGENDA_BELA,
@@ -50,7 +54,7 @@ const doc = dom(html);
 describe("Oferta Agenda Bela: valores vêm da config", () => {
   it("mostra de R$ 59,90 por R$ 29,95 nos 3 primeiros meses e a economia de R$ 89,85", () => {
     expect(texto(doc.querySelector(".ofr"))).toBe(
-      "Oferta Agenda Bela−50% em vez deR$ 59,90R$ 29,95 por mês nos 3 primeiros meses. Depois, R$ 59,90 por mês.",
+      "em vez deR$ 59,90−50% R$ 29,95por mês nos 3 primeiros meses",
     );
     expect(texto(doc.querySelector(".of-was"))).toBe("Em vez de R$ 59,90 por mês");
     expect(texto(doc.getElementById("oferta-titulo"))).toBe(
@@ -74,21 +78,28 @@ describe("Oferta Agenda Bela: valores vêm da config", () => {
     const outra: OfertaConfig = {
       precoCheioCentavos: 6490,
       precoPromoCentavos: 3190,
-      meses: 4,
+      meses: 5,
       percentual: 51,
     };
     const htmlOutra = markup(OFERTA, outra);
     // Nenhum valor da oferta atual sobra (R$ 20,00 e R$ 59,90 dos mocks não contam:
     // o preço cheio também some).
-    expect(htmlOutra).not.toMatch(/29,95|89,85|59,90|50%|3 primeiros|3 meses|4º mês/);
+    expect(htmlOutra).not.toMatch(
+      /29,95|89,85|59,90|50%|3 primeiros|3 meses|3º mês|4º mês|metade/,
+    );
     expect(htmlOutra).toContain("R$&nbsp;31,90");
     expect(htmlOutra).toContain("R$&nbsp;64,90");
-    // (64,90 − 31,90) × 4
+    // (64,90 − 31,90) × 5
     expect(texto(dom(htmlOutra).querySelector(".of-eco"))).toBe(
-      "Você economiza R$ 132,00 se ficar os 4 meses.",
+      "Você economiza R$ 165,00 se ficar os 5 meses.",
     );
-    expect(htmlOutra).toContain("Do 5º mês em diante");
+    expect(htmlOutra).toContain("Do 6º mês em diante");
+    expect(htmlOutra).toContain("Depois do 5º mês, R$&nbsp;64,90 por mês.");
     expect(htmlOutra).toContain("&minus;51%");
+    expect(htmlOutra).toContain("7 dias grátis · depois 51% off");
+    // "metade do preço" só existe com 50%; com outro percentual vira o número.
+    expect(htmlOutra).toContain("(51% de desconto)");
+    expect(html).toContain("(metade do preço)");
   });
 
   it("todo valor em reais tem espaço que não quebra entre R$ e o número", () => {
@@ -102,14 +113,18 @@ describe("Oferta Agenda Bela: valores vêm da config", () => {
       "Oferta Agenda Bela: em vez de R$ 59,90 por mês, R$ 29,95 por mês nos 3 primeiros meses. Depois, volta a R$ 59,90 por mês. Ver os detalhes.",
     );
     expect(doc.getElementById("faixa")?.getAttribute("aria-label")).toBe(
-      "Oferta Agenda Bela: 50% nos 3 primeiros meses. Ver a oferta.",
+      "Oferta Agenda Bela: 50% de desconto nos 3 primeiros meses. Ver a oferta.",
+    );
+    expect(texto(doc.getElementById("faixa"))).toBe(
+      "Oferta Agenda Bela · 50% de desconto",
     );
   });
 });
 
 describe("Oferta Agenda Bela: o que a página não pode dizer", () => {
   it.each([
-    ["grátis", /gr[áa]tis|gratuit/i],
+    ["secretária (atrai candidata a emprego)", /secret[áa]ria/i],
+    ["nota ou número de avaliações das lojas", /nota \d|\d[,.]\d (na|no) |\d+ avalia[çc][õo]es|estrelas|★/i],
     ["preço do Google Play", /59,99/],
     ["Black Friday", /black\s*friday/i],
     ["boas-vindas", /boas[- ]vindas/i],
@@ -159,7 +174,7 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     ]);
   });
 
-  it("hero: subtítulo, cartão, chamada, botão da loja, apoio e público, nessa ordem", () => {
+  it("hero: marca, o que é o produto, a dor, o preço, o botão da loja e a condição, nessa ordem", () => {
     expect(
       [...doc.querySelectorAll(".hero-txt > *")].map((el) => el.id || el.className),
     ).toEqual([
@@ -167,20 +182,74 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
       "slot-eyebrow",
       "", // h1
       "sub",
+      "dor",
       "ofr",
-      "cta-t",
       "cta-hero",
       "micro",
       "audience",
+      "prova",
     ]);
-    expect(texto(doc.querySelector("h1"))).toBe("Pode atender tranquila.");
-    expect(texto(doc.querySelector(".sub"))).toBe(
-      "Eu lembro suas clientes do horário e te conto quem confirmou.",
-    );
-    expect(texto(doc.querySelector(".cta-t"))).toBe(
-      "Baixe o app e teste 7 dias, sem cartão",
-    );
     expect(doc.querySelectorAll("h1")).toHaveLength(1);
+    expect(texto(doc.querySelector("h1"))).toBe(
+      "O app que lembra suas clientes e cobra o sinal no Pix",
+    );
+    expect(texto(doc.querySelector(".sub"))).toBe("Pode atender tranquila.");
+    expect(texto(doc.querySelector(".dor"))).toBe(
+      "Cliente que falta é horário vazio. Eu lembro cada uma e te conto quem confirmou.",
+    );
+    expect(texto(doc.getElementById("slot-eyebrow"))).toBe(
+      "Feito para salão de beleza",
+    );
+  });
+
+  it("a marca aparece escrita ao lado do ícone, sem o leitor de tela repetir o nome", () => {
+    const marca = doc.querySelector(".hdr");
+    expect(texto(marca)).toBe("Agenda Belapor Tudo Agenda");
+    expect(marca?.querySelector("img")?.getAttribute("alt")).toBe("");
+  });
+
+  it("prova perto do botão: número de uso da config e uma avaliação curta", () => {
+    const prova = doc.querySelector(".prova");
+    expect(texto(prova?.querySelector(".prova-num"))).toBe(
+      "Mais de 2 mil avisos enviados às clientes pelo WhatsApp",
+    );
+    expect(texto(prova?.querySelector("blockquote"))).toBe(
+      "“Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.”",
+    );
+    expect(texto(prova?.querySelector("figcaption"))).toBe(
+      "Tatiane C., avaliação no Google Play, set/2026",
+    );
+    // A palavra é "avisos": o número soma confirmações e lembretes.
+    expect(texto(prova)).not.toMatch(/lembretes/);
+  });
+
+  it("avaliações: os dois trechos marcam o corte no início e no fim", () => {
+    const trechos = [...doc.querySelectorAll(".rev blockquote")].map(texto);
+    expect(trechos).toHaveLength(2);
+    for (const trecho of trechos) expect(trecho).toMatch(/^….*…$/);
+  });
+
+  it("apoio: Santander X com o contexto escrito, cada logo com o seu rótulo", () => {
+    expect(
+      [...doc.querySelectorAll(".trust .apoio")].map(
+        (el) => `${texto(el.querySelector(".mono"))} ${el.querySelector("img")?.getAttribute("alt")}`,
+      ),
+    ).toEqual(["Selecionado pelo Santander X", "Apoiado por Founders Club"]);
+  });
+
+  it("pontes: a demonstração tem título e o bloco de preço tem chamada", () => {
+    expect(texto(doc.querySelector("#hero-stage .demo-tit"))).toBe(
+      "Veja como é, em 6 passos",
+    );
+    expect(texto(doc.querySelector("#preco .of-ponte"))).toBe(
+      "Gostou? Veja quanto custa.",
+    );
+    // No celular a demonstração vem antes do bloco de preço grande.
+    const stage = doc.getElementById("hero-stage") as Element;
+    const preco = doc.getElementById("preco") as Element;
+    expect(
+      stage.compareDocumentPosition(preco) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("faixa, cartão e link das perguntas levam a âncoras que existem", () => {
@@ -203,29 +272,37 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     );
   });
 
-  it("apoio do botão muda com o aparelho; sem JavaScript vale o texto neutro", () => {
-    const apoio = (dev: string) =>
+  it("linha de condição do botão: uma só, igual em todo aparelho", () => {
+    const linha = (dev: string) =>
       texto(doc.querySelector(`#micro [data-dev="${dev}"] .micro`));
-    expect(apoio("ios")).toBe(
-      "7 dias de teste, sem cartão. Se gostar e assinar, a App Store cobra na hora os R$ 29,95 (já com o desconto) e, depois dos 3 meses, R$ 59,90 por mês.",
-    );
-    expect(apoio("android")).toBe(
-      "Teste 7 dias sem cartão. Ao assinar, a loja cobra R$ 29,95 por mês nos 3 primeiros meses; depois, R$ 59,90 por mês.",
-    );
-    expect(apoio("desktop")).toBe(apoio("nojs"));
-    expect(apoio("nojs")).toBe(
-      "Teste 7 dias sem cartão. Ao assinar pelo app, os 3 primeiros meses saem por R$ 29,95 por mês; depois, R$ 59,90 por mês.",
-    );
+    for (const dev of ["ios", "android", "desktop", "nojs"]) {
+      expect(linha(dev)).toBe(
+        "7 dias sem cartão. Depois do 3º mês, R$ 59,90 por mês. Cancele quando quiser.",
+      );
+    }
+    // No celular é só a linha; no computador e sem JS, mais o link do simulador.
+    expect(doc.querySelectorAll('#micro [data-dev="ios"] p')).toHaveLength(1);
+    expect(doc.querySelectorAll('#micro [data-dev="desktop"] a[data-sim]')).toHaveLength(1);
     // Nenhum bloco de aparelho depende de JS para deixar de estar "hidden".
     expect(doc.querySelectorAll("[data-dev][hidden]")).toHaveLength(0);
   });
 
-  it("CTA fixo do celular: selo da loja e a linha do teste, sem preço", () => {
+  it("como cada loja cobra fica no bloco de preço: mensal, por aparelho", () => {
+    const caixa = doc.querySelector(".of-cond");
+    expect(texto(caixa?.querySelector('[data-dev="ios"]'))).toBe(
+      "Na App Store, a cobrança é mensal: R$ 29,95 todo mês nos 3 primeiros meses.",
+    );
+    expect(texto(caixa?.querySelector('[data-dev="android"]'))).toBe(
+      "No Google Play, a cobrança também é mensal: R$ 29,95 todo mês nos 3 primeiros meses.",
+    );
+  });
+
+  it("CTA fixo do celular: selo da loja e a linha do Carlos, com o percentual da config", () => {
     const fixo = doc.getElementById("cta-fixo");
     expect(fixo?.hasAttribute("hidden")).toBe(true);
     expect([...(fixo?.querySelectorAll("small") ?? [])].map(texto)).toEqual([
-      "Teste 7 dias, sem cartão",
-      "Teste 7 dias, sem cartão",
+      "7 dias grátis · depois 50% off",
+      "7 dias grátis · depois 50% off",
     ]);
   });
 
@@ -233,9 +310,13 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     const lojas = [...doc.querySelectorAll<HTMLAnchorElement>("a[data-store]")];
     expect(lojas.length).toBeGreaterThan(15);
     for (const a of lojas) {
+      // App Store já sai do servidor com a campanha padrão (ct=oferta).
       expect(a.getAttribute("href")).toBe(
-        a.dataset.store === "app_store" ? APP_STORE_URL : GOOGLE_PLAY_BASE_URL,
+        a.dataset.store === "app_store"
+          ? `${APP_STORE_URL}?ct=oferta`
+          : GOOGLE_PLAY_BASE_URL,
       );
+      expect(appStoreUrl("oferta")).toBe(`${APP_STORE_URL}?ct=oferta`);
     }
     for (const dev of ["ios", "android"]) {
       const esperado = dev === "ios" ? "app_store" : "google_play";
@@ -282,10 +363,10 @@ describe("Oferta Agenda Bela: perguntas", () => {
     const resposta = (dev: string) =>
       texto(itens[3].querySelector(`[data-dev="${dev}"]`));
     expect(resposta("ios")).toBe(
-      "Sim. Primeiro você testa 7 dias, sem cartão e sem pagar nada. Quando decidir assinar, a App Store cobra na hora R$ 29,95, já com o desconto, e esse preço vale por 3 meses.",
+      "Sim. Primeiro você testa 7 dias, sem cartão e sem pagar nada. Quando decidir assinar, a App Store cobra na hora o primeiro mês: R$ 29,95. É R$ 29,95 por mês durante 3 meses, uma cobrança por mês, não tudo de uma vez. Do 4º mês em diante, R$ 59,90 por mês.",
     );
     expect(resposta("android")).toBe(
-      "Sim. Os 7 dias sem cartão continuam, e, ao assinar, os 3 primeiros meses saem pela metade.",
+      "Sim. Os 7 dias sem cartão continuam. Ao assinar, você paga R$ 29,95 por mês nos 3 primeiros meses (metade do preço) e, depois, R$ 59,90 por mês.",
     );
     expect(resposta("desktop")).toBe(
       "Os 7 dias sem cartão continuam. Ao assinar pelo app, o desconto vale nos 3 primeiros meses.",
@@ -318,15 +399,15 @@ describe("Oferta Agenda Bela: SEO da página de campanha", () => {
 });
 
 describe("as outras landings de loja não mudam com a oferta", () => {
+  /* O HTML inteiro de cada uma, como estava em main antes da oferta (aa8a467).
+     Qualquer mudança aqui é mudança de texto ou de estrutura em página que
+     não é a da oferta: só atualize o snapshot se for de propósito. */
   it.each([LANDING_LOJAS.appParaSalaoDeBeleza, LANDING_LOJAS.blackFriday])(
-    "$slug: nenhum bloco, classe ou texto da oferta",
+    "$slug: HTML do servidor idêntico ao de antes",
     (config) => {
       const outra = markup(config);
-      expect(outra).not.toMatch(
-        /data-oferta|class="ofr|of-card|class="tl|cta-t|id="faixa"|id="faq"|29,95|89,85|metade|desconto|Oferta Agenda Bela|Seu celular/,
-      );
-      expect(outra).toContain("7 dias grátis");
-      expect(outra).toContain("Celular da Paula");
+      expect(outra).toMatchSnapshot();
+      expect(outra).not.toMatch(/data-oferta|Oferta Agenda Bela/);
     },
   );
 });

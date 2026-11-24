@@ -52,6 +52,17 @@ pela web.
   `/agendabela/oferta*` no CloudFront.
 - **Medição**: os mesmos eventos e `cta_location` das outras rotas, com
   `landing_slug: "oferta"`.
+- **Link da App Store com campanha**: só nesta rota o link leva `?ct=`
+  (`buildAppStoreCampaign`: a `utm_campaign` da sessão, ou `oferta` quando a
+  visita chega sem origem). Sem provider token (`pt`) o App Analytics não
+  atribui a instalação; o `ct` fica pronto para quando o `pt` existir.
+- **Número de uso** ("Mais de 2 mil avisos…"): `OFERTA_PROVA_DE_USO` na
+  config, com fonte e data. Nota e número de avaliações das lojas não entram.
+- **Primeira tela**: o texto e a ordem do topo seguem os ajustes de
+  24/11/2026 (nota 14 da campanha), por cima do protótipo; o botão da loja
+  tem que caber na primeira tela em 320×568 e 375×667. As outras landings de
+  loja não mudam: `oferta.test.tsx` compara o HTML inteiro delas com o de
+  antes.
 
 ## Fim da Black Friday
 

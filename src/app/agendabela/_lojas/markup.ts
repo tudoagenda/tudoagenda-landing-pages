@@ -13,6 +13,7 @@ import {
   APP_STORE_URL,
   GOOGLE_PLAY_BASE_URL,
   STORE_BADGES,
+  appStoreUrl,
 } from "@/config/app-stores";
 import { LOJAS_FAQ } from "./faq";
 import { buildOfertaFaq } from "./faq-oferta";
@@ -21,6 +22,8 @@ import {
   SUPPORT_WHATSAPP_URL,
 } from "@/config/company";
 import {
+  OFERTA_PROVA_DE_USO,
+  avisosEnviadosEmTexto,
   economiaDaOfertaCentavos,
   formatarCentavos,
   type OfertaConfig,
@@ -83,13 +86,20 @@ function variante(p: LojasMarkupParams, padrao: string, tema: string): string {
  * (novaAba). O runtime troca o href da Play pelo link com a origem da sessão.
  */
 function selo(
+  p: LojasMarkupParams,
   store: "app_store" | "google_play",
   className = "",
   novaAba = false,
 ): string {
+  /* Na oferta o link da App Store leva a campanha (ct) padrão já no HTML do
+     servidor; o runtime troca pela da sessão. Nas outras landings, link puro. */
   const badge =
     store === "app_store"
-      ? { href: APP_STORE_URL, cls: "as", ...STORE_BADGES.appStore }
+      ? {
+          href: p.oferta ? appStoreUrl(p.slug) : APP_STORE_URL,
+          cls: "as",
+          ...STORE_BADGES.appStore,
+        }
       : { href: GOOGLE_PLAY_BASE_URL, cls: "gp", ...STORE_BADGES.googlePlay };
   return (
     `<a${className ? ` class="${className}"` : ""} href="${atributo(badge.href)}" data-store="${store}"` +
@@ -106,12 +116,12 @@ function selo(
  */
 function blocoCta(p: LojasMarkupParams, local: "hero" | "preco" | "final"): string {
   return `<div class="cta"${local === "hero" ? ' id="cta-hero"' : ""} data-loc="${local}">
-        <div data-dev="ios">${selo("app_store", "storecard")}</div>
-        <div data-dev="android">${selo("google_play", "storecard")}</div>
+        <div data-dev="ios">${selo(p, "app_store", "storecard")}</div>
+        <div data-dev="android">${selo(p, "google_play", "storecard")}</div>
         <div data-dev="desktop" data-loc="${local}_selo"><div class="dt"><p class="dt-tit">Baixe no seu celular</p><div class="dt-row">
-          <div class="dt-badges">${selo("app_store", "", true)}${selo("google_play", "", true)}</div>
+          <div class="dt-badges">${selo(p, "app_store", "", true)}${selo(p, "google_play", "", true)}</div>
           <div class="dt-qr"><img src="${p.assets.qr}" width="116" height="116" alt="QR code que abre esta página no celular"><p>Aponte a câmera do celular e abra a loja.</p></div></div></div></div>
-        <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo("app_store")}${selo("google_play")}</div></div>
+        <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo(p, "app_store")}${selo(p, "google_play")}</div></div>
       </div>`;
 }
 
@@ -154,19 +164,19 @@ function blocoFaq(p: LojasMarkupParams): string {
   ).join("\n");
 }
 
-function seloRodape(): string {
-  return `<div class="foot-badges" data-loc="rodape_selo">${selo("app_store")}${selo("google_play")}</div>`;
+function seloRodape(p: LojasMarkupParams): string {
+  return `<div class="foot-badges" data-loc="rodape_selo">${selo(p, "app_store")}${selo(p, "google_play")}</div>`;
 }
 
 /** CTA fixo do celular: o runtime mostra quando o CTA do hero sai da tela. */
 function blocoFixo(p: LojasMarkupParams): string {
   const apoio = p.oferta
-    ? "Teste 7 dias, sem cartão"
+    ? `7 dias grátis · depois ${p.oferta.percentual}% off`
     : "7 dias grátis · depois R$&nbsp;59,90/mês";
   return `<div class="sticky" id="cta-fixo" data-loc="sticky_mobile" hidden>
   <div class="sticky-slot">
-    <div data-dev="ios">${selo("app_store", "storecard")}</div>
-    <div data-dev="android">${selo("google_play", "storecard")}</div>
+    <div data-dev="ios">${selo(p, "app_store", "storecard")}</div>
+    <div data-dev="android">${selo(p, "google_play", "storecard")}</div>
   </div>
   <small data-dev="ios">${apoio}</small>
   <small data-dev="android">${apoio}</small>
@@ -200,38 +210,67 @@ const reaisFalado = (centavos: number) => `R$ ${formatarCentavos(centavos)}`;
 
 /** Faixa do topo: leva ao bloco de preço. */
 function faixaOferta(o: OfertaConfig): string {
-  const chamada = `${o.percentual}% nos ${o.meses} primeiros meses`;
-  return `<a class="ribbon" id="faixa" href="#preco" aria-label="Oferta Agenda Bela: ${chamada}. Ver a oferta."><i aria-hidden="true"></i><span>Oferta Agenda Bela · ${chamada}</span></a>`;
+  return `<a class="ribbon" id="faixa" href="#preco" aria-label="Oferta Agenda Bela: ${o.percentual}% de desconto nos ${o.meses} primeiros meses. Ver a oferta."><i aria-hidden="true"></i><span>Oferta Agenda Bela · ${o.percentual}% de desconto</span></a>`;
 }
 
-/** Cartão escuro do hero: o preço de/por já na primeira tela. */
+/**
+ * Cartão escuro do hero, enxuto: de/por e o prazo em uma faixa só, para o
+ * botão da loja caber na primeira tela do celular pequeno. O que vem depois
+ * dos meses da oferta fica na linha de condição, abaixo do botão.
+ */
 function cartaoOferta(o: OfertaConfig): string {
   const cheio = reaisFalado(o.precoCheioCentavos);
   return `<a class="ofr" href="#preco" aria-label="Oferta Agenda Bela: em vez de ${cheio} por mês, ${reaisFalado(o.precoPromoCentavos)} por mês nos ${o.meses} primeiros meses. Depois, volta a ${cheio} por mês. Ver os detalhes.">
-        <span class="ofr-top"><span class="ofr-pill">Oferta Agenda Bela</span><span class="ofr-stk" aria-hidden="true">&minus;${o.percentual}%</span></span>
-        <span class="ofr-row" aria-hidden="true"><span class="ofr-old"><small>em vez de</small><b>${reais(o.precoCheioCentavos)}</b></span><span class="ofr-new"><i>R$</i>&nbsp;${formatarCentavos(o.precoPromoCentavos)}</span></span>
-        <span class="ofr-cap" aria-hidden="true">por mês nos ${o.meses} primeiros meses. Depois, ${reais(o.precoCheioCentavos)} por mês.</span>
+        <span class="ofr-top" aria-hidden="true"><span class="ofr-old"><small>em vez de</small><b>${reais(o.precoCheioCentavos)}</b></span><span class="ofr-stk">&minus;${o.percentual}%</span></span>
+        <span class="ofr-row" aria-hidden="true"><span class="ofr-new"><i>R$</i>&nbsp;${formatarCentavos(o.precoPromoCentavos)}</span><span class="ofr-cap">por mês nos ${o.meses} primeiros meses</span></span>
       </a>`;
 }
 
-/** Linha de apoio do CTA do hero: como a cobrança começa em cada loja. */
+/**
+ * Linha de condição do CTA do hero: uma só, igual em todo aparelho. O detalhe
+ * de como cada loja cobra fica no bloco de preço e nas perguntas.
+ */
 function blocoMicroOferta(p: LojasMarkupParams, o: OfertaConfig): string {
-  const cheio = reais(o.precoCheioCentavos);
-  const promo = reais(o.precoPromoCentavos);
-  const semAparelho = `<p class="micro">Teste 7 dias sem cartão. Ao assinar pelo app, os ${o.meses} primeiros meses saem por ${promo} por mês; depois, ${cheio} por mês.</p><p class="micro">${linkSimulador(p, "hero", "Prefere ver antes? Teste o app sem cadastro →")}</p>`;
+  const condicao = `<p class="micro">7 dias sem cartão. Depois do ${o.meses}º mês, ${reais(o.precoCheioCentavos)} por mês. Cancele quando quiser.</p>`;
+  const simulador = `<p class="micro">${linkSimulador(p, "hero", "Prefere ver antes? Teste o app sem cadastro →")}</p>`;
   return `<div id="micro">
-        <div data-dev="ios"><p class="micro">7 dias de teste, sem cartão. Se gostar e assinar, a App Store cobra na hora os ${promo} (já com o desconto) e, depois dos ${o.meses} meses, ${cheio} por mês.</p><p class="micro">Você abre a App Store, baixa o app e marca sua primeira cliente.</p></div>
-        <div data-dev="android"><p class="micro">Teste 7 dias sem cartão. Ao assinar, a loja cobra ${promo} por mês nos ${o.meses} primeiros meses; depois, ${cheio} por mês.</p><p class="micro">Você abre o Google Play, baixa o app e marca sua primeira cliente.</p></div>
-        <div data-dev="desktop">${semAparelho}</div>
-        <div data-dev="nojs">${semAparelho}</div>
+        <div data-dev="ios">${condicao}</div>
+        <div data-dev="android">${condicao}</div>
+        <div data-dev="desktop">${condicao}${simulador}</div>
+        <div data-dev="nojs">${condicao}${simulador}</div>
       </div>`;
+}
+
+/**
+ * Prova perto do botão: número de uso (config, com fonte e data) e uma
+ * avaliação curta. Nota e número de avaliações das lojas não entram.
+ */
+function blocoProva(): string {
+  return `<div class="prova">
+        <p class="prova-num"><b>${avisosEnviadosEmTexto(OFERTA_PROVA_DE_USO.avisosEnviados)}</b> enviados às clientes pelo WhatsApp</p>
+        <figure><blockquote>&ldquo;Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.&rdquo;</blockquote><figcaption>Tatiane C., avaliação no Google Play, set/2026</figcaption></figure>
+      </div>`;
+}
+
+/** Texto do hero da oferta: marca, o que é o produto, a dor, o preço e o botão da loja. */
+function heroTextoOferta(p: LojasMarkupParams, o: OfertaConfig): string {
+  return `      <div class="hdr"><img src="${p.assets.logo}" alt=""><div class="marca"><span class="marca-nome">Agenda Bela</span><span class="mono">por Tudo Agenda</span></div></div>
+      <span class="mono eyebrow" id="slot-eyebrow">Feito para salão de beleza</span>
+      <h1>O app que lembra suas clientes e cobra o sinal no Pix</h1>
+      <p class="sub">Pode atender tranquila.</p>
+      <p class="dor">Cliente que falta é horário vazio. Eu lembro cada uma e te conto quem confirmou.</p>
+      ${cartaoOferta(o)}
+${blocoCta(p, "hero")}
+${blocoMicro(p)}
+      <p class="audience">Para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais.</p>
+      ${blocoProva()}`;
 }
 
 /** Bloco de preço logo abaixo do hero: de/por, linha do tempo, economia e quem pode. */
 function blocoOferta(o: OfertaConfig): string {
   const cheio = reais(o.precoCheioCentavos);
   const promo = reais(o.precoPromoCentavos);
-  return `<section class="oferta" id="preco" aria-labelledby="oferta-titulo"><div class="wrap"><div class="of-card" id="oferta-card">
+  return `<section class="oferta" id="preco" aria-labelledby="oferta-titulo"><div class="wrap"><p class="of-ponte">Gostou? Veja quanto custa.</p><div class="of-card" id="oferta-card">
   <span class="ofr-pill of-pill">Oferta Agenda Bela</span>
   <p class="of-was">Em vez de <span class="of-oldp"><b>${cheio}</b></span> por mês</p>
   <h2 id="oferta-titulo"><span class="of-newp">${promo}</span><span class="of-per">por mês nos ${o.meses} primeiros meses.</span></h2>
@@ -245,6 +284,8 @@ function blocoOferta(o: OfertaConfig): string {
     <span class="mono">Quem pode</span>
     <p>Vale para quem assina o Agenda Bela pela primeira vez, pelo app. A oferta vale enquanto aparecer na tela da loja na hora de assinar. Passados os ${o.meses} meses, o valor volta para ${cheio} por mês e a cobrança continua todo mês, até você cancelar.</p>
     <p>Você cancela quando quiser, nos ajustes da App Store ou do Google Play. A tela da loja mostra o desconto antes de você assinar.</p>
+    <p data-dev="ios">Na App Store, a cobrança é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
+    <p data-dev="android">No Google Play, a cobrança também é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
   </div>
   <a class="of-link" href="#faq">Ver as perguntas sobre o <span style="white-space:nowrap">desconto <span aria-hidden="true">↓</span></span></a>
 </div></div></section>`;
@@ -274,7 +315,6 @@ export function buildLojasMarkup(p: LojasMarkupParams): string {
   /** Texto que muda na oferta (o tema Black Friday usa `variante`). */
   const t = (padrao: string, oferta: string) => (o ? oferta : padrao);
   const passos = o ? PASSOS_OFERTA : PASSOS_PADRAO;
-  const publico = `<p class="audience">Para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais.</p>`;
   /* Na oferta o rodapé não liga para a landing principal (como no protótipo):
      lá o cadastro é pela web, com outro preço e outro texto. */
   const linkLandingPrincipal = o
@@ -290,16 +330,16 @@ ${bf ? FAIXA : o ? faixaOferta(o) : ""}
 
   <div class="wrap hero-grid">
     <div class="hero-txt">
-      <div class="hdr"><img src="${p.assets.logo}" alt="Agenda Bela"><span class="mono">por Tudo Agenda</span></div>
+${o ? heroTextoOferta(p, o) : `      <div class="hdr"><img src="${p.assets.logo}" alt="Agenda Bela"><span class="mono">por Tudo Agenda</span></div>
       <span class="mono eyebrow" id="slot-eyebrow">A secretária do seu salão</span>
       <h1>Pode atender <em>tranquila.</em></h1>
-      <p class="sub">${t("A Bela lembra suas clientes e te conta quem confirmou. E tem sinal no Pix e o caixa do dia, no mesmo app.", "Eu lembro suas clientes do horário e te conto quem confirmou.")}</p>
-      ${o ? `${cartaoOferta(o)}\n      <p class="cta-t">Baixe o app e teste 7 dias, sem cartão</p>` : publico}
+      <p class="sub">A Bela lembra suas clientes e te conta quem confirmou. E tem sinal no Pix e o caixa do dia, no mesmo app.</p>
+      <p class="audience">Para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais.</p>
 ${blocoCta(p, "hero")}
-${blocoMicro(p)}${o ? `\n      ${publico}` : ""}
+${blocoMicro(p)}`}
     </div>
 
-    <div class="hero-art stage" id="hero-stage" aria-label="Demonstração animada do app, em 6 passos" role="group">${bf ? HALO : ""}
+    <div class="hero-art stage" id="hero-stage" aria-label="Demonstração animada do app, em 6 passos" role="group">${bf ? HALO : ""}${o ? `\n      <span class="mono demo-tit">Veja como é, em 6 passos</span>` : ""}
       <span class="chip-who" id="hero-quem">${t("Celular da Paula", "Seu celular")}</span>${bf ? TITULO_GIGANTE : ""}
       <div class="ph" id="hero-aparelho" aria-hidden="true" data-nosnippet><div class="scr">
         <div class="sc" data-n="1"><div class="sb"><span>14:31</span><i></i></div><div class="m-url"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg> agendabela · salao-estilo</div>
@@ -461,9 +501,8 @@ ${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
 <section class="price-sec" aria-labelledby="preco-titulo"><div class="wrap"><div class="price">
   <div>
     <span class="mono">Quanto custa</span>
-    ${o ? `<h2 id="preco-titulo">Comece com ${o.percentual}% nos ${o.meses} primeiros meses.</h2>
-    <p>Tudo que você viu aqui está incluso: ${reais(o.precoPromoCentavos)} por mês nos ${o.meses} primeiros meses e ${reais(o.precoCheioCentavos)} por mês depois. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>
-    <p class="small">O desconto vale uma vez por pessoa, para quem assina pela primeira vez.</p>` : `<h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
+    ${o ? `<h2 id="preco-titulo">Tudo que você viu aqui está incluso.</h2>
+    <p>Teste 7 dias, sem cartão, e decida. Cancele quando quiser. Os valores e as regras do desconto estão no começo desta página.</p>` : `<h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>`}
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
@@ -471,7 +510,7 @@ ${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
     <ol>
       <li><b>1</b><span>Baixe o app, iPhone ou Android.</span></li>
       <li><b>2</b><span>Cadastre seu salão e marque sua primeira cliente. Pense em quem vai ser: é com ela que a Bela começa a trabalhar.</span></li>
-      <li><b>3</b><span>Depois dos 7 dias, sua agenda continua lá para você consultar. Para seguir marcando, é só assinar pelo app${t(".", ": o desconto aparece na tela da loja, para quem tem direito.")}</span></li>
+      <li><b>3</b><span>Depois dos 7 dias, sua agenda continua lá para você consultar. Para seguir marcando, é só assinar pelo app${t(".", ". O desconto aparece na tela da loja, para quem assina pela primeira vez.")}</span></li>
     </ol>
 ${blocoCta(p, "preco")}
   </div>
@@ -480,15 +519,15 @@ ${blocoCta(p, "preco")}
 <section class="sec rev" aria-labelledby="avaliacoes-titulo"><div class="wrap">
   <div class="sec-head rv"><span class="mono">Quem já usa a Bela</span><h2 class="t" id="avaliacoes-titulo" style="max-width:22ch">Avaliações de quem já usa</h2></div>
   <div class="rgrid">
-    <figure class="rv"><span class="q" aria-hidden="true">&ldquo;</span><blockquote>Sou manicure e estava procurando uma forma mais prática de organizar meus horários. Está facilitando bastante minha rotina, principalmente nos dias mais corridos. Fácil de usar e bem organizado…</blockquote><figcaption><b>Cintia</b><span>App Store · set/2026</span></figcaption></figure>
-    <figure class="rv2"><span class="q" aria-hidden="true">&ldquo;</span><blockquote>Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos. É simples de mexer, rápido e tem tudo bem explicado…</blockquote><figcaption><b>Tatiane C.</b><span>Google Play · set/2026</span></figcaption></figure>
+    <figure class="rv"><span class="q" aria-hidden="true">&ldquo;</span><blockquote>${t("", "…")}Sou manicure e estava procurando uma forma mais prática de organizar meus horários. Está facilitando bastante minha rotina, principalmente nos dias mais corridos. Fácil de usar e bem organizado…</blockquote><figcaption><b>Cintia</b><span>App Store · set/2026</span></figcaption></figure>
+    <figure class="rv2"><span class="q" aria-hidden="true">&ldquo;</span><blockquote>${t("", "…")}Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos. É simples de mexer, rápido e tem tudo bem explicado…</blockquote><figcaption><b>Tatiane C.</b><span>Google Play · set/2026</span></figcaption></figure>
   </div>
   <p class="rev-link">${linkSimulador(p, "avaliacoes", "Veja o que a Bela faz na prática →")}</p>
 </div></section>
 
 <section class="trust"><div class="wrap"><div class="trust-in">
-  <span class="mono">Apoiado por</span>
-  <div class="logos"><img src="${p.assets.santanderX}" width="180" height="24" alt="Santander X" style="width:180px"><img src="${p.assets.foundersClub}" width="120" height="68" alt="Founders Club" style="width:120px"></div>
+  ${o ? `<div class="logos"><div class="apoio"><span class="mono">Selecionado pelo</span><img src="${p.assets.santanderX}" width="180" height="24" alt="Santander X" style="width:180px"></div><div class="apoio"><span class="mono">Apoiado por</span><img src="${p.assets.foundersClub}" width="120" height="68" alt="Founders Club" style="width:120px"></div></div>` : `<span class="mono">Apoiado por</span>
+  <div class="logos"><img src="${p.assets.santanderX}" width="180" height="24" alt="Santander X" style="width:180px"><img src="${p.assets.foundersClub}" width="120" height="68" alt="Founders Club" style="width:120px"></div>`}
 </div></div></section>
 
 <section class="sec faq"${t("", ' id="faq"')} aria-labelledby="faq-titulo"><div class="wrap">
@@ -500,7 +539,7 @@ ${blocoFaq(p)}
 
 <section class="final-sec" aria-labelledby="final-titulo"><div class="wrap"><div class="final">
   <h2 id="final-titulo">${o ? "Comece com a Bela e atenda tranquila." : variante(p, "Baixe o app e deixe a Bela cuidar da sua agenda.", "Deixe a agenda em ordem e atenda tranquila.")}</h2>
-  ${o ? `<p>Teste 7 dias, sem cartão. Para quem assinar pela primeira vez, os ${o.meses} primeiros meses saem por ${reais(o.precoPromoCentavos)} por mês; depois, ${reais(o.precoCheioCentavos)} por mês.</p>` : bf ? `<p class="txt-padrao">7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p><p class="txt-tema">Baixe o app e teste por 7 dias, sem cartão. Depois, R$&nbsp;59,90 por mês.</p>` : `<p>7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p>`}
+  ${o ? `<p>Teste 7 dias, sem cartão. Se gostar, os ${o.meses} primeiros meses custam ${reais(o.precoPromoCentavos)} por mês; depois, ${reais(o.precoCheioCentavos)} por mês.</p>` : bf ? `<p class="txt-padrao">7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p><p class="txt-tema">Baixe o app e teste por 7 dias, sem cartão. Depois, R$&nbsp;59,90 por mês.</p>` : `<p>7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p>`}
 ${blocoCta(p, "final")}
 </div></div></section>
 
@@ -509,7 +548,7 @@ ${blocoCta(p, "final")}
     <div class="foot-brand"><img src="${p.assets.logo}" alt="Agenda Bela"><a class="mono" href="/" data-nav="rodape_tudo_agenda">por Tudo Agenda</a></div>
     <section class="foot-dl" aria-labelledby="rodape-baixe">
       <h2 id="rodape-baixe">Baixe o app</h2>
-      ${seloRodape()}
+      ${seloRodape(p)}
       <p>${t("Baixe o app e teste 7 dias grátis, sem cartão.", "Baixe o app e teste 7 dias, sem cartão.")}</p>
     </section>
     <nav aria-label="Links do rodapé">

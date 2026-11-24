@@ -8,6 +8,7 @@
  * de loja padrão e vêm de faq.ts.
  */
 import {
+  descontoPorExtenso,
   formatarCentavos,
   type OfertaConfig,
 } from "@/config/landing-lojas";
@@ -35,7 +36,7 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
   return [
     {
       pergunta: "O que é o Agenda Bela?",
-      respostaHtml: `O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão; depois, ${cheio} por mês, com ${oferta.percentual}% de desconto nos ${m} primeiros meses para quem assina pela primeira vez.`,
+      respostaHtml: `O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão e depois assina pelo app. Os valores e o desconto estão na pergunta “Como funciona o desconto de ${oferta.percentual}%?”.`,
     },
     {
       pergunta: `Como funciona o desconto de ${oferta.percentual}%?`,
@@ -48,8 +49,8 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     {
       pergunta: "O desconto vale junto com o teste de 7 dias?",
       respostaHtml:
-        `<span data-dev="ios">Sim. Primeiro você testa 7 dias, sem cartão e sem pagar nada. Quando decidir assinar, a App Store cobra na hora ${promo}, já com o desconto, e esse preço vale por ${m} meses.</span>` +
-        `<span data-dev="android">Sim. Os 7 dias sem cartão continuam, e, ao assinar, os ${m} primeiros meses saem pela metade.</span>` +
+        `<span data-dev="ios">Sim. Primeiro você testa 7 dias, sem cartão e sem pagar nada. Quando decidir assinar, a App Store cobra na hora o primeiro mês: ${promo}. É ${promo} por mês durante ${m} meses, uma cobrança por mês, não tudo de uma vez. Do ${m + 1}º mês em diante, ${cheio} por mês.</span>` +
+        `<span data-dev="android">Sim. Os 7 dias sem cartão continuam. Ao assinar, você paga ${promo} por mês nos ${m} primeiros meses (${descontoPorExtenso(oferta)}) e, depois, ${cheio} por mês.</span>` +
         `<span data-dev="desktop">${semAparelho}</span>` +
         `<span data-dev="nojs">${semAparelho}</span>`,
     },

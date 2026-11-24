@@ -2,7 +2,11 @@ import {
   BLACK_FRIDAY_THEME_ENDS_AT,
   LANDING_LOJAS,
   OFERTA_AGENDA_BELA,
+  OFERTA_PROVA_DE_USO,
+  avisosEnviadosEmTexto,
+  buildAppStoreCampaign,
   buildPlayReferrerAttribution,
+  descontoPorExtenso,
   economiaDaOfertaCentavos,
   formatarCentavos,
 } from "../landing-lojas";
@@ -37,6 +41,34 @@ describe("valores da Oferta Agenda Bela (único lugar)", () => {
     );
     // A página escreve "metade do preço": se o percentual mudar, o texto muda junto.
     expect(percentual).toBe(50);
+  });
+
+  it("por extenso, 50% é metade do preço; outro percentual vira o número", () => {
+    expect(descontoPorExtenso(OFERTA_AGENDA_BELA)).toBe("metade do preço");
+    expect(descontoPorExtenso({ ...OFERTA_AGENDA_BELA, percentual: 40 })).toBe(
+      "40% de desconto",
+    );
+  });
+
+  it("número de uso: arredonda para baixo e tem data de medição", () => {
+    expect(OFERTA_PROVA_DE_USO).toEqual({
+      avisosEnviados: 2147,
+      medidoEm: "2026-11-24",
+    });
+    expect(avisosEnviadosEmTexto(2147)).toBe("Mais de 2 mil avisos");
+    expect(avisosEnviadosEmTexto(2999)).toBe("Mais de 2 mil avisos");
+    expect(avisosEnviadosEmTexto(3000)).toBe("Mais de 3 mil avisos");
+  });
+
+  it("campanha da App Store (ct): UTM da sessão, slug sem origem, nada em clique pago sem UTM", () => {
+    expect(buildAppStoreCampaign({}, "oferta")).toBe("oferta");
+    expect(buildAppStoreCampaign({ utm_campaign: "lp4_nov26" }, "oferta")).toBe(
+      "lp4_nov26",
+    );
+    expect(buildAppStoreCampaign({ fbclid: "abc" }, "oferta")).toBeUndefined();
+    expect(
+      buildAppStoreCampaign({ utm_campaign: "a".repeat(60) }, "oferta"),
+    ).toHaveLength(40);
   });
 
   it("formata centavos com vírgula e duas casas", () => {

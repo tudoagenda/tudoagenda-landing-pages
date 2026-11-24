@@ -12,6 +12,8 @@
  *
  * Bloco 1: o que o protótipo da oferta mudou no CSS comum (faixa e tamanho do
  * selo do Google Play). Bloco 2: protótipo. Bloco 3: regras de produção.
+ * Bloco 4: ajustes pedidos pelo Carlos em 24/11/2026 (nota 14 da campanha),
+ * por cima do protótipo: primeira tela, prova, pontes e áreas de toque.
  */
 
 /* ---------- bloco 1: diferenças no CSS comum ---------- */
@@ -29,8 +31,6 @@
 #lp[data-oferta] a.ribbon:hover{background:var(--vinho-hover)}
 #lp[data-oferta] a.ribbon:focus-visible{outline-color:#fff;outline-offset:-5px}
 #lp[data-oferta] .ribbon i{flex:none}
-#lp[data-oferta] .hero-txt .cta-t{font:700 15px/20px var(--inter);color:var(--petro);margin-top:16px}
-#lp[data-oferta] .hero-txt .cta-t+.cta{margin-top:8px}
 #lp[data-oferta] .hero-txt .audience{margin-top:12px}
 #lp[data-oferta] .hero-txt .micro{text-align:left}
 
@@ -100,7 +100,6 @@
 #lp[data-oferta] a.ribbon{font:600 12.5px/17px var(--inter);letter-spacing:.2px;text-transform:none;padding-block:7px;min-height:36px}
 #lp[data-oferta] .ribbon span{text-wrap:balance}
 #lp[data-oferta] .eyebrow{font-size:12px;text-wrap:balance}
-#lp[data-oferta] .hero-txt .cta-t{text-wrap:balance}
 #lp[data-oferta] .hdr{justify-content:flex-start;gap:14px}
 #lp[data-oferta] .ofr-pill{font-size:12px;letter-spacing:1.2px;line-height:16px}
 #lp[data-oferta] .ofr-old{opacity:1;color:#F1D6C0}
@@ -123,7 +122,6 @@
   #lp[data-oferta] .ofr-new{font-size:50px;line-height:48px}
   #lp[data-oferta] .ofr-row{margin-top:2px}
   #lp[data-oferta] .ofr-cap{font-size:13px;line-height:17px;margin-top:2px}
-  #lp[data-oferta] .hero-txt .cta-t{margin-top:10px;font-size:14px;line-height:18px}
 }
 @media (max-width:359px){#lp[data-oferta] .stage-cap{min-height:98px}}
 
@@ -166,3 +164,64 @@
    linha não ganha a altura mínima do texto. Em modo padrão, este ajuste
    devolve a mesma altura do protótipo (ver o mesmo caso em lojas.css). */
 #lp[data-oferta] .of-pill{vertical-align:top}
+
+/* ---------- bloco 4: ajustes de 24/11/2026 (por cima do protótipo) ---------- */
+/* Marca: ícone do app e "Agenda Bela" escrito, na primeira tela. */
+#lp[data-oferta] .hdr{height:44px;gap:10px}
+#lp[data-oferta] .hdr img{width:44px;height:44px;border-radius:10px}
+#lp[data-oferta] .marca{display:flex;flex-direction:column;justify-content:center}
+#lp[data-oferta] .marca-nome{font:700 17px/20px var(--inter);color:var(--petro)}
+#lp[data-oferta] .hdr .mono{line-height:14px}
+/* H1 diz o que é o produto (frase longa: corpo menor que o do protótipo). */
+#lp[data-oferta] .eyebrow{margin-top:8px}
+#lp[data-oferta] h1{font-size:32px;line-height:35px;letter-spacing:-.03em;margin:4px 0 6px}
+#lp[data-oferta] .sub{font:italic 400 20px/24px var(--fraunces);letter-spacing:-.02em;color:var(--vinho)}
+#lp[data-oferta] .dor{font-size:14px;line-height:19px;color:var(--ink);margin-top:6px}
+/* Cartão de preço enxuto: de/por e prazo em uma faixa só. */
+#lp[data-oferta] .ofr{margin-top:10px;padding:10px 14px;border-radius:18px}
+#lp[data-oferta] .ofr-old{display:flex;align-items:baseline;gap:5px;font:400 12px/16px var(--inter);padding-bottom:0}
+#lp[data-oferta] .ofr-old small{display:inline;font:inherit}
+#lp[data-oferta] .ofr-old b{font-weight:600;font-size:13px}
+#lp[data-oferta] .ofr-stk{display:inline-block;width:auto;height:auto;border-radius:999px;padding:3px 10px;font-size:15px;line-height:16px}
+#lp[data-oferta] .ofr-row{align-items:center;flex-wrap:nowrap;gap:12px;margin-top:0}
+#lp[data-oferta] .ofr-new{font-size:50px;line-height:48px}
+#lp[data-oferta] .ofr-cap{margin-top:0;font-size:13px;line-height:17px}
+#lp[data-oferta] .hero-txt .cta{margin-top:10px}
+#lp[data-oferta] .hero-txt .audience{margin-top:10px}
+/* Prova perto do botão: número de uso e uma avaliação curta. */
+#lp[data-oferta] .prova{margin-top:14px;border-top:1px solid rgba(144,73,106,.25);padding-top:12px}
+#lp[data-oferta] .prova-num{font-size:13px;line-height:18px;color:var(--ink)}
+#lp[data-oferta] .prova-num b{color:var(--petro)}
+#lp[data-oferta] .prova figure{margin:8px 0 0}
+#lp[data-oferta] .prova blockquote{margin:0;font:italic 400 14px/19px var(--fraunces);color:var(--petro)}
+#lp[data-oferta] .prova figcaption{font-size:12px;line-height:16px;color:var(--ink-2);margin-top:4px}
+/* Pontes: título da demonstração e chamada do bloco de preço. */
+#lp[data-oferta] .demo-tit{color:var(--vinho);font-size:10px}
+#lp[data-oferta] .of-ponte{font:italic 400 22px/26px var(--fraunces);letter-spacing:-.02em;color:var(--petro);text-align:center;margin-bottom:16px}
+/* Apoio: cada logo com o seu rótulo. */
+#lp[data-oferta] .apoio{display:flex;flex-direction:column;align-items:center;gap:14px}
+/* Áreas de toque de pelo menos 44 px. */
+#lp[data-oferta] a.ribbon{min-height:44px}
+#lp[data-oferta] .dot{width:44px}
+#lp[data-oferta] .stage-ctl{flex-wrap:wrap;row-gap:4px}
+#lp[data-oferta] .foot nav a{min-height:44px}
+#lp[data-oferta] .foot-brand a{min-height:44px;margin:-14px 0}
+#lp[data-oferta] .faq details p a{display:inline-block;padding:13px 0;margin:-13px 0}
+#lp[data-oferta] .micro a{min-height:44px;padding:12px 0}
+@media (max-width:400px){
+  #lp[data-oferta] h1{font-size:30px;line-height:33px}
+}
+@media (min-width:900px){
+  #lp[data-oferta] .hdr{height:56px}
+  #lp[data-oferta] .hdr img{width:56px;height:56px;border-radius:12px}
+  #lp[data-oferta] .marca-nome{font-size:20px;line-height:24px}
+  #lp[data-oferta] h1{font-size:46px;line-height:50px;max-width:17ch}
+  #lp[data-oferta] .sub{font-size:26px;line-height:30px;max-width:none}
+  #lp[data-oferta] .dor{font-size:17px;line-height:25px;max-width:40ch;margin-top:10px}
+  #lp[data-oferta] .ofr{padding:14px 18px}
+  #lp[data-oferta] .ofr-new{font-size:60px;line-height:56px}
+  #lp[data-oferta] .ofr-cap{font-size:15px;line-height:20px}
+  #lp[data-oferta] .prova{max-width:460px}
+  #lp[data-oferta] .prova-num{font-size:14px}
+  #lp[data-oferta] .prova blockquote{font-size:16px;line-height:22px}
+}

@@ -14,8 +14,11 @@
  * Sem JavaScript, ou com movimento reduzido, a página já está completa: todo
  * mock mostra o estado final e os controles de animação ficam escondidos.
  */
-import { googlePlayUrl } from "@/config/app-stores";
-import { buildPlayReferrerAttribution } from "@/config/landing-lojas";
+import { appStoreUrl, googlePlayUrl } from "@/config/app-stores";
+import {
+  buildAppStoreCampaign,
+  buildPlayReferrerAttribution,
+} from "@/config/landing-lojas";
 import { detectDeviceOs, detectInAppBrowser } from "@/lib/device";
 
 const NB = " ";
@@ -122,9 +125,15 @@ function medir(opts, lp, undo) {
   const playHref = googlePlayUrl(
     buildPlayReferrerAttribution(opts.attribution, opts.slug),
   );
+  /* Só na oferta: o link da App Store leva a campanha (ct) da sessão. Nas
+     outras landings o link da App Store segue puro. */
+  const appStoreHref = lp.hasAttribute("data-oferta")
+    ? appStoreUrl(buildAppStoreCampaign(opts.attribution, opts.slug))
+    : null;
   qa("a[data-store]").forEach(function (a) {
     const store = a.getAttribute("data-store");
     if (store === "google_play") a.setAttribute("href", playHref);
+    if (store === "app_store" && appStoreHref) a.setAttribute("href", appStoreHref);
     /* No celular a loja abre na mesma aba (navegador interno do Instagram e
        do Facebook lida mal com aba nova); no computador, em aba nova. */
     if (os === "desktop" && !a.getAttribute("target")) {

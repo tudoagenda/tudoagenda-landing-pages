@@ -40,6 +40,47 @@ export const OFERTA_AGENDA_BELA = {
   percentual: 50,
 } as const satisfies OfertaConfig;
 
+/**
+ * Número de uso mostrado na página da oferta ("Mais de 2 mil avisos enviados
+ * às clientes pelo WhatsApp"). Fonte: banco de produção, consulta de
+ * 24/11/2026: 2.147 avisos (confirmações e lembretes às clientes finais)
+ * desde julho/2026, era do app. A página arredonda para baixo, em milhares.
+ * Ao atualizar, troque o número e a data juntos.
+ */
+export const OFERTA_PROVA_DE_USO = {
+  avisosEnviados: 2147,
+  medidoEm: "2026-11-24",
+} as const;
+
+/** 2147 vira "Mais de 2 mil avisos" (arredonda para baixo: nunca promete mais do que foi medido). */
+export function avisosEnviadosEmTexto(avisos: number): string {
+  return `Mais de ${Math.floor(avisos / 1000)} mil avisos`;
+}
+
+/** Como a página chama o desconto por extenso: 50% é "metade do preço". */
+export function descontoPorExtenso(oferta: OfertaConfig): string {
+  return oferta.percentual === 50
+    ? "metade do preço"
+    : `${oferta.percentual}% de desconto`;
+}
+
+/**
+ * Campanha (`ct`) do link da App Store na página da oferta, no mesmo molde do
+ * `referrer` do Google Play: a utm_campaign da sessão quando existe; o slug
+ * da página quando a visita chega sem origem nenhuma; nada quando é clique
+ * pago sem UTM (para não rotular como tráfego do site). A Apple aceita até 40
+ * caracteres.
+ */
+export function buildAppStoreCampaign(
+  attribution: Record<string, string | undefined> = {},
+  slug: LandingLojasSlug,
+): string | undefined {
+  const campanha = attribution.utm_campaign;
+  if (campanha) return campanha.replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 40);
+  if (Object.values(attribution).some(Boolean)) return undefined;
+  return slug;
+}
+
 export type OfertaConfig = {
   precoCheioCentavos: number;
   precoPromoCentavos: number;

@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
+import {
+  APP_STORE_URL,
+  GOOGLE_PLAY_BASE_URL,
+  appStoreUrl,
+} from "@/config/app-stores";
 import {
   LANDING_LOJAS,
   type LandingLojasConfig,
@@ -85,6 +89,10 @@ function setMotion(reduce: boolean) {
 }
 
 const lp = () => document.getElementById("lp") as HTMLElement;
+
+/** Link da App Store de cada página: só a oferta leva campanha (ct). */
+const linkAppStore = (config: LandingLojasConfig) =>
+  config.oferta ? appStoreUrl(config.slug) : APP_STORE_URL;
 
 /** Roda o script em linha do HTML do servidor, como o navegador faz antes da pintura. */
 function runScriptAntesDaPintura() {
@@ -171,7 +179,7 @@ describe.each(PAGINAS)("landing de loja $slug: HTML do servidor", (config) => {
       const hrefs = [
         ...cta.querySelectorAll<HTMLAnchorElement>('[data-dev="nojs"] a'),
       ].map((a) => a.getAttribute("href"));
-      expect(hrefs).toEqual([APP_STORE_URL, GOOGLE_PLAY_BASE_URL]);
+      expect(hrefs).toEqual([linkAppStore(config), GOOGLE_PLAY_BASE_URL]);
     }
     // Nenhum bloco de aparelho depende de JS para deixar de estar "hidden".
     expect(lp().querySelectorAll("[data-dev][hidden]")).toHaveLength(0);
@@ -244,7 +252,7 @@ describe.each(PAGINAS)("landing de loja $slug: CTA por aparelho", (config) => {
     expect(links).toHaveLength(1);
     expect(links[0].dataset.store).toBe("app_store");
     expect(links[0].className).toBe("storecard");
-    expect(links[0].getAttribute("href")).toBe(APP_STORE_URL);
+    expect(links[0].getAttribute("href")).toBe(linkAppStore(config));
     expect(links[0].hasAttribute("target")).toBe(false);
   });
 
@@ -954,6 +962,50 @@ describe("Oferta Agenda Bela: comportamento", () => {
       cssOferta.match(/#lp(?!\[data-oferta\]|\[data-pre\]\[data-oferta\])/g),
     ).toBeNull();
     expect(css).not.toContain("data-oferta");
+  });
+
+  it("App Store: o link leva a campanha (ct) da sessão, ou o slug quando a visita chega sem origem", () => {
+    const hrefs = () => [
+      ...new Set(
+        [...lp().querySelectorAll<HTMLAnchorElement>('a[data-store="app_store"]')].map(
+          (a) => a.getAttribute("href"),
+        ),
+      ),
+    ];
+    mount(OFERTA, { ua: UA.iphone });
+    expect(hrefs()).toEqual([`${APP_STORE_URL}?ct=oferta`]);
+    cleanup?.();
+
+    mount(OFERTA, {
+      ua: UA.iphone,
+      url: `${OFERTA.path}?utm_source=ig&utm_campaign=agendabela oferta/nov26 com nome bem comprido demais`,
+    });
+    // Só letras, números, _ . - e no máximo 40 caracteres (limite da Apple).
+    expect(hrefs()).toEqual([
+      `${APP_STORE_URL}?ct=agendabela_oferta_nov26_com_nome_bem_com`,
+    ]);
+    cleanup?.();
+
+    // Clique pago que chegou sem UTM: sem ct, para não virar "tráfego do site".
+    cleanup = undefined;
+    setNavigator(UA.iphone);
+    setMotion(false);
+    document.body.innerHTML = markup(OFERTA);
+    cleanup = initLandingLojas({
+      slug: OFERTA.slug,
+      track: jest.fn(),
+      attribution: { fbclid: "abc" },
+    });
+    expect(hrefs()).toEqual([APP_STORE_URL]);
+  });
+
+  it("App Store nas outras landings de loja: link puro, sem ct, com ou sem UTM", () => {
+    mount(LP2, { ua: UA.iphone, url: `${LP2.path}?utm_campaign=teste` });
+    for (const a of lp().querySelectorAll<HTMLAnchorElement>(
+      'a[data-store="app_store"]',
+    )) {
+      expect(a.getAttribute("href")).toBe(APP_STORE_URL);
+    }
   });
 
   it("legendas da demonstração: as do runtime são as do HTML, e falam com a leitora", () => {
