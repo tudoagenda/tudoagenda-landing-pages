@@ -1,9 +1,7 @@
+import fs from "fs";
+import path from "path";
 import { renderToStaticMarkup } from "react-dom/server";
-import {
-  APP_STORE_URL,
-  GOOGLE_PLAY_BASE_URL,
-  appStoreUrl,
-} from "@/config/app-stores";
+import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
 import {
   LANDING_LOJAS,
   OFERTA_AGENDA_BELA,
@@ -140,6 +138,13 @@ describe("Oferta Agenda Bela: o que a página não pode dizer", () => {
     expect(htmlDaPagina).not.toMatch(proibido);
   });
 
+  it('"grátis" só na barra fixa do celular (frase do Carlos); no resto, "sem cartão"', () => {
+    const semBarraFixa = dom(html);
+    semBarraFixa.getElementById("cta-fixo")?.remove();
+    expect(semBarraFixa.body.innerHTML).not.toMatch(/gr[áa]tis|gratuit/i);
+    expect(html.match(/grátis/g)).toHaveLength(2);
+  });
+
   it("não tem validade gravada: a página não se desliga sozinha numa data", () => {
     expect(doc.getElementById("lp")?.getAttribute("data-tema")).toBe("padrao");
     expect(doc.getElementById("lp")?.hasAttribute("data-tema-fim")).toBe(false);
@@ -214,7 +219,7 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
       "Mais de 2 mil avisos enviados às clientes pelo WhatsApp",
     );
     expect(texto(prova?.querySelector("blockquote"))).toBe(
-      "“Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.”",
+      "“…Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.”",
     );
     expect(texto(prova?.querySelector("figcaption"))).toBe(
       "Tatiane C., avaliação no Google Play, set/2026",
@@ -310,13 +315,10 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     const lojas = [...doc.querySelectorAll<HTMLAnchorElement>("a[data-store]")];
     expect(lojas.length).toBeGreaterThan(15);
     for (const a of lojas) {
-      // App Store já sai do servidor com a campanha padrão (ct=oferta).
+      // Do servidor os links saem puros; campanha (ct, referrer) é do runtime.
       expect(a.getAttribute("href")).toBe(
-        a.dataset.store === "app_store"
-          ? `${APP_STORE_URL}?ct=oferta`
-          : GOOGLE_PLAY_BASE_URL,
+        a.dataset.store === "app_store" ? APP_STORE_URL : GOOGLE_PLAY_BASE_URL,
       );
-      expect(appStoreUrl("oferta")).toBe(`${APP_STORE_URL}?ct=oferta`);
     }
     for (const dev of ["ios", "android"]) {
       const esperado = dev === "ios" ? "app_store" : "google_play";
@@ -395,6 +397,62 @@ describe("Oferta Agenda Bela: SEO da página de campanha", () => {
     expect(
       doc.getElementById("hero-aparelho")?.hasAttribute("data-nosnippet"),
     ).toBe(true);
+  });
+});
+
+describe("rota da oferta: QR e CSS certos", () => {
+  /* No Jest toda imagem e todo CSS importado viram o mesmo objeto de mentira,
+     então o que dá para conferir é o código: qual arquivo cada rota importa. */
+  const fonte = (arquivo: string) =>
+    fs.readFileSync(path.join(__dirname, "..", arquivo), "utf8");
+
+  it("cada rota usa o QR do próprio slug (o arquivo de cada um é lido em qr.test.ts)", () => {
+    const src = fonte("landing-lojas.tsx");
+    const arquivoDe = Object.fromEntries(
+      [...src.matchAll(/import (\w+) from "\.\/assets\/(qr-[\w-]+)\.svg";/g)].map(
+        ([, variavel, arquivo]) => [variavel, arquivo],
+      ),
+    );
+    const mapa = src.match(/const QR_BY_SLUG = \{([\s\S]*?)\} as const;/)?.[1] ?? "";
+    const porSlug = Object.fromEntries(
+      [...mapa.matchAll(/"?([\w-]+)"?: (\w+),/g)].map(([, slug, variavel]) => [
+        slug,
+        arquivoDe[variavel],
+      ]),
+    );
+    expect(porSlug).toEqual(
+      Object.fromEntries(
+        Object.values(LANDING_LOJAS).map((config) => [
+          config.slug,
+          `qr-${config.slug}`,
+        ]),
+      ),
+    );
+    // E a página usa o mapa pelo slug da config, não um QR fixo.
+    expect(src).toContain("qr: QR_BY_SLUG[config.slug].src");
+  });
+
+  it("só a rota da oferta importa oferta.css", () => {
+    expect(fonte("../oferta/page.tsx")).toMatch(
+      /^import "\.\.\/_lojas\/oferta\.css";$/m,
+    );
+    for (const outra of [
+      "../app-para-salao-de-beleza/page.tsx",
+      "../black-friday/page.tsx",
+      "landing-lojas.tsx",
+    ]) {
+      expect(fonte(outra)).not.toContain("oferta.css");
+    }
+  });
+
+  it("foco de teclado no celular: a rolagem reserva o espaço do botão fixo, só na oferta", () => {
+    const css = fonte("oferta.css");
+    expect(css).toContain(
+      "html:has(#lp[data-oferta]){scroll-padding-bottom:116px}",
+    );
+    // Uma reserva só: scroll-margin somaria com o scroll-padding.
+    expect(css).not.toContain("scroll-margin");
+    expect(fonte("lojas.css")).not.toMatch(/scroll-(padding|margin)/);
   });
 });
 

@@ -57,7 +57,7 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     {
       pergunta: "Preciso de cartão para começar?",
       respostaHtml:
-        "Para testar, não. Você usa 7 dias sem cartão, que contam a partir de quando você monta sua agenda no app. Só quando decidir assinar a loja vai pedir seu cartão ou outra forma de pagar.",
+        "Para testar, não. Você usa 7 dias sem cartão, que contam a partir de quando você monta sua agenda no app. Só quando decidir assinar, a loja vai pedir seu cartão ou outra forma de pagar.",
     },
     {
       pergunta: `E depois dos ${m} meses, quanto custa?`,

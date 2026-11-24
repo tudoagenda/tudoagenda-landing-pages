@@ -55,6 +55,9 @@ describe("valores da Oferta Agenda Bela (único lugar)", () => {
       avisosEnviados: 2147,
       medidoEm: "2026-11-24",
     });
+    // A frase só faz sentido em milhares: abaixo de mil ou acima de um milhão, reescrever.
+    expect(OFERTA_PROVA_DE_USO.avisosEnviados).toBeGreaterThanOrEqual(1000);
+    expect(OFERTA_PROVA_DE_USO.avisosEnviados).toBeLessThan(1_000_000);
     expect(avisosEnviadosEmTexto(2147)).toBe("Mais de 2 mil avisos");
     expect(avisosEnviadosEmTexto(2999)).toBe("Mais de 2 mil avisos");
     expect(avisosEnviadosEmTexto(3000)).toBe("Mais de 3 mil avisos");
@@ -66,6 +69,12 @@ describe("valores da Oferta Agenda Bela (único lugar)", () => {
       "lp4_nov26",
     );
     expect(buildAppStoreCampaign({ fbclid: "abc" }, "oferta")).toBeUndefined();
+    // UTM sem campanha não é clique sem origem: leva o slug, como rótulo da página.
+    expect(
+      buildAppStoreCampaign({ utm_source: "instagram", utm_medium: "bio" }, "oferta"),
+    ).toBe("oferta");
+    // Campanha que vira só "_" depois da limpeza não serve de rótulo.
+    expect(buildAppStoreCampaign({ utm_campaign: "✨✨" }, "oferta")).toBe("oferta");
     expect(
       buildAppStoreCampaign({ utm_campaign: "a".repeat(60) }, "oferta"),
     ).toHaveLength(40);

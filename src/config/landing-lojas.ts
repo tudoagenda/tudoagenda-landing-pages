@@ -67,18 +67,24 @@ export function descontoPorExtenso(oferta: OfertaConfig): string {
 /**
  * Campanha (`ct`) do link da App Store na página da oferta, no mesmo molde do
  * `referrer` do Google Play: a utm_campaign da sessão quando existe; o slug
- * da página quando a visita chega sem origem nenhuma; nada quando é clique
- * pago sem UTM (para não rotular como tráfego do site). A Apple aceita até 40
- * caracteres.
+ * da página quando a visita chega sem origem nenhuma ou com UTM sem campanha;
+ * nada quando é clique pago sem UTM nenhuma (só gclid/fbclid), para não
+ * rotular como tráfego do site. A Apple aceita até 40 caracteres; campanha
+ * que não sobra nenhuma letra ou número depois da limpeza cai no slug.
  */
 export function buildAppStoreCampaign(
   attribution: Record<string, string | undefined> = {},
   slug: LandingLojasSlug,
 ): string | undefined {
-  const campanha = attribution.utm_campaign;
-  if (campanha) return campanha.replace(/[^A-Za-z0-9_.-]/g, "_").slice(0, 40);
-  if (Object.values(attribution).some(Boolean)) return undefined;
-  return slug;
+  const campanha = (attribution.utm_campaign ?? "")
+    .replace(/[^A-Za-z0-9_.-]/g, "_")
+    .slice(0, 40);
+  if (/[A-Za-z0-9]/.test(campanha)) return campanha;
+  const temUtm = Object.entries(attribution).some(
+    ([chave, valor]) => chave.startsWith("utm_") && Boolean(valor),
+  );
+  const temOrigem = Object.values(attribution).some(Boolean);
+  return temOrigem && !temUtm ? undefined : slug;
 }
 
 export type OfertaConfig = {

@@ -13,7 +13,6 @@ import {
   APP_STORE_URL,
   GOOGLE_PLAY_BASE_URL,
   STORE_BADGES,
-  appStoreUrl,
 } from "@/config/app-stores";
 import { LOJAS_FAQ } from "./faq";
 import { buildOfertaFaq } from "./faq-oferta";
@@ -86,20 +85,13 @@ function variante(p: LojasMarkupParams, padrao: string, tema: string): string {
  * (novaAba). O runtime troca o href da Play pelo link com a origem da sessão.
  */
 function selo(
-  p: LojasMarkupParams,
   store: "app_store" | "google_play",
   className = "",
   novaAba = false,
 ): string {
-  /* Na oferta o link da App Store leva a campanha (ct) padrão já no HTML do
-     servidor; o runtime troca pela da sessão. Nas outras landings, link puro. */
   const badge =
     store === "app_store"
-      ? {
-          href: p.oferta ? appStoreUrl(p.slug) : APP_STORE_URL,
-          cls: "as",
-          ...STORE_BADGES.appStore,
-        }
+      ? { href: APP_STORE_URL, cls: "as", ...STORE_BADGES.appStore }
       : { href: GOOGLE_PLAY_BASE_URL, cls: "gp", ...STORE_BADGES.googlePlay };
   return (
     `<a${className ? ` class="${className}"` : ""} href="${atributo(badge.href)}" data-store="${store}"` +
@@ -116,12 +108,12 @@ function selo(
  */
 function blocoCta(p: LojasMarkupParams, local: "hero" | "preco" | "final"): string {
   return `<div class="cta"${local === "hero" ? ' id="cta-hero"' : ""} data-loc="${local}">
-        <div data-dev="ios">${selo(p, "app_store", "storecard")}</div>
-        <div data-dev="android">${selo(p, "google_play", "storecard")}</div>
+        <div data-dev="ios">${selo("app_store", "storecard")}</div>
+        <div data-dev="android">${selo("google_play", "storecard")}</div>
         <div data-dev="desktop" data-loc="${local}_selo"><div class="dt"><p class="dt-tit">Baixe no seu celular</p><div class="dt-row">
-          <div class="dt-badges">${selo(p, "app_store", "", true)}${selo(p, "google_play", "", true)}</div>
+          <div class="dt-badges">${selo("app_store", "", true)}${selo("google_play", "", true)}</div>
           <div class="dt-qr"><img src="${p.assets.qr}" width="116" height="116" alt="QR code que abre esta página no celular"><p>Aponte a câmera do celular e abra a loja.</p></div></div></div></div>
-        <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo(p, "app_store")}${selo(p, "google_play")}</div></div>
+        <div data-dev="nojs"><p class="nojs-title">Baixe na sua loja</p><div class="nojs-row">${selo("app_store")}${selo("google_play")}</div></div>
       </div>`;
 }
 
@@ -164,8 +156,8 @@ function blocoFaq(p: LojasMarkupParams): string {
   ).join("\n");
 }
 
-function seloRodape(p: LojasMarkupParams): string {
-  return `<div class="foot-badges" data-loc="rodape_selo">${selo(p, "app_store")}${selo(p, "google_play")}</div>`;
+function seloRodape(): string {
+  return `<div class="foot-badges" data-loc="rodape_selo">${selo("app_store")}${selo("google_play")}</div>`;
 }
 
 /** CTA fixo do celular: o runtime mostra quando o CTA do hero sai da tela. */
@@ -175,8 +167,8 @@ function blocoFixo(p: LojasMarkupParams): string {
     : "7 dias grátis · depois R$&nbsp;59,90/mês";
   return `<div class="sticky" id="cta-fixo" data-loc="sticky_mobile" hidden>
   <div class="sticky-slot">
-    <div data-dev="ios">${selo(p, "app_store", "storecard")}</div>
-    <div data-dev="android">${selo(p, "google_play", "storecard")}</div>
+    <div data-dev="ios">${selo("app_store", "storecard")}</div>
+    <div data-dev="android">${selo("google_play", "storecard")}</div>
   </div>
   <small data-dev="ios">${apoio}</small>
   <small data-dev="android">${apoio}</small>
@@ -243,12 +235,13 @@ function blocoMicroOferta(p: LojasMarkupParams, o: OfertaConfig): string {
 
 /**
  * Prova perto do botão: número de uso (config, com fonte e data) e uma
- * avaliação curta. Nota e número de avaliações das lojas não entram.
+ * avaliação curta (o trecho começa no meio do texto da loja: por isso o "…").
+ * Nota e número de avaliações das lojas não entram.
  */
 function blocoProva(): string {
   return `<div class="prova">
         <p class="prova-num"><b>${avisosEnviadosEmTexto(OFERTA_PROVA_DE_USO.avisosEnviados)}</b> enviados às clientes pelo WhatsApp</p>
-        <figure><blockquote>&ldquo;Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.&rdquo;</blockquote><figcaption>Tatiane C., avaliação no Google Play, set/2026</figcaption></figure>
+        <figure><blockquote>&ldquo;…Deixou minha rotina muito mais organizada e ficou bem mais fácil cuidar dos agendamentos.&rdquo;</blockquote><figcaption>Tatiane C., avaliação no Google Play, set/2026</figcaption></figure>
       </div>`;
 }
 
@@ -548,7 +541,7 @@ ${blocoCta(p, "final")}
     <div class="foot-brand"><img src="${p.assets.logo}" alt="Agenda Bela"><a class="mono" href="/" data-nav="rodape_tudo_agenda">por Tudo Agenda</a></div>
     <section class="foot-dl" aria-labelledby="rodape-baixe">
       <h2 id="rodape-baixe">Baixe o app</h2>
-      ${seloRodape(p)}
+      ${seloRodape()}
       <p>${t("Baixe o app e teste 7 dias grátis, sem cartão.", "Baixe o app e teste 7 dias, sem cartão.")}</p>
     </section>
     <nav aria-label="Links do rodapé">

@@ -93,7 +93,6 @@
 }
 @media (min-width:900px){
   #lp[data-oferta] .ofr{max-width:460px}
-  #lp[data-oferta] .ofr-new{font-size:64px;line-height:60px}
 }
 
 /* ===== ajustes v2 (revisão visual e de texto) ===== */
@@ -112,16 +111,7 @@
 #lp[data-oferta] .of-link{display:inline-block;min-height:44px;padding-block:10px}
 #lp[data-oferta] .legal{font-size:12px}
 @media (max-width:400px){
-  #lp[data-oferta] .hdr{height:44px}#lp[data-oferta] .hdr img{width:40px;height:40px;border-radius:9px}
   #lp[data-oferta] .hero-grid{padding-top:6px;padding-bottom:28px}
-  #lp[data-oferta] .eyebrow{margin-top:4px}
-  #lp[data-oferta] h1{font-size:36px;line-height:38px;margin:6px 0 8px}
-  #lp[data-oferta] .sub{font-size:14.5px;line-height:20px}
-  #lp[data-oferta] .ofr{margin-top:10px;padding:12px 14px}
-  #lp[data-oferta] .ofr-stk{width:42px;height:42px;font-size:15px}
-  #lp[data-oferta] .ofr-new{font-size:50px;line-height:48px}
-  #lp[data-oferta] .ofr-row{margin-top:2px}
-  #lp[data-oferta] .ofr-cap{font-size:13px;line-height:17px;margin-top:2px}
 }
 @media (max-width:359px){#lp[data-oferta] .stage-cap{min-height:98px}}
 
@@ -200,6 +190,7 @@
 #lp[data-oferta] .of-ponte{font:italic 400 22px/26px var(--fraunces);letter-spacing:-.02em;color:var(--petro);text-align:center;margin-bottom:16px}
 /* Apoio: cada logo com o seu rótulo. */
 #lp[data-oferta] .apoio{display:flex;flex-direction:column;align-items:center;gap:14px}
+@media (min-width:768px){#lp[data-oferta] .logos{align-items:flex-start}}
 /* Áreas de toque de pelo menos 44 px. */
 #lp[data-oferta] a.ribbon{min-height:44px}
 #lp[data-oferta] .dot{width:44px}
@@ -210,6 +201,12 @@
 #lp[data-oferta] .micro a{min-height:44px;padding:12px 0}
 @media (max-width:400px){
   #lp[data-oferta] h1{font-size:30px;line-height:33px}
+}
+/* Foco de teclado no celular: o botão fixo (até ~104 px) não pode cobrir o
+   link ou a pergunta que recebeu o foco. Reserva o espaço dele na rolagem
+   automática; só nesta página. */
+@media (max-width:767px){
+  html:has(#lp[data-oferta]){scroll-padding-bottom:116px}
 }
 @media (min-width:900px){
   #lp[data-oferta] .hdr{height:56px}
@@ -224,4 +221,7 @@
   #lp[data-oferta] .prova{max-width:460px}
   #lp[data-oferta] .prova-num{font-size:14px}
   #lp[data-oferta] .prova blockquote{font-size:16px;line-height:22px}
+}
+@media (prefers-reduced-motion:no-preference){
+  #lp[data-oferta] .ofr-stk{animation:lj-of-stkIn .7s 1.2s cubic-bezier(.2,1.4,.4,1) both}
 }

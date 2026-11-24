@@ -125,8 +125,9 @@ function medir(opts, lp, undo) {
   const playHref = googlePlayUrl(
     buildPlayReferrerAttribution(opts.attribution, opts.slug),
   );
-  /* Só na oferta: o link da App Store leva a campanha (ct) da sessão. Nas
-     outras landings o link da App Store segue puro. */
+  /* Só na oferta: o link da App Store leva a campanha (ct) da sessão. O HTML
+     do servidor sai com o link puro (sem JavaScript não há como saber a
+     origem). Nas outras landings o link da App Store segue puro. */
   const appStoreHref = lp.hasAttribute("data-oferta")
     ? appStoreUrl(buildAppStoreCampaign(opts.attribution, opts.slug))
     : null;

@@ -90,10 +90,6 @@ function setMotion(reduce: boolean) {
 
 const lp = () => document.getElementById("lp") as HTMLElement;
 
-/** Link da App Store de cada página: só a oferta leva campanha (ct). */
-const linkAppStore = (config: LandingLojasConfig) =>
-  config.oferta ? appStoreUrl(config.slug) : APP_STORE_URL;
-
 /** Roda o script em linha do HTML do servidor, como o navegador faz antes da pintura. */
 function runScriptAntesDaPintura() {
   const code = SCRIPT_ANTES_DA_PINTURA.replace(/^<script>|<\/script>$/g, "");
@@ -179,7 +175,7 @@ describe.each(PAGINAS)("landing de loja $slug: HTML do servidor", (config) => {
       const hrefs = [
         ...cta.querySelectorAll<HTMLAnchorElement>('[data-dev="nojs"] a'),
       ].map((a) => a.getAttribute("href"));
-      expect(hrefs).toEqual([linkAppStore(config), GOOGLE_PLAY_BASE_URL]);
+      expect(hrefs).toEqual([APP_STORE_URL, GOOGLE_PLAY_BASE_URL]);
     }
     // Nenhum bloco de aparelho depende de JS para deixar de estar "hidden".
     expect(lp().querySelectorAll("[data-dev][hidden]")).toHaveLength(0);
@@ -252,7 +248,9 @@ describe.each(PAGINAS)("landing de loja $slug: CTA por aparelho", (config) => {
     expect(links).toHaveLength(1);
     expect(links[0].dataset.store).toBe("app_store");
     expect(links[0].className).toBe("storecard");
-    expect(links[0].getAttribute("href")).toBe(linkAppStore(config));
+    expect(links[0].getAttribute("href")).toBe(
+      config.oferta ? appStoreUrl(config.slug) : APP_STORE_URL,
+    );
     expect(links[0].hasAttribute("target")).toBe(false);
   });
 
@@ -846,6 +844,17 @@ describe("Oferta Agenda Bela: comportamento", () => {
     rolar();
     expect(fixo().hidden).toBe(true);
 
+    // Tela baixa: o botão do topo ainda não apareceu (está abaixo da dobra) e
+    // nenhum outro está à vista. O fixo espera o do topo aparecer primeiro.
+    posicionar({
+      hero: { top: 700, bottom: 776 },
+      preco: { top: 5200, bottom: 5276 },
+      final: { top: 8200, bottom: 8276 },
+      rodape: { top: 8500, bottom: 9100 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
     // Rolou: nenhum botão da página à vista, rodapé longe.
     posicionar({
       hero: { top: -900, bottom: -824 },
@@ -996,6 +1005,10 @@ describe("Oferta Agenda Bela: comportamento", () => {
       track: jest.fn(),
       attribution: { fbclid: "abc" },
     });
+    expect(hrefs()).toEqual([APP_STORE_URL]);
+    // Antes do runtime (ou sem JavaScript) o link sai puro: o servidor não
+    // sabe a origem e não rotula a visita.
+    document.body.innerHTML = markup(OFERTA);
     expect(hrefs()).toEqual([APP_STORE_URL]);
   });
 
