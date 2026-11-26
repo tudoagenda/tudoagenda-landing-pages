@@ -265,7 +265,9 @@ function medirEngajamento(opts, lp, undo, os) {
         });
       });
     },
-    { threshold: SECAO_VISTA_LIMIAR, rootMargin: SECAO_VISTA_MARGEM },
+    /* Dois limiares: se a leitura ao cruzar o primeiro vier um pouco abaixo
+       dele (arredondamento do navegador), a do título inteiro confirma. */
+    { threshold: [SECAO_VISTA_LIMIAR, 1], rootMargin: SECAO_VISTA_MARGEM },
   );
   undo.push(function () {
     io.disconnect();

@@ -238,12 +238,12 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
     }
   });
 
-  it("um observador só, com limiar e sem contar a faixa de baixo da tela", () => {
+  it("um observador só, com dois limiares e sem contar a faixa de baixo da tela", () => {
     mount(config);
     const observadores = io!.deSecao();
     expect(observadores).toHaveLength(1);
     expect(observadores[0].opcoes).toEqual({
-      threshold: 0.75,
+      threshold: [0.75, 1],
       rootMargin: "0px 0px -15% 0px",
     });
     expect([...observadores[0].alvos].map((x) => x.id).sort()).toEqual(
@@ -259,6 +259,17 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
     io!.cruzar(preco, 0.74);
     io!.cruzar(el("faq-titulo"), 0.3);
     expect(eventos("section_view")).toHaveLength(0);
+  });
+
+  it("leitura um pouco abaixo do limiar é descartada, e a do título inteiro confirma", () => {
+    mount(config);
+    const faq = el("faq-titulo");
+    // O navegador avisa ao cruzar 0,75 com a fração arredondada para baixo...
+    io!.cruzar(faq, 0.7499);
+    expect(eventos("section_view")).toHaveLength(0);
+    // ...e de novo no segundo limiar, com o título inteiro na tela.
+    io!.cruzar(faq, 1);
+    expect(eventos("section_view").map((e) => e.section)).toEqual(["faq"]);
   });
 
   it("dispara uma vez por seção, com aparelho e navegador interno", () => {
@@ -294,7 +305,9 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
     const faq = el("faq-titulo");
     io!.cruzar(faq, 1);
     // Mesmo que o navegador avisasse de novo (observador próprio do teste).
-    const observador = io!.todos.find((o) => o.opcoes?.threshold === 0.75)!;
+    const observador = io!.todos.find(
+      (o) => o.opcoes?.rootMargin === "0px 0px -15% 0px",
+    )!;
     for (const fracao of [0, 1, 0, 0.9]) {
       observador.cb(
         [

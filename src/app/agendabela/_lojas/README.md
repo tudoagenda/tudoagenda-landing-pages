@@ -46,7 +46,7 @@ os cliques seguem medidos. Testes em `__tests__/engajamento.test.ts`.
 
 | Evento | Parâmetros | Quando sai |
 |---|---|---|
-| `section_view` | `section` (`preco` ou `faq`), `device_os`, `in_app_browser` | Uma vez por seção por carga de página, quando 75% do título marcado com `data-sec` está na tela, sem contar os 15% de baixo (onde a seção só encosta e onde fica o CTA fixo do celular). Sem `IntersectionObserver`, não sai. |
+| `section_view` | `section` (`preco` ou `faq`), `device_os`, `in_app_browser` | Uma vez por seção por carga de página, quando 75% do título marcado com `data-sec` está na tela, sem contar os 15% de baixo (onde a seção só encosta e onde fica o CTA fixo do celular). O observador tem dois limiares (75% e 100%): se a leitura do primeiro vier um pouco abaixo, a do título inteiro confirma. Sem `IntersectionObserver`, não sai. |
 | `faq_open` | `faq_id`, `device_os`, `in_app_browser` | Quando a pessoa abre uma pergunta (evento `toggle` do `<details>`). Fechar não mede. Uma vez por pergunta por carga de página. |
 
 - **O que conta como "viu o preço"** (`data-sec="preco"` em `markup.ts`): o
@@ -57,6 +57,14 @@ os cliques seguem medidos. Testes em `__tests__/engajamento.test.ts`.
   "Quanto custa"): vale o primeiro que aparecer, e o evento sai uma vez só.
   Como o bloco de preço fica em alturas diferentes em cada rota, compare
   `section_view` entre períodos da mesma rota, não entre rotas.
+- **`section_view` é "esteve na tela", não "rolou até lá"**. Na oferta, a
+  faixa e o cartão do topo são links para `#preco`: um toque neles (ou abrir a
+  página já em `/agendabela/oferta#preco`) põe o preço na tela e o
+  `section_view` com `section: preco` sai sem a pessoa rolar. Medido em
+  26/11/2026: abrindo em `#preco` no celular (375×667) o evento sai na carga;
+  sem âncora ele não sai na carga nem no computador (1280×720 e 1440×900,
+  título do preço em y=1287), mas uma tela bem mais alta alcançaria. Não use
+  o evento como medida de rolagem.
 - **`faq_id`** vem do campo `id` de `faq.ts` e `faq-oferta.ts` (`data-faq` no
   HTML), não do texto. Mudar a redação da pergunta não muda o id; trocar um id
   quebra a série no GA4 (o teste trava a lista). Pergunta que existe nas duas
