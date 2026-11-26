@@ -53,6 +53,11 @@ cobrança pela web.
   ou no CSS. O texto é o da nota 16 da campanha
   (`projetos-compartilhados/lps-campanha-nov-2026/notas/16-bolt-cupom-bela50.md`
   no Companion OS).
+- **Cupom não dá o teste** (regra do Miguel, 26/11/2026): o cupom é só o
+  desconto; os 7 dias são o teste do app, que já existe e vale com ou sem
+  cupom. Nenhum texto pode dizer que o cupom dá os 7 dias ("o cupom dá 7
+  dias", "com o cupom, você testa"). `oferta.test.tsx` varre a página inteira
+  atrás disso.
 - **Cupom copiável** (`cupomCopiavel` em `markup.ts`, `ligarCupom` em
   `runtime.js`, bloco 5 de `oferta.css`): o próprio código é um
   `<button type="button">`, no topo (logo abaixo do cartão de preço, que é um
