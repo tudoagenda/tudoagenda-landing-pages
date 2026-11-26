@@ -243,12 +243,27 @@
 #lp[data-oferta] .cupom-sep{margin-right:1px}
 #lp[data-oferta] .cupom-ic{flex:none}
 #lp[data-oferta] .cupom.is-copiado .cupom-pill{border-style:solid;background:#FFF1F5}
-#lp[data-oferta] .cupom.is-copiado .cupom-ic,#lp[data-oferta] .cupom.is-segure .cupom-ic{display:none}
+#lp[data-oferta] .cupom.is-copiado .cupom-ic,#lp[data-oferta] .cupom.is-copiado .cupom-aviso{display:none}
+/* Cada aviso tem duas redações: "toque" (padrão) e "clique" (aparelho com mouse). */
+#lp[data-oferta] .cupom .so-mouse{display:none}
+@media (hover:hover) and (pointer:fine){
+  #lp[data-oferta] .cupom .so-toque{display:none}
+  #lp[data-oferta] .cupom .so-mouse{display:inline}
+}
+#lp[data-oferta] .cupom-msg:empty{display:none}
+/* A cópia falhou: volta o código em texto, com o aviso de como copiar à mão. */
+#lp[data-oferta] .cupom-falha{font-weight:600}
+#lp[data-oferta] .cupom-falha .cupom-sep{margin-right:6px;font-weight:500}
+#lp[data-oferta] .cupom.is-falha .cupom-pill{flex-wrap:wrap;white-space:normal;row-gap:0;text-align:center}
+#lp[data-oferta] .cupom-preco .cupom-falha{font-size:14px;line-height:20px}
 /* No topo, com o aviso trocado, a palavra "Cupom" sai para a linha não repetir. */
-#lp[data-oferta] .cupom-hero.is-copiado .cupom-pre{display:none}
+#lp[data-oferta] .cupom-hero.is-copiado .cupom-pre,#lp[data-oferta] .cupom-hero.is-falha .cupom-pre{display:none}
 /* Topo: logo abaixo do cartão de preço (que é um link: o botão fica fora dele). */
 /* position/z-index: a sombra do cartão (posicionado) não escurece a pílula. */
 #lp[data-oferta] .cupom-hero{position:relative;z-index:1;margin-top:6px}
+/* Pílula do topo sem fundo: o botão da loja é o único bloco branco da dobra.
+   Copiado, o fundo rosa volta (regra .is-copiado acima, mais específica). */
+#lp[data-oferta] .cupom-hero .cupom-pill{background:transparent}
 #lp[data-oferta] .hero-txt .cupom-hero+.cta{margin-top:6px}
 /* Bloco de preço: "Seu cupom", com o código grande. */
 #lp[data-oferta] .cupom-preco{margin-top:18px}

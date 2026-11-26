@@ -8,7 +8,7 @@ import {
   type LandingLojasConfig,
   type OfertaConfig,
 } from "@/config/landing-lojas";
-import OfertaPage from "../../oferta/page";
+import OfertaPage, { metadata as ofertaMetadata } from "../../oferta/page";
 import { buildOfertaFaq } from "../faq-oferta";
 import { buildLojasMarkup } from "../markup";
 
@@ -184,6 +184,29 @@ describe("Oferta Agenda Bela: o que a página não pode dizer", () => {
     for (const t of comDesconto) expect(t).toMatch(/cupom|BELA50/);
   });
 
+  it("a prévia do link também: title e description (página, Open Graph e Twitter) citam o cupom", () => {
+    const og = ofertaMetadata.openGraph as { title?: unknown; description?: unknown };
+    const tw = ofertaMetadata.twitter as { title?: unknown; description?: unknown };
+    const titulos = [ofertaMetadata.title, og.title, tw.title].map((t) =>
+      typeof t === "string" ? t : (t as { absolute: string }).absolute,
+    );
+    const descricoes = [ofertaMetadata.description, og.description, tw.description];
+    for (const titulo of titulos) {
+      expect(titulo).toBe(
+        "Oferta Agenda Bela: 50% nos 3 primeiros meses com o cupom BELA50",
+      );
+    }
+    for (const descricao of descricoes) {
+      expect(descricao).toBe(
+        "Oferta Agenda Bela: use o cupom BELA50 e tenha 50% de desconto nos 3 primeiros meses, na primeira assinatura pelo app. Baixe no iPhone ou Android e teste 7 dias, sem cartão.",
+      );
+    }
+    // E no HTML que a rota entrega não sobra frase de desconto automático.
+    expect(JSON.stringify(ofertaMetadata)).not.toMatch(
+      /para quem assina pela primeira vez|aparece na tela da loja/i,
+    );
+  });
+
   it("não tem validade gravada: a página não se desliga sozinha numa data", () => {
     expect(doc.getElementById("lp")?.getAttribute("data-tema")).toBe("padrao");
     expect(doc.getElementById("lp")?.hasAttribute("data-tema-fim")).toBe(false);
@@ -342,20 +365,40 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
       expect(status?.getAttribute("aria-live")).toBe("polite");
       expect(status?.textContent).toBe("");
       expect(caixa.getAttribute("data-copiado")).toBe("Cupom copiado!");
-      expect(caixa.getAttribute("data-segure")).toBe("Segure para copiar");
-      // Versão sem JavaScript: só o código, sem prometer cópia.
-      expect(texto(caixa.querySelector(".cupom-nojs"))).not.toMatch(/copiar/i);
-      expect(texto(caixa.querySelector(".cupom-nojs .cupom-cod"))).toBe("BELA50");
+      expect(texto(botao?.querySelector(".cupom-msg"))).toBe("");
+      // Versão em texto (sem JavaScript, ou depois de a cópia falhar): o
+      // código, e o aviso de falha escondido até o runtime mostrar.
+      const emTexto = caixa.querySelector(".cupom-nojs");
+      expect(texto(emTexto?.querySelector(".cupom-cod"))).toBe("BELA50");
+      const falha = emTexto?.querySelector(".cupom-falha");
+      expect(falha?.hasAttribute("hidden")).toBe(true);
+      expect(texto(falha?.querySelector(".so-toque"))).toBe(
+        "Segure o código para copiar",
+      );
+      expect(texto(falha?.querySelector(".so-mouse"))).toBe(
+        "Código selecionado: copie",
+      );
+      falha?.remove();
+      expect(texto(emTexto)).not.toMatch(/copi/i);
     }
     const [hero, preco] = caixas;
+    // Duas redações do aviso; o CSS mostra uma (toque no celular, clique com mouse).
+    const aviso = (caixa: Element, qual: string) =>
+      texto(caixa.querySelector(`.cupom-btn .cupom-aviso .${qual}`));
+    expect(aviso(hero, "so-toque")).toBe("toque para copiar");
+    expect(aviso(hero, "so-mouse")).toBe("clique para copiar");
+    expect(aviso(preco, "so-toque")).toBe("Toque para copiar");
+    expect(aviso(preco, "so-mouse")).toBe("Clique para copiar");
     expect(texto(hero.querySelector(".cupom-btn"))).toBe(
-      "Cupom BELA50·toque para copiar",
+      "Cupom BELA50·toque para copiarclique para copiar",
     );
     expect(texto(hero.querySelector(".cupom-nojs"))).toBe("Cupom BELA50");
     expect(hero.previousElementSibling?.className).toBe("ofr");
     expect(doc.querySelector(".ofr .cupom, .ofr button")).toBeNull();
     expect(texto(preco.querySelector(".mono"))).toBe("Seu cupom");
-    expect(texto(preco.querySelector(".cupom-btn"))).toBe("BELA50Toque para copiar");
+    expect(texto(preco.querySelector(".cupom-btn"))).toBe(
+      "BELA50Toque para copiarClique para copiar",
+    );
     expect(texto(preco.querySelector(".cupom-leg"))).toBe(
       "Anote e digite em “Tenho um cupom”, na tela de assinatura do app.",
     );
@@ -371,6 +414,16 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
     );
     expect(css).toContain(
       "#lp[data-oferta] .cupom[data-cupom-on] .cupom-nojs{display:none!important}",
+    );
+    // "toque" é o padrão; "clique" só com mouse (hover e ponteiro fino), por CSS.
+    const semComentario = css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, "");
+    expect(semComentario).toContain(
+      "#lp[data-oferta].cupom.so-mouse{display:none}@media(hover:hover)and(pointer:fine){#lp[data-oferta].cupom.so-toque{display:none}#lp[data-oferta].cupom.so-mouse{display:inline}}",
+    );
+    // Topo: pílula sem fundo (o botão da loja é o único bloco branco); copiado, rosa.
+    expect(css).toContain("#lp[data-oferta] .cupom-hero .cupom-pill{background:transparent}");
+    expect(css).toContain(
+      "#lp[data-oferta] .cupom.is-copiado .cupom-pill{border-style:solid;background:#FFF1F5}",
     );
     // Do servidor nenhuma caixa sai ligada: quem liga é o runtime.
     expect(doc.querySelectorAll("[data-cupom-on]")).toHaveLength(0);

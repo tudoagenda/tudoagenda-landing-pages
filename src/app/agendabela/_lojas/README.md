@@ -58,9 +58,14 @@ cobrança pela web.
   `<button type="button">`, no topo (logo abaixo do cartão de preço, que é um
   link e por isso não pode conter o botão) e no bloco de preço. O toque copia
   (`navigator.clipboard`; se falhar, `execCommand("copy")` num campo
-  temporário; se nada copiar, o código fica selecionado e o aviso vira
-  "Segure para copiar"), o aviso troca para "Cupom copiado!" por 2,5 s e a
-  região `aria-live` repete. Sem JavaScript, ou enquanto o runtime não ligou a
+  temporário), o aviso troca para "Cupom copiado!" por 2,5 s e a região
+  `aria-live` repete. Se nada copiar, a caixa volta à versão em texto, com o
+  código selecionado e o aviso de como copiar à mão (segurar o dedo num
+  botão não abre o menu de copiar no WebKit); esse estado não volta sozinho.
+  Os avisos têm duas redações, escolhidas por CSS
+  (`@media (hover:hover) and (pointer:fine)`): "toque" no celular e "clique"
+  com mouse. Toque repetido com o "Cupom copiado!" na tela conta um
+  `cta_click` só. Sem JavaScript, ou enquanto o runtime não ligou a
   cópia (`data-cupom-on`), o CSS mostra o código em texto, selecionável, sem o
   aviso de copiar.
 - **Antes de ligar tráfego**: a versão do app com "Tenho um cupom" (1.11.0)

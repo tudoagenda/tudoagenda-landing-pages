@@ -227,19 +227,29 @@ const ICONE_COPIAR = `<svg class="cupom-ic" width="14" height="14" viewBox="0 0 
  * runtime liga a cópia, o aviso e a medição pelo data-cupom, que vira o
  * cta_location cupom_copiar_<lugar>). Enquanto o runtime não liga a cópia
  * (data-cupom-on), e sempre sem JavaScript, o CSS mostra a versão em texto,
- * selecionável, sem o aviso de "toque para copiar": a página não promete o
- * que não funciona.
+ * selecionável, sem o aviso de copiar: a página não promete o que não
+ * funciona. Se a cópia falhar, o runtime volta a essa versão em texto, com o
+ * código selecionado e o aviso .cupom-falha.
+ *
+ * Cada aviso tem duas redações e o CSS mostra uma: .so-toque (padrão) e
+ * .so-mouse (aparelho com mouse: hover e ponteiro fino). Não é pelo User-Agent,
+ * para valer também em tablet e notebook com toque.
  */
 function cupomCopiavel(o: OfertaConfig, lugar: "hero" | "preco"): string {
   const codigo = `<b class="cupom-cod">${o.cupom}</b>`;
   const hero = lugar === "hero";
   const antes = hero ? `<span class="cupom-pre">Cupom </span>` : "";
-  const aviso = hero
-    ? `<span class="cupom-sep" aria-hidden="true">·</span>${ICONE_COPIAR}<span class="cupom-aviso">toque para copiar</span>`
-    : `${ICONE_COPIAR}<span class="cupom-aviso">Toque para copiar</span>`;
-  return `<div class="cupom cupom-${lugar}" data-cupom="${lugar}" data-copiado="Cupom copiado!" data-segure="Segure para copiar">${
+  const porAparelho = (toque: string, mouse: string) =>
+    `<span class="so-toque">${toque}</span><span class="so-mouse">${mouse}</span>`;
+  const sep = hero ? `<span class="cupom-sep" aria-hidden="true">·</span>` : "";
+  const copiar = hero
+    ? porAparelho("toque para copiar", "clique para copiar")
+    : porAparelho("Toque para copiar", "Clique para copiar");
+  const aviso = `${sep}${ICONE_COPIAR}<span class="cupom-aviso">${copiar}</span><span class="cupom-msg"></span>`;
+  const falha = `<span class="cupom-falha" hidden>${sep}${porAparelho("Segure o código para copiar", "Código selecionado: copie")}</span>`;
+  return `<div class="cupom cupom-${lugar}" data-cupom="${lugar}" data-copiado="Cupom copiado!">${
     hero ? "" : `<span class="mono">Seu cupom</span>`
-  }<p class="cupom-pill cupom-nojs">${antes}${codigo}</p><button type="button" class="cupom-pill cupom-btn" aria-label="Copiar o cupom ${o.cupom}">${antes}${codigo}<span class="cupom-dica">${aviso}</span></button><span class="sr cupom-status" aria-live="polite"></span>${
+  }<p class="cupom-pill cupom-nojs">${antes}${codigo}${falha}</p><button type="button" class="cupom-pill cupom-btn" aria-label="Copiar o cupom ${o.cupom}">${antes}${codigo}<span class="cupom-dica">${aviso}</span></button><span class="sr cupom-status" aria-live="polite"></span>${
     hero
       ? ""
       : `<p class="cupom-leg">Anote e digite em “Tenho um cupom”, na tela de assinatura do app.</p>`

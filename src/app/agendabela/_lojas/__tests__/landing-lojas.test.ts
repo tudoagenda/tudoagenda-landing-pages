@@ -1098,10 +1098,14 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     lp().querySelector(`[data-cupom="${lugar}"]`) as HTMLElement;
   const botao = (lugar: string) =>
     caixa(lugar).querySelector(".cupom-btn") as HTMLButtonElement;
-  const aviso = (lugar: string) =>
-    caixa(lugar).querySelector(".cupom-aviso")?.textContent;
+  /** O "Cupom copiado!" que aparece no lugar do aviso de copiar. */
+  const msg = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-msg")?.textContent;
   const status = (lugar: string) =>
     caixa(lugar).querySelector(".cupom-status")?.textContent;
+  const falha = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-nojs .cupom-falha") as HTMLElement;
+  const ligado = (lugar: string) => caixa(lugar).hasAttribute("data-cupom-on");
 
   function mockClipboard(writeText: jest.Mock | undefined) {
     Object.defineProperty(window.navigator, "clipboard", {
@@ -1118,11 +1122,27 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     (document as unknown as { execCommand: unknown }).execCommand = exec;
     return exec;
   }
-  /** A cópia é uma promessa: deixa as continuações rodarem (e a região viva ser preenchida). */
-  const assentar = async () => {
+  /** Aparelho com mouse: a mesma media query do CSS (.so-mouse). */
+  function comMouse() {
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes("pointer:fine"),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+  }
+  /** A cópia é uma promessa: deixa as continuações rodarem. */
+  const promessas = async () => {
     for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+  /** Idem, e a região viva é preenchida (50 ms depois de esvaziada). */
+  const assentar = async () => {
+    await promessas();
     jest.advanceTimersByTime(50);
   };
+  const cliquesMedidos = () =>
+    eventos()
+      .filter((e) => e.event !== "lp_view")
+      .map((e) => `${e.event}:${e.cta_location}@${e.landing_slug}`);
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -1140,25 +1160,25 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
       const writeText = jest.fn().mockResolvedValue(undefined);
       mockClipboard(writeText);
       mount(OFERTA, { ua: UA.android });
-      const antes = aviso(lugar);
-      expect(antes?.toLowerCase()).toBe("toque para copiar");
+      expect(msg(lugar)).toBe("");
 
       botao(lugar).click();
       await assentar();
       expect(writeText).toHaveBeenCalledTimes(1);
       expect(writeText).toHaveBeenCalledWith(OFERTA.oferta.cupom);
-      expect(aviso(lugar)).toBe("Cupom copiado!");
+      expect(msg(lugar)).toBe("Cupom copiado!");
       expect(status(lugar)).toBe("Cupom copiado!");
       expect(caixa(lugar).classList.contains("is-copiado")).toBe(true);
       // O rótulo do botão não muda: quem avisa o leitor de tela é a região viva.
       expect(botao(lugar).getAttribute("aria-label")).toBe("Copiar o cupom BELA50");
 
       jest.advanceTimersByTime(2400);
-      expect(aviso(lugar)).toBe("Cupom copiado!");
+      expect(msg(lugar)).toBe("Cupom copiado!");
       jest.advanceTimersByTime(100);
-      expect(aviso(lugar)).toBe(antes);
+      expect(msg(lugar)).toBe("");
       expect(status(lugar)).toBe("");
       expect(caixa(lugar).className).toBe(`cupom cupom-${lugar}`);
+      expect(ligado(lugar)).toBe(true);
     },
   );
 
@@ -1167,16 +1187,34 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     mount(OFERTA, { ua: UA.iphone });
     botao("hero").click();
     botao("preco").click();
-    botao("preco").click();
     await assentar();
-    expect(
-      eventos()
-        .filter((e) => e.event !== "lp_view")
-        .map((e) => `${e.event}:${e.cta_location}@${e.landing_slug}`),
-    ).toEqual([
+    expect(cliquesMedidos()).toEqual([
       "cta_click:cupom_copiar_hero@oferta",
       "cta_click:cupom_copiar_preco@oferta",
-      "cta_click:cupom_copiar_preco@oferta",
+    ]);
+  });
+
+  it("medição: toque repetido com o aviso na tela conta um só; depois que o aviso sai, conta de novo", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    mount(OFERTA, { ua: UA.iphone });
+    // Duplo toque, antes mesmo de a cópia terminar.
+    botao("hero").click();
+    botao("hero").click();
+    await assentar();
+    // E mais um com o "Cupom copiado!" na tela.
+    botao("hero").click();
+    await assentar();
+    expect(writeText).toHaveBeenCalledTimes(3);
+    expect(cliquesMedidos()).toEqual(["cta_click:cupom_copiar_hero@oferta"]);
+    // O aviso some 2,5 s depois do último toque: aí um toque novo conta.
+    jest.advanceTimersByTime(2500);
+    expect(msg("hero")).toBe("");
+    botao("hero").click();
+    await assentar();
+    expect(cliquesMedidos()).toEqual([
+      "cta_click:cupom_copiar_hero@oferta",
+      "cta_click:cupom_copiar_hero@oferta",
     ]);
   });
 
@@ -1189,7 +1227,8 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     await assentar();
     expect(writeText).toHaveBeenCalledWith("BELA50");
     expect(exec).toHaveBeenCalledWith("copy");
-    expect(aviso("preco")).toBe("Cupom copiado!");
+    expect(msg("preco")).toBe("Cupom copiado!");
+    expect(ligado("preco")).toBe(true);
     // O campo temporário não fica na página.
     expect(document.querySelector("textarea")).toBeNull();
   });
@@ -1201,53 +1240,96 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     botao("hero").click();
     await assentar();
     expect(exec).toHaveBeenCalledWith("copy");
-    expect(aviso("hero")).toBe("Cupom copiado!");
+    expect(msg("hero")).toBe("Cupom copiado!");
   });
 
   it.each([
     ["execCommand devolve false", false as boolean | Error],
     ["execCommand lança", new Error("bloqueado")],
   ])(
-    "nada copia (%s): o código fica selecionado e o aviso pede para segurar",
+    "nada copia (%s): sai o botão, volta o código em texto, selecionado, com o aviso de segurar",
     async (_caso, resultado) => {
       mockClipboard(jest.fn().mockRejectedValue(new Error("NotAllowedError")));
       mockExecCommand(resultado);
       mount(OFERTA, { ua: UA.iphone });
+      expect(falha("preco").hidden).toBe(true);
       botao("preco").click();
       await assentar();
-      expect(aviso("preco")).toBe("Segure para copiar");
-      expect(status("preco")).toBe("Segure para copiar");
-      expect(caixa("preco").classList.contains("is-copiado")).toBe(false);
-      expect(window.getSelection()?.toString()).toBe("BELA50");
-      jest.advanceTimersByTime(2500);
-      expect(aviso("preco")).toBe("Toque para copiar");
-      expect(status("preco")).toBe("");
+      // Sem data-cupom-on o CSS esconde o botão e mostra a versão em texto.
+      expect(ligado("preco")).toBe(false);
+      expect(caixa("preco").className).toBe("cupom cupom-preco is-falha");
+      expect(falha("preco").hidden).toBe(false);
+      expect(msg("preco")).toBe("");
+      // Selecionado o código da versão em texto (não o de dentro do botão).
+      const selecao = window.getSelection() as Selection;
+      expect(selecao.toString()).toBe("BELA50");
+      expect(
+        caixa("preco").querySelector(".cupom-nojs")?.contains(selecao.anchorNode),
+      ).toBe(true);
+      // Aparelho de toque: a região viva lê a redação de toque.
+      expect(status("preco")).toBe("Segure o código para copiar");
+      // Não volta sozinho ao botão.
+      jest.advanceTimersByTime(60_000);
+      expect(ligado("preco")).toBe(false);
+      expect(falha("preco").hidden).toBe(false);
+      expect(status("preco")).toBe("Segure o código para copiar");
+      // A outra caixa segue como botão.
+      expect(ligado("hero")).toBe(true);
+      expect(falha("hero").hidden).toBe(true);
+      // O toque que falhou foi medido, uma vez.
+      expect(cliquesMedidos()).toEqual(["cta_click:cupom_copiar_preco@oferta"]);
     },
   );
 
-  it("o cleanup desliga a cópia e devolve o aviso, mesmo com cópia em andamento", async () => {
+  it("nada copia, com mouse: a região viva lê \"Código selecionado: copie\"", async () => {
+    mockClipboard(undefined);
+    mockExecCommand(false);
+    mount(OFERTA, { ua: UA.desktop });
+    comMouse();
+    botao("hero").click();
+    await assentar();
+    expect(ligado("hero")).toBe(false);
+    expect(falha("hero").hidden).toBe(false);
+    expect(status("hero")).toBe("Código selecionado: copie");
+    expect(window.getSelection()?.toString()).toBe("BELA50");
+  });
+
+  it("o cleanup desliga a cópia e desfaz os avisos, mesmo com cópia em andamento ou falha", async () => {
     const writeText = jest.fn().mockResolvedValue(undefined);
     mockClipboard(writeText);
     mount(OFERTA, { ua: UA.iphone });
     botao("hero").click();
     await assentar();
-    expect(aviso("hero")).toBe("Cupom copiado!");
+    expect(msg("hero")).toBe("Cupom copiado!");
     botao("preco").click(); // ainda não assentou
     cleanup?.();
     cleanup = undefined;
     await assentar();
-    expect(aviso("hero")).toBe("toque para copiar");
-    expect(aviso("preco")).toBe("Toque para copiar");
+    expect(msg("hero")).toBe("");
+    expect(msg("preco")).toBe("");
     expect(status("hero")).toBe("");
     // O aviso da cópia que estava em andamento não aparece depois do cleanup.
     jest.advanceTimersByTime(3000);
-    expect(aviso("preco")).toBe("Toque para copiar");
+    expect(msg("preco")).toBe("");
     expect(caixa("preco").className).toBe("cupom cupom-preco");
     const eventosAntes = eventos().length;
     botao("hero").click();
     await assentar();
     expect(writeText).toHaveBeenCalledTimes(2);
     expect(eventos()).toHaveLength(eventosAntes);
+
+    // Depois de uma falha, o cleanup devolve o HTML do servidor.
+    mockClipboard(undefined);
+    mockExecCommand(false);
+    mount(OFERTA, { ua: UA.iphone });
+    botao("hero").click();
+    await assentar();
+    expect(falha("hero").hidden).toBe(false);
+    cleanup?.();
+    cleanup = undefined;
+    expect(falha("hero").hidden).toBe(true);
+    expect(caixa("hero").className).toBe("cupom cupom-hero");
+    expect(lp().querySelectorAll("[data-cupom-on]")).toHaveLength(0);
   });
 
   it("o botão só aparece ligado: o runtime marca data-cupom-on e o cleanup tira", () => {
@@ -1268,13 +1350,13 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     await assentar();
     expect(status("hero")).toBe("Cupom copiado!");
     botao("hero").click();
-    for (let i = 0; i < 5; i++) await Promise.resolve();
+    await promessas();
     expect(status("hero")).toBe("");
     jest.advanceTimersByTime(50);
     expect(status("hero")).toBe("Cupom copiado!");
     // O prazo conta do último toque.
     jest.advanceTimersByTime(2400);
-    expect(aviso("hero")).toBe("Cupom copiado!");
+    expect(msg("hero")).toBe("Cupom copiado!");
   });
 
   it("medição quebrada não impede a cópia", async () => {
@@ -1294,7 +1376,7 @@ describe("Oferta Agenda Bela: cupom copiável", () => {
     botao("preco").click();
     await assentar();
     expect(writeText).toHaveBeenCalledWith("BELA50");
-    expect(aviso("preco")).toBe("Cupom copiado!");
+    expect(msg("preco")).toBe("Cupom copiado!");
   });
 
   it("campo temporário: o foco volta para o botão do cupom", async () => {

@@ -234,66 +234,96 @@ function copiarTexto(texto) {
 /**
  * Cupom copiável da Oferta Agenda Bela ([data-cupom] em markup.ts): o código
  * é um botão. Toque ou clique copia e o aviso ao lado troca para "Cupom
- * copiado!" por um instante. Se nada copiar, o código fica selecionado e o
- * aviso pede para segurar. Os textos vêm do HTML (data-copiado, data-segure).
- * Cada toque sai como cta_click (cupom_copiar_hero ou cupom_copiar_preco).
+ * copiado!" (data-copiado) por um instante.
+ *
+ * Se nada copiar, a caixa volta à versão em texto (sai o data-cupom-on), com
+ * o código selecionado e o aviso .cupom-falha: segurar o dedo num <button>
+ * não abre o menu de copiar no WebKit, num texto abre. Esse estado fica até a
+ * página sair.
+ *
+ * Cada toque sai como cta_click (cupom_copiar_hero ou cupom_copiar_preco);
+ * toque repetido com o "Cupom copiado!" ainda na tela conta um só.
  */
 function ligarCupom(opts, lp, undo) {
   Array.prototype.slice.call(lp.querySelectorAll("[data-cupom]")).forEach(function (caixa) {
     const botao = caixa.querySelector(".cupom-btn");
     const codigo = botao && botao.querySelector(".cupom-cod");
-    const aviso = botao && botao.querySelector(".cupom-aviso");
+    const msg = botao && botao.querySelector(".cupom-msg");
     const status = caixa.querySelector(".cupom-status");
-    if (!botao || !codigo || !aviso || !status) return;
-    const avisoInicial = aviso.textContent;
+    const texto = caixa.querySelector(".cupom-nojs");
+    const falha = texto && texto.querySelector(".cupom-falha");
+    if (!botao || !codigo || !msg || !status || !falha) return;
     let timer = 0;
     let timerStatus = 0;
     let vivo = true;
+    /* Toque já contado: só volta a contar quando o "Cupom copiado!" sair. */
+    let medido = false;
+    /* A região viva é preenchida um instante depois de esvaziada: num segundo
+       toque seguido, o leitor de tela anuncia de novo. */
+    const anunciar = function (frase) {
+      clearTimeout(timerStatus);
+      status.textContent = "";
+      timerStatus = setTimeout(function () {
+        status.textContent = frase;
+      }, 50);
+    };
     const voltar = function () {
       clearTimeout(timer);
       clearTimeout(timerStatus);
-      aviso.textContent = avisoInicial;
+      msg.textContent = "";
       status.textContent = "";
-      caixa.classList.remove("is-copiado", "is-segure");
+      caixa.classList.remove("is-copiado");
     };
-    const mostrar = function (texto, classe) {
+    const copiado = function () {
       voltar();
-      aviso.textContent = texto;
-      /* A região viva é preenchida um instante depois de esvaziada: num
-         segundo toque seguido, o leitor de tela anuncia de novo. */
-      timerStatus = setTimeout(function () {
-        status.textContent = texto;
-      }, 50);
-      caixa.classList.add(classe);
-      timer = setTimeout(voltar, CUPOM_AVISO_MS);
+      const frase = caixa.getAttribute("data-copiado");
+      msg.textContent = frase;
+      anunciar(frase);
+      caixa.classList.add("is-copiado");
+      timer = setTimeout(function () {
+        voltar();
+        medido = false;
+      }, CUPOM_AVISO_MS);
+    };
+    /* Nada copiou: sai o botão, volta o código em texto, já selecionado. */
+    const falhou = function () {
+      voltar();
+      medido = false;
+      caixa.removeAttribute("data-cupom-on");
+      caixa.classList.add("is-falha");
+      falha.hidden = false;
+      const selecao = window.getSelection && window.getSelection();
+      if (selecao) {
+        const faixa = document.createRange();
+        faixa.selectNodeContents(texto.querySelector(".cupom-cod"));
+        selecao.removeAllRanges();
+        selecao.addRange(faixa);
+      }
+      /* A mesma pergunta do CSS (.so-mouse): com mouse, a outra redação. */
+      const comMouse =
+        window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+      const frase = falha.querySelector(comMouse ? ".so-mouse" : ".so-toque");
+      anunciar(frase ? frase.textContent : "");
     };
     listen(undo, botao, "click", function () {
       /* A cópia começa dentro do clique (o navegador exige o gesto) e não
          depende da medição: se o evento falhar, o cupom é copiado assim mesmo. */
       const copia = copiarTexto(codigo.textContent);
-      try {
-        opts.track({
-          event: "cta_click",
-          cta_location: "cupom_copiar_" + caixa.getAttribute("data-cupom"),
-        });
-      } catch {
-        /* Sem medição o cupom continua copiável. */
+      if (!medido) {
+        medido = true;
+        try {
+          opts.track({
+            event: "cta_click",
+            cta_location: "cupom_copiar_" + caixa.getAttribute("data-cupom"),
+          });
+        } catch {
+          /* Sem medição o cupom continua copiável. */
+        }
       }
       copia.then(function (copiou) {
         if (!vivo) return;
-        if (copiou) {
-          mostrar(caixa.getAttribute("data-copiado"), "is-copiado");
-          return;
-        }
-        /* Nada copiou: deixa o código selecionado para ela copiar à mão. */
-        const selecao = window.getSelection && window.getSelection();
-        if (selecao) {
-          const faixa = document.createRange();
-          faixa.selectNodeContents(codigo);
-          selecao.removeAllRanges();
-          selecao.addRange(faixa);
-        }
-        mostrar(caixa.getAttribute("data-segure"), "is-segure");
+        if (copiou) copiado();
+        else falhou();
       });
     });
     /* Só agora o CSS troca o código em texto pelo botão com o aviso de
@@ -303,6 +333,8 @@ function ligarCupom(opts, lp, undo) {
       vivo = false;
       voltar();
       caixa.removeAttribute("data-cupom-on");
+      caixa.classList.remove("is-falha");
+      falha.hidden = true;
     });
   });
 }

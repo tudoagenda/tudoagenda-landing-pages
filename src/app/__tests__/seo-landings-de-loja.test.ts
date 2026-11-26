@@ -40,10 +40,14 @@ describe.each([
   };
   const twitter = metadata.twitter as Record<string, unknown>;
 
-  it("title até 60 caracteres e description entre 110 e 160, com a marca", () => {
-    expect(title.length).toBeLessThanOrEqual(60);
+  it("title até 60 caracteres e description entre 110 e 160 (na oferta, 70 e 180), com a marca", () => {
+    // 60 e 160 são os cortes do resultado de busca. A oferta é noindex (não
+    // aparece na busca) e os textos dela levam o cupom: title com 64 e
+    // description com 173 caracteres. Ali o que conta é a prévia do link.
+    const oferta = slug === "oferta";
+    expect(title.length).toBeLessThanOrEqual(oferta ? 70 : 60);
     expect(description.length).toBeGreaterThanOrEqual(110);
-    expect(description.length).toBeLessThanOrEqual(160);
+    expect(description.length).toBeLessThanOrEqual(oferta ? 180 : 160);
     for (const text of [title, description]) {
       expect(text).toContain("Agenda Bela");
       expect(text).not.toMatch(/Agendabela|59,99/);
@@ -117,7 +121,7 @@ describe("Oferta Agenda Bela: página de campanha", () => {
   it("é noindex, com o nome fechado no title", () => {
     expect(ofertaMetadata.robots).toEqual({ index: false });
     expect(ofertaMetadata.title).toEqual({
-      absolute: "Oferta Agenda Bela: 50% nos 3 primeiros meses",
+      absolute: "Oferta Agenda Bela: 50% nos 3 primeiros meses com o cupom BELA50",
     });
   });
 
