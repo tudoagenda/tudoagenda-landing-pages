@@ -71,6 +71,7 @@ describe("store_click: event_id e envio ao servidor", () => {
       in_app_browser: "instagram",
       landing_slug: "oferta",
       fbclid: "AbC-123_x",
+      fbclid_seen_at: expect.any(Number),
       // Só a origem da visita segue na URL: token e # ficam de fora.
       event_source_url: "http://localhost/agendabela/oferta?utm_source=meta&fbclid=AbC-123_x",
     });
@@ -91,52 +92,94 @@ describe("store_click: event_id e envio ao servidor", () => {
     expect(beaconBodies().map((b) => b.event_id)).toEqual(ids);
   });
 
-  it("página que não manda in_app_browser: o envio detecta pelo User-Agent, e o push fica como era", () => {
-    jest
-      .spyOn(navigator, "userAgent", "get")
-      .mockReturnValue("Mozilla/5.0 (iPhone) AppleWebKit Mobile Instagram 330.0");
-    pushAgendaBelaMainEvent({
-      event: "store_click",
-      store: "app_store",
-      cta_location: "rodape_selo",
-      device_os: "ios",
-    });
-    expect(beaconBodies()[0].in_app_browser).toBe("instagram");
-    expect("in_app_browser" in window.dataLayer![0]).toBe(false);
-  });
+  describe("Pixel e servidor recebem o mesmo custom_data, por origem", () => {
+    const CAMPOS = ["store", "landing_slug", "cta_location", "device_os", "in_app_browser"] as const;
+    const origens: [string, () => void][] = [
+      [
+        "landing de loja",
+        () =>
+          pushAgendaBelaLojasEvent("app-para-salao-de-beleza", {
+            event: "store_click",
+            store: "app_store",
+            cta_location: "sticky_mobile",
+            device_os: "ios",
+            in_app_browser: "facebook",
+          }),
+      ],
+      [
+        "Experimente",
+        () =>
+          pushAgendaBelaExperimenteEvent({
+            event: "store_click",
+            store: "google_play",
+            cta_location: "final_selo",
+            device_os: "android",
+          }),
+      ],
+      [
+        "landing principal",
+        () =>
+          pushAgendaBelaMainEvent({
+            event: "store_click",
+            store: "app_store",
+            cta_location: "rodape_selo",
+            device_os: "ios",
+          }),
+      ],
+      [
+        "reativação",
+        () =>
+          pushAgendaBelaReativacaoEvent({
+            event: "store_click",
+            store: "google_play",
+            cta_location: "ja_assinante_baixar_app",
+            device_os: "android",
+          }),
+      ],
+    ];
 
-  it("fora do Instagram/Facebook, in_app_browser vai none (Experimente, principal, reativação)", () => {
-    history.replaceState(null, "", "/agendabela/experimente");
-    pushAgendaBelaExperimenteEvent({
-      event: "store_click",
-      store: "app_store",
-      cta_location: "final_selo",
-      device_os: "desktop",
-    });
-    pushAgendaBelaMainEvent({
-      event: "store_click",
-      store: "google_play",
-      cta_location: "rodape_selo",
-      device_os: "android",
-    });
-    pushAgendaBelaReativacaoEvent({
-      event: "store_click",
-      store: "app_store",
-      cta_location: "sucesso",
-      device_os: "ios",
+    it.each(origens)("%s", (_nome, clicar) => {
+      // Dentro do Instagram: quem não detecta sozinho ganha o valor no helper.
+      jest
+        .spyOn(navigator, "userAgent", "get")
+        .mockReturnValue("Mozilla/5.0 (iPhone) AppleWebKit Mobile Instagram 330.0");
+      clicar();
+      const push = window.dataLayer![0];
+      const beacon = beaconBodies()[0];
+      for (const campo of CAMPOS) {
+        expect(push[campo]).toBeDefined();
+        expect(beacon[campo]).toBe(push[campo]);
+      }
+      expect(beacon.event_id).toBe(push.event_id);
     });
 
-    const bodies = beaconBodies();
-    expect(bodies.map((b) => b.landing_slug)).toEqual([
-      "experimente",
-      "automatize-seu-atendimento",
-      "reativacao",
-    ]);
-    expect(bodies.every((b) => b.in_app_browser === "none")).toBe(true);
-    expect(bodies.every((b) => !("fbclid" in b))).toBe(true);
-    // O push do dataLayer não ganha in_app_browser onde ele não existia.
-    expect(window.dataLayer!.every((e) => !("in_app_browser" in e))).toBe(true);
-    window.dataLayer!.forEach((e, i) => expect(e.event_id).toBe(bodies[i].event_id));
+    it("a landing de loja mantém o valor que ela mesma detectou", () => {
+      origens[0][1]();
+      expect(window.dataLayer![0].in_app_browser).toBe("facebook");
+    });
+
+    it("fora do Instagram/Facebook, as outras páginas mandam none nos dois caminhos", () => {
+      origens.slice(1).forEach(([, clicar]) => clicar());
+      expect(window.dataLayer!.map((e) => e.in_app_browser)).toEqual(["none", "none", "none"]);
+      expect(beaconBodies().map((b) => b.in_app_browser)).toEqual(["none", "none", "none"]);
+      expect(beaconBodies().map((b) => b.landing_slug)).toEqual([
+        "experimente",
+        "automatize-seu-atendimento",
+        "reativacao",
+      ]);
+      expect(beaconBodies().every((b) => !("fbclid" in b) && !("fbclid_seen_at" in b))).toBe(true);
+    });
+
+    it("in_app_browser do clique não gruda no evento seguinte da principal nem do Experimente", () => {
+      origens[1][1]();
+      pushAgendaBelaExperimenteEvent({ event: "cta_click", cta_location: "hero" });
+      origens[2][1]();
+      pushAgendaBelaMainEvent({ event: "cta_click", cta_location: "automatize_avaliacoes" });
+      for (const i of [1, 3]) {
+        expect("in_app_browser" in window.dataLayer![i]).toBe(true);
+        expect(window.dataLayer![i].in_app_browser).toBeUndefined();
+      }
+    });
   });
 
   it("fbclid persistido na sessão segue no beacon mesmo sem estar mais na URL", () => {
@@ -152,6 +195,50 @@ describe("store_click: event_id e envio ao servidor", () => {
     });
     expect(beaconBodies()).toHaveLength(1);
     expect(beaconBodies()[0].fbclid).toBe("IwAR0persistido");
+  });
+
+  it("fbclid_seen_at é a hora do primeiro evento da visita com aquele fbclid, não a do clique", () => {
+    const now = jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+    history.replaceState(null, "", "/agendabela/oferta?fbclid=PrimeiroClique");
+    pushAgendaBelaLojasEvent("oferta", { event: "lp_view", device_os: "ios", ref: undefined, in_app_browser: "none" });
+    now.mockReturnValue(1790000300000);
+    const clicar = () =>
+      pushAgendaBelaLojasEvent("oferta", {
+        event: "store_click",
+        store: "app_store",
+        cta_location: "preco",
+        device_os: "ios",
+        in_app_browser: "none",
+      });
+    clicar();
+    expect(beaconBodies()[0].fbclid_seen_at).toBe(1790000000000);
+
+    // Outro anúncio na mesma aba: fbclid novo, hora nova.
+    now.mockReturnValue(1790000600000);
+    history.replaceState(null, "", "/agendabela/oferta?fbclid=SegundoClique");
+    clicar();
+    expect(beaconBodies()[1]).toEqual(
+      expect.objectContaining({ fbclid: "SegundoClique", fbclid_seen_at: 1790000600000 }),
+    );
+    // A atribuição gravada continua no formato de sempre.
+    expect(JSON.parse(window.sessionStorage.getItem("agendabela_landing_attribution")!)).toEqual({
+      fbclid: "SegundoClique",
+    });
+  });
+
+  it("sessão que já tinha a atribuição gravada (sem a hora): vale a hora do primeiro evento depois disso", () => {
+    window.sessionStorage.setItem("agendabela_landing_attribution", JSON.stringify({ fbclid: "Antigo" }));
+    jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+    pushAgendaBelaLojasEvent("oferta", {
+      event: "store_click",
+      store: "app_store",
+      cta_location: "preco",
+      device_os: "ios",
+      in_app_browser: "none",
+    });
+    expect(beaconBodies()[0]).toEqual(
+      expect.objectContaining({ fbclid: "Antigo", fbclid_seen_at: 1790000000000 }),
+    );
   });
 
   it("o evento seguinte não herda o event_id (com e sem lista de reset) e não manda beacon", () => {

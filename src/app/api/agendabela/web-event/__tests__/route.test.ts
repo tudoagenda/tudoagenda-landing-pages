@@ -3,11 +3,13 @@
  */
 
 import { LANDING_LOJAS } from "@/config/landing-lojas";
+import { webEventRateLimiter } from "@/lib/server/rate-limit";
 import * as route from "../route";
 
 const { POST } = route;
 const ENV = { ...process.env };
 const EVENT_ID = "3f2b8c1e-9a4d-4e7b-8c21-5d6f7a8b9c0d";
+const UA = "Mozilla/5.0 (teste)";
 const URL_ROTA = "https://tudoagenda.com.br/api/agendabela/web-event";
 
 const valido = {
@@ -24,7 +26,7 @@ function req(body: unknown, headers: Record<string, string> = {}) {
   return new Request(URL_ROTA, {
     method: "POST",
     // O sendBeacon manda texto puro.
-    headers: { "Content-Type": "text/plain;charset=UTF-8", ...headers },
+    headers: { "Content-Type": "text/plain;charset=UTF-8", "user-agent": UA, ...headers },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -49,6 +51,7 @@ function setNodeEnv(value: string) {
 
 beforeEach(() => {
   jest.restoreAllMocks();
+  webEventRateLimiter.reset();
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "info").mockImplementation(() => {});
   process.env = { ...ENV, BACKEND_API_URL: "https://api.test/api" };
@@ -116,7 +119,27 @@ describe("POST /api/agendabela/web-event", () => {
     const f = mockFetch();
     const res = await POST(req({ ...valido, fbclid: "IwAR0_abc-123" }));
     expect(res.status).toBe(204);
-    expect(sent(f).body.user).toEqual({ fbc: "fb.1.1790000000000.IwAR0_abc-123" });
+    expect(sent(f).body.user).toEqual({ fbc: "fb.1.1790000000000.IwAR0_abc-123", user_agent: UA });
+  });
+
+  it("o fbc leva a hora em que o fbclid foi visto na sessão, não a do clique", async () => {
+    jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+    const f = mockFetch();
+    await POST(req({ ...valido, fbclid: "IwAR0abc", fbclid_seen_at: 1789999400000 }));
+    expect(sent(f).body.user.fbc).toBe("fb.1.1789999400000.IwAR0abc");
+  });
+
+  it.each([
+    ["no futuro", 1790003600000],
+    ["velha demais", 1700000000000],
+    ["texto", "1789999400000"],
+    ["quebrada", 1789999400000.5],
+  ])("hora do fbclid %s: usa a hora do clique", async (_nome, fbclid_seen_at) => {
+    jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+    const f = mockFetch();
+    const res = await POST(req({ ...valido, fbclid: "IwAR0abc", fbclid_seen_at }));
+    expect(res.status).toBe(204);
+    expect(sent(f).body.user.fbc).toBe("fb.1.1790000000000.IwAR0abc");
   });
 
   it("com cookie _fbc, o cookie vence o fbclid", async () => {
@@ -131,13 +154,13 @@ describe("POST /api/agendabela/web-event", () => {
       req({ ...valido, fbclid: "com espaço<script>" }, { cookie: "_fbp=qualquer-coisa; _fbc=%E0%A4%A" }),
     );
     expect(res.status).toBe(204);
-    expect(sent(f).body.user).toEqual({});
+    expect(sent(f).body.user).toEqual({ user_agent: UA });
   });
 
   it("cookie com data fora do formato que o backend aceita fica de fora; o clique segue", async () => {
     const f = mockFetch();
     await POST(req(valido, { cookie: "_fbp=fb.1.1.1; _fbc=fb.1.123.abc" }));
-    expect(sent(f).body.user).toEqual({});
+    expect(sent(f).body.user).toEqual({ user_agent: UA });
   });
 
   it("User-Agent: caractere de controle vira espaço e o tamanho é limitado", async () => {
@@ -168,10 +191,113 @@ describe("POST /api/agendabela/web-event", () => {
     expect(f).toHaveBeenCalledTimes(1);
   });
 
-  it("sem cookies, IP nem User-Agent: user vazio", async () => {
+  it("sem cookies nem IP: user só com o User-Agent", async () => {
     const f = mockFetch();
     await POST(req(valido));
-    expect(sent(f).body.user).toEqual({});
+    expect(sent(f).body.user).toEqual({ user_agent: UA });
+  });
+
+  it.each([["ausente", ""], ["só espaço e controle", " \t "]])(
+    "User-Agent %s: 204 sem repassar (a Meta recusaria o evento)",
+    async (_nome, ua) => {
+      const f = mockFetch();
+      const res = await POST(req(valido, { "user-agent": ua }));
+      expect(res.status).toBe(204);
+      expect(f).not.toHaveBeenCalled();
+    },
+  );
+
+  it("atrás do CloudFront, última entrada do X-Forwarded-For diferente do X-Real-IP: sem IP", async () => {
+    const f = mockFetch();
+    await POST(
+      req(valido, {
+        "x-amz-cf-id": "abc",
+        "x-forwarded-for": "203.0.113.7, 130.176.1.1",
+        "x-real-ip": "130.176.9.9",
+      }),
+    );
+    await POST(req(valido, { "x-amz-cf-id": "abc", "x-forwarded-for": "203.0.113.7, 130.176.1.1" }));
+    for (const call of f.mock.calls) {
+      expect(JSON.parse((call[1] as RequestInit).body as string).user.client_ip).toBeUndefined();
+    }
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    "10.1.2.3",
+    "172.16.0.9",
+    "172.31.255.1",
+    "192.168.1.10",
+    "127.0.0.1",
+    "169.254.10.10",
+    "100.64.0.1",
+    "::1",
+    "fe80::1",
+    "fd12:3456::1",
+    "::ffff:10.0.0.1",
+  ])("IP privado ou reservado (%s) nunca vai como client_ip", async (ip) => {
+    const f = mockFetch();
+    // Direto (sem CloudFront) e atrás do CloudFront.
+    await POST(req(valido, { "x-real-ip": ip }));
+    await POST(
+      req(valido, {
+        "x-amz-cf-id": "abc",
+        "x-forwarded-for": `${ip}, 130.176.1.1`,
+        "x-real-ip": "130.176.1.1",
+      }),
+    );
+    expect(f).toHaveBeenCalledTimes(2);
+    for (const call of f.mock.calls) {
+      expect(JSON.parse((call[1] as RequestInit).body as string).user.client_ip).toBeUndefined();
+    }
+  });
+
+  it("IP público (v4 e v6) vai como client_ip", async () => {
+    const f = mockFetch();
+    await POST(req(valido, { "x-real-ip": "172.32.0.1" }));
+    await POST(req(valido, { "x-real-ip": "2804:14c:1::abcd" }));
+    expect(f.mock.calls.map((c) => JSON.parse((c[1] as RequestInit).body as string).user.client_ip)).toEqual([
+      "172.32.0.1",
+      "2804:14c:1::abcd",
+    ]);
+  });
+
+  describe("limite por IP (20 por minuto)", () => {
+    const de = (ip: string) => ({ "x-real-ip": ip });
+
+    it("o 21º clique do mesmo IP no minuto responde 204 sem repassar; outro IP segue", async () => {
+      jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+      const f = mockFetch();
+      for (let i = 0; i < 25; i += 1) {
+        expect((await POST(req(valido, de("203.0.113.7")))).status).toBe(204);
+      }
+      expect(f).toHaveBeenCalledTimes(20);
+      expect((await POST(req(valido, de("203.0.113.8")))).status).toBe(204);
+      expect(f).toHaveBeenCalledTimes(21);
+    });
+
+    it("passado o minuto, o IP volta a ser repassado", async () => {
+      const now = jest.spyOn(Date, "now").mockReturnValue(1790000000000);
+      const f = mockFetch();
+      for (let i = 0; i < 21; i += 1) await POST(req(valido, de("203.0.113.7")));
+      expect(f).toHaveBeenCalledTimes(20);
+      now.mockReturnValue(1790000060001);
+      await POST(req(valido, de("203.0.113.7")));
+      expect(f).toHaveBeenCalledTimes(21);
+    });
+
+    it("pedidos sem IP confiável dividem uma chave só", async () => {
+      const f = mockFetch();
+      for (let i = 0; i < 22; i += 1) await POST(req(valido));
+      expect(f).toHaveBeenCalledTimes(20);
+    });
+
+    it("pedido inválido não gasta o limite", async () => {
+      const f = mockFetch();
+      for (let i = 0; i < 30; i += 1) await POST(req({ ...valido, store: "x" }, de("203.0.113.7")));
+      await POST(req(valido, de("203.0.113.7")));
+      expect(f).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("atrás do CloudFront sem o segredo de origem: IP é a penúltima entrada do X-Forwarded-For, e a chave não vai", async () => {
@@ -272,6 +398,31 @@ describe("POST /api/agendabela/web-event", () => {
       const f = mockFetch();
       const res = await POST(req({ ...valido, lixo: "a".repeat(5000) }));
       expect(res.status).toBe(413);
+      expect(f).not.toHaveBeenCalled();
+    });
+
+    it("413: corpo em pedaços, sem Content-Length, para de ser lido ao passar do limite", async () => {
+      const f = mockFetch();
+      let enviados = 0;
+      const pedaco = new TextEncoder().encode("a".repeat(1024));
+      const stream = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          enviados += 1;
+          if (enviados > 1000) controller.close();
+          else controller.enqueue(pedaco);
+        },
+      });
+      const pedido = new Request(URL_ROTA, {
+        method: "POST",
+        headers: { "user-agent": UA },
+        body: stream,
+        duplex: "half",
+      } as RequestInit);
+      expect(pedido.headers.get("content-length")).toBeNull();
+      const res = await POST(pedido);
+      expect(res.status).toBe(413);
+      // Leu pouco mais que os 4 KB do teto, não o megabyte inteiro.
+      expect(enviados).toBeLessThan(10);
       expect(f).not.toHaveBeenCalled();
     });
 

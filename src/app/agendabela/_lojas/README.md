@@ -136,8 +136,10 @@ principal e reativação), porque é feito no helper central
    `navigator.sendBeacon` (ou `fetch` com `keepalive`) para
    `POST /api/agendabela/web-event`, sem esperar resposta:
    `{ event_id, store, cta_location, device_os, in_app_browser, landing_slug, event_source_url, fbclid? }`.
-   Onde a página não manda `in_app_browser`, o envio detecta pelo User-Agent
-   (`"none"` fora do Instagram/Facebook); `fbclid` só vai se a
+   `store`, `cta_location`, `device_os`, `in_app_browser` e `landing_slug` são
+   os mesmos valores do push do dataLayer (saem do mesmo objeto). Página que
+   não detecta o navegador interno (Experimente, principal, reativação) ganha
+   `in_app_browser` no helper, no push e no envio; `fbclid` só vai se a
    sessão tiver um; da URL só seguem UTMs, `fbclid`, `gclid` e `ref`.
 3. A rota (`src/app/api/agendabela/web-event/route.ts`) confere o corpo (listas
    fechadas, tamanhos, URL de `tudoagenda.com.br/agendabela/…`), lê os cookies

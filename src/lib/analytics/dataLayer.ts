@@ -12,7 +12,12 @@
  */
 
 import type { LandingLojasSlug } from "@/config/landing-lojas";
-import { newEventId, sendStoreClickBeacon } from "./storeClickBeacon";
+import { detectInAppBrowser } from "@/lib/device";
+import {
+  fbclidSeenAt,
+  newEventId,
+  sendStoreClickBeacon,
+} from "./storeClickBeacon";
 
 declare global {
   interface Window {
@@ -279,6 +284,7 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
  */
 export const MAIN_RESET_KEYS = [
   "event_id",
+  "in_app_browser",
   "cta_position",
   "cta_intent",
   "form_name",
@@ -342,6 +348,7 @@ export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): voi
  */
 const EXPERIMENTE_RESET_KEYS = [
   "event_id",
+  "in_app_browser",
   "journey_number",
   "journeys_completed",
   "entry",
@@ -414,31 +421,47 @@ export function pushLandingEvent(
       )
     : {};
   const attribution = getAttributionContext();
+  const fbclidSeen = fbclidSeenAt(attribution.fbclid);
   // Só o store_click leva event_id (um UUID por clique): é o que deduplica o
   // Pixel com a API de Conversões (storeClickBeacon.ts). Em todo outro push
   // ele vai undefined explícito, para nenhum evento herdar o id do clique
   // anterior no modelo do GTM: está nas listas de reset e, para os pushes sem
   // lista, é zerado aqui também.
-  const eventId = eventData.event === "store_click" ? newEventId() : undefined;
+  if (eventData.event !== "store_click") {
+    window.dataLayer.push({
+      ...context,
+      ...reset,
+      ...attribution,
+      ...eventData,
+      event_id: undefined,
+    });
+    return;
+  }
+  // O que vai ao Pixel (dataLayer) e ao servidor (beacon) sai do mesmo objeto:
+  // os dois caminhos mandam o mesmo custom_data. Página que não detecta o
+  // navegador interno (Experimente, principal, reativação) ganha o valor aqui.
+  const click = {
+    store: eventData.store,
+    cta_location: eventData.cta_location,
+    device_os: eventData.device_os,
+    in_app_browser:
+      ("in_app_browser" in eventData && eventData.in_app_browser) ||
+      detectInAppBrowser(),
+    landing_slug: context.landing_slug,
+    event_id: newEventId(),
+  };
   window.dataLayer.push({
     ...context,
     ...reset,
     ...attribution,
     ...eventData,
-    event_id: eventId,
+    ...click,
   });
-  if (eventData.event === "store_click" && eventId) {
-    sendStoreClickBeacon({
-      event_id: eventId,
-      store: eventData.store,
-      cta_location: eventData.cta_location,
-      device_os: eventData.device_os,
-      in_app_browser:
-        "in_app_browser" in eventData ? eventData.in_app_browser : undefined,
-      landing_slug: context.landing_slug,
-      fbclid: attribution.fbclid,
-    });
-  }
+  sendStoreClickBeacon({
+    ...click,
+    fbclid: attribution.fbclid,
+    fbclid_seen_at: fbclidSeen,
+  });
 }
 
 /**

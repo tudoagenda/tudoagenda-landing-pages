@@ -16,7 +16,6 @@
  *    `_fbc`, o IP e o User-Agent são lidos pela rota, no servidor.
  */
 
-import { detectInAppBrowser } from "@/lib/device";
 import type { DeviceOs, InAppBrowser } from "./dataLayer";
 
 export const WEB_EVENT_ENDPOINT = "/api/agendabela/web-event";
@@ -42,16 +41,38 @@ export type StoreClickBeacon = {
   store: "app_store" | "google_play";
   cta_location: string;
   device_os: DeviceOs;
-  /**
-   * Só as landings de loja mandam no evento. Nas outras páginas o envio
-   * detecta aqui, pelo User-Agent ("none" quando não é Instagram/Facebook);
-   * o push do dataLayer dessas páginas continua sem o parâmetro.
-   */
-  in_app_browser: InAppBrowser | undefined;
+  in_app_browser: InAppBrowser;
   landing_slug: string;
   /** fbclid da sessão; a rota só usa quando não há cookie `_fbc`. */
   fbclid?: string;
+  /** Quando esse fbclid foi visto pela primeira vez na sessão (epoch ms). */
+  fbclid_seen_at?: number;
 };
+
+const FBCLID_SEEN_KEY = "agendabela_landing_fbclid_seen";
+
+/**
+ * Instante (epoch ms) em que este fbclid apareceu pela primeira vez na sessão.
+ * É a data que vai no `fbc` montado pela rota (a Meta pede a hora em que o
+ * fbclid foi visto, não a do clique na loja). Chamado em todo push do
+ * dataLayer, então o primeiro registro é o do primeiro evento da visita.
+ * Chave própria na sessionStorage: a atribuição gravada não muda de formato.
+ */
+export function fbclidSeenAt(fbclid: string | undefined): number | undefined {
+  if (!fbclid || typeof window === "undefined") return undefined;
+  const now = Date.now();
+  try {
+    const raw = window.sessionStorage.getItem(FBCLID_SEEN_KEY);
+    const saved = raw ? (JSON.parse(raw) as { fbclid?: unknown; at?: unknown }) : null;
+    if (saved && saved.fbclid === fbclid && typeof saved.at === "number" && saved.at <= now) {
+      return saved.at;
+    }
+    window.sessionStorage.setItem(FBCLID_SEEN_KEY, JSON.stringify({ fbclid, at: now }));
+  } catch {
+    // Sem sessionStorage, vale a hora deste evento.
+  }
+  return now;
+}
 
 /** UUID v4 novo. `crypto.randomUUID` só existe em contexto seguro (https/localhost). */
 export function newEventId(): string {
@@ -93,7 +114,6 @@ export function sendStoreClickBeacon(data: StoreClickBeacon): void {
   try {
     const body = JSON.stringify({
       ...data,
-      in_app_browser: data.in_app_browser || detectInAppBrowser(),
       event_source_url: eventSourceUrl(),
     });
     // Corpo em texto (text/plain): é o tipo que o sendBeacon aceita em todo

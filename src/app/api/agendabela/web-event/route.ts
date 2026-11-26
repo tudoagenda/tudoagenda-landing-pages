@@ -1,5 +1,5 @@
-import { isIP } from "net";
-import { resolveClientIp } from "@/lib/server/client-ip";
+import { cloudFrontViewerIp, isPublicIp, resolveClientIp } from "@/lib/server/client-ip";
+import { webEventRateLimiter } from "@/lib/server/rate-limit";
 import { buildLandingHeaders, getBackendApiUrl } from "@/lib/server/landing-backend";
 import { SOURCE_URL_PARAMS } from "@/lib/analytics/storeClickBeacon";
 import { LANDING_LOJAS } from "@/config/landing-lojas";
@@ -15,13 +15,15 @@ import { LANDING_LOJAS } from "@/config/landing-lojas";
  * Respostas:
  *  - 204 sempre que o corpo é válido, mesmo com o backend fora, lento ou
  *    respondendo erro (nada do backend vaza para o navegador).
+ *  - 204 sem repasse: sem User-Agent, ou acima de 20 cliques/min do mesmo IP
+ *    (rate-limit.ts), ou página em localhost contra o backend de produção.
  *  - 400 corpo inválido · 403 pedido de outra origem · 413 corpo grande.
  *  - Outros métodos: 405 (o Next responde; só POST é exportado).
  *
  * Sem dado pessoal: nada de e-mail, telefone ou nome, e o IP nunca é logado.
  */
 
-const MAX_BODY_CHARS = 4096;
+const MAX_BODY_BYTES = 4096;
 const MAX_URL_CHARS = 2000;
 /** O beacon não espera a resposta; o teto só evita pedido pendurado no servidor. */
 const BACKEND_TIMEOUT_MS = 5_000;
@@ -66,8 +68,21 @@ type ValidEvent = {
   landing_slug: string;
   event_source_url: string;
   fbclid: string | null;
+  /** Quando o fbclid foi visto na sessão (epoch ms); null se não veio ou não é plausível. */
+  fbclidSeenAt: number | null;
   local: boolean;
 };
+
+/** O fbclid da sessão não é mais velho que isso (a sessão é de uma aba). */
+const FBCLID_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const CLOCK_SKEW_MS = 5 * 60 * 1000;
+
+/** Hora informada pelo navegador: inteiro, no passado recente. Senão, null. */
+function plausibleSeenAt(value: unknown, now: number): number | null {
+  if (typeof value !== "number" || !Number.isInteger(value)) return null;
+  if (value > now + CLOCK_SKEW_MS || value < now - FBCLID_MAX_AGE_MS) return null;
+  return Math.min(value, now);
+}
 
 function oneOf<T extends string>(list: readonly T[], value: unknown): value is T {
   return typeof value === "string" && (list as readonly string[]).includes(value);
@@ -130,6 +145,7 @@ function validate(body: unknown): ValidEvent | null {
     landing_slug: b.landing_slug,
     event_source_url: source.href,
     fbclid,
+    fbclidSeenAt: fbclid ? plausibleSeenAt(b.fbclid_seen_at, Date.now()) : null,
     local: source.local,
   };
 }
@@ -152,27 +168,49 @@ function readCookie(req: Request, name: string): string | null {
 }
 
 /**
- * IP da visitante para a Meta casar o clique com a pessoa.
+ * IP da visitante para a Meta casar o clique com a pessoa (e para o limite
+ * por IP desta rota). Nunca um IP de proxy nem privado: sem IP confiável, o
+ * evento vai sem `client_ip`.
  *
  * Primeiro o mesmo `resolveClientIp` das outras rotas. Em produção ele devolve
  * "sem IP" de propósito enquanto o segredo de origem do CloudFront não está
- * configurado (lá o IP decide limite de tentativas e não pode ser forjado).
- * Aqui o IP é só um sinal de correspondência: quem forja o cabeçalho piora o
- * casamento do próprio clique e nada mais. Então, atrás do CloudFront, vale a
- * penúltima entrada do X-Forwarded-For mesmo sem o segredo: é a que o
- * CloudFront acrescentou (a última é o nó do CloudFront, posto pelo Railway;
- * as mais à esquerda vêm do navegador). Ver client-ip.ts.
+ * configurado (lá o IP decide limite no backend e não pode ser forjado). Aqui
+ * o IP é só um sinal de correspondência, então, com sinal de CloudFront, vale
+ * a mesma leitura mesmo sem o segredo (`cloudFrontViewerIp`: penúltima entrada
+ * do X-Forwarded-For, só se a última for o X-Real-IP).
  */
 function visitorIp(headers: Headers): string | null {
   const resolved = resolveClientIp(headers);
-  if (resolved.ip) return resolved.ip;
-  if (!resolved.viaCloudFront) return null;
-  const xff = (headers.get("x-forwarded-for") ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const candidate = xff.length >= 2 ? xff[xff.length - 2] : null;
-  return candidate && isIP(candidate) !== 0 ? candidate : null;
+  const ip = resolved.ip ?? (resolved.viaCloudFront ? cloudFrontViewerIp(headers) : null);
+  return ip && isPublicIp(ip) ? ip : null;
+}
+
+/**
+ * Lê o corpo com teto: para de ler (e cancela o envio) assim que passa do
+ * limite, mesmo sem Content-Length. `null` = grande demais.
+ */
+async function readBodyCapped(req: Request, maxBytes: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 /**
@@ -203,15 +241,15 @@ const refuse = (status: number) => new Response(null, { status });
 
 export async function POST(req: Request) {
   if (foreignOrigin(req)) return refuse(403);
-  if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY_CHARS) return refuse(413);
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) return refuse(413);
 
-  let raw: string;
+  let raw: string | null;
   try {
-    raw = await req.text();
+    raw = await readBodyCapped(req, MAX_BODY_BYTES);
   } catch {
     return refuse(400);
   }
-  if (raw.length > MAX_BODY_CHARS) return refuse(413);
+  if (raw === null) return refuse(413);
 
   let parsed: unknown;
   try {
@@ -224,6 +262,18 @@ export async function POST(req: Request) {
 
   if (localAgainstProduction(event)) return noContent();
 
+  // Sem caractere de controle (o backend recusa) e no tamanho que ele aceita.
+  const userAgent = (req.headers.get("user-agent") ?? "")
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .trim()
+    .slice(0, 512);
+  // Sem User-Agent a Meta tende a recusar o evento: não vale o repasse.
+  if (!userAgent) return noContent();
+
+  const clientIp = visitorIp(req.headers);
+  // Uma pessoa em laço não gasta sozinha o limite do backend (60/min de todas).
+  if (!webEventRateLimiter.allow(clientIp ?? "sem-ip")) return noContent();
+
   const cookieFbp = readCookie(req, "_fbp");
   const cookieFbc = readCookie(req, "_fbc");
   const fbp =
@@ -232,15 +282,8 @@ export async function POST(req: Request) {
     cookieFbc && FB_COOKIE.test(cookieFbc)
       ? cookieFbc
       : event.fbclid
-        ? `fb.1.${Date.now()}.${event.fbclid}`
+        ? `fb.1.${event.fbclidSeenAt ?? Date.now()}.${event.fbclid}`
         : null;
-  const clientIp = visitorIp(req.headers);
-  // Sem caractere de controle (o backend recusa) e no tamanho que ele aceita.
-  const userAgent =
-    (req.headers.get("user-agent") ?? "")
-      .replace(/[\u0000-\u001f\u007f]+/g, " ")
-      .trim()
-      .slice(0, 512) || null;
 
   const payload = {
     event_name: "StoreClick",
@@ -257,7 +300,7 @@ export async function POST(req: Request) {
       ...(fbp ? { fbp } : {}),
       ...(fbc ? { fbc } : {}),
       ...(clientIp ? { client_ip: clientIp } : {}),
-      ...(userAgent ? { user_agent: userAgent } : {}),
+      user_agent: userAgent,
     },
   };
 
