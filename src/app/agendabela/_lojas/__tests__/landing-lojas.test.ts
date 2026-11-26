@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
+import {
+  APP_STORE_URL,
+  GOOGLE_PLAY_BASE_URL,
+  appStoreUrl,
+} from "@/config/app-stores";
 import {
   LANDING_LOJAS,
   type LandingLojasConfig,
@@ -26,7 +30,8 @@ const UA = {
 
 const LP2 = LANDING_LOJAS.appParaSalaoDeBeleza;
 const LP3 = LANDING_LOJAS.blackFriday;
-const PAGINAS: LandingLojasConfig[] = [LP2, LP3];
+const OFERTA = LANDING_LOJAS.oferta;
+const PAGINAS: LandingLojasConfig[] = [LP2, LP3, OFERTA];
 const SLUG_DA_LP1 = "automatize-seu-atendimento";
 const CTA_LOCATIONS = [
   "hero",
@@ -41,6 +46,8 @@ const CTA_LOCATIONS = [
   "simulador_avaliacoes",
   "rodape_conheca_agenda_bela",
   "rodape_tudo_agenda",
+  "cupom_copiar_hero",
+  "cupom_copiar_preco",
 ];
 
 const css = fs.readFileSync(path.join(__dirname, "../lojas.css"), "utf8");
@@ -51,6 +58,7 @@ function markup(config: LandingLojasConfig): string {
     tema: config.tema,
     temaExpiraEm: config.temaExpiraEm,
     refSimulador: config.refSimulador,
+    oferta: config.oferta,
     assets: {
       logo: "/logo.png",
       qr: `/qr-${config.slug}.svg`,
@@ -187,7 +195,7 @@ describe.each(PAGINAS)("landing de loja $slug: HTML do servidor", (config) => {
     }
   });
 
-  it("não cita o preço do Google Play: o único preço da página é R$ 59,90", () => {
+  it("não cita o preço do Google Play: o preço cheio da página é R$ 59,90", () => {
     expect(html).not.toContain("59,99");
     expect(html).not.toMatch(/no Google Play, (o valor|R\$)/i);
     expect(html).toContain("R$&nbsp;59,90 por mês");
@@ -242,7 +250,9 @@ describe.each(PAGINAS)("landing de loja $slug: CTA por aparelho", (config) => {
     expect(links).toHaveLength(1);
     expect(links[0].dataset.store).toBe("app_store");
     expect(links[0].className).toBe("storecard");
-    expect(links[0].getAttribute("href")).toBe(APP_STORE_URL);
+    expect(links[0].getAttribute("href")).toBe(
+      config.oferta ? appStoreUrl(config.slug) : APP_STORE_URL,
+    );
     expect(links[0].hasAttribute("target")).toBe(false);
   });
 
@@ -740,7 +750,675 @@ describe("estado antes do runtime (sem salto de layout)", () => {
   });
 });
 
-describe.each(PAGINAS)("landing de loja $slug: rodapé", (config) => {
+describe("Oferta Agenda Bela: comportamento", () => {
+  /** jsdom não tem IntersectionObserver: este guarda o callback para o teste disparar. */
+  function mockIntersectionObserver() {
+    const observers: { cb: IntersectionObserverCallback; alvo?: Element }[] = [];
+    const original = window.IntersectionObserver;
+    window.IntersectionObserver = class {
+      private registro: { cb: IntersectionObserverCallback; alvo?: Element };
+      constructor(cb: IntersectionObserverCallback) {
+        this.registro = { cb };
+        observers.push(this.registro);
+      }
+      observe(alvo: Element) {
+        this.registro.alvo = alvo;
+      }
+      disconnect() {}
+      unobserve() {}
+      takeRecords() {
+        return [];
+      }
+    } as unknown as typeof IntersectionObserver;
+    return {
+      entrar(alvo: Element) {
+        for (const o of observers.filter((x) => x.alvo === alvo)) {
+          o.cb(
+            [{ isIntersecting: true, target: alvo } as IntersectionObserverEntry],
+            {} as IntersectionObserver,
+          );
+        }
+      },
+      restaurar() {
+        if (original) window.IntersectionObserver = original;
+        else delete (window as { IntersectionObserver?: unknown }).IntersectionObserver;
+      },
+    };
+  }
+
+  /** Posição na tela de cada bloco, para o CTA fixo (jsdom não faz layout). */
+  function posicionar(posicoes: Record<string, { top: number; bottom: number }>) {
+    const rect = (top: number, bottom: number) =>
+      ({ top, bottom, height: bottom - top }) as DOMRect;
+    lp()
+      .querySelectorAll<HTMLElement>(".cta")
+      .forEach((cta) => {
+        const p = posicoes[cta.getAttribute("data-loc") ?? ""];
+        cta.getBoundingClientRect = () => rect(p.top, p.bottom);
+      });
+    const rodape = document.getElementById("rodape") as HTMLElement;
+    rodape.getBoundingClientRect = () =>
+      rect(posicoes.rodape.top, posicoes.rodape.bottom);
+  }
+
+  /** Roda o updateSticky do runtime (o scroll passa por requestAnimationFrame). */
+  function rolar() {
+    jest
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback) => {
+        cb(0);
+        return 0;
+      });
+    window.dispatchEvent(new Event("scroll"));
+  }
+
+  const fixo = () => document.getElementById("cta-fixo") as HTMLElement;
+
+  /** iPhone com tela de celular (max-width:767px), que é onde o CTA fixo existe. */
+  function montarNoCelular(config: LandingLojasConfig) {
+    setNavigator(UA.iphone);
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes("max-width:767px"),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+    Object.defineProperty(window, "innerHeight", {
+      value: 640,
+      configurable: true,
+    });
+    history.replaceState(null, "", config.path);
+    window.dataLayer = [];
+    document.body.innerHTML = markup(config);
+    runScriptAntesDaPintura();
+    cleanup = initLandingLojas({ slug: config.slug, track: jest.fn() });
+  }
+
+  it("CTA fixo: some enquanto qualquer botão de loja da página está na tela", () => {
+    montarNoCelular(OFERTA);
+
+    // Topo da página: o botão do hero está na tela.
+    posicionar({
+      hero: { top: 500, bottom: 576 },
+      preco: { top: 5000, bottom: 5076 },
+      final: { top: 8000, bottom: 8076 },
+      rodape: { top: 8300, bottom: 8900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Tela baixa: o botão do topo ainda não apareceu (está abaixo da dobra) e
+    // nenhum outro está à vista. O fixo espera o do topo aparecer primeiro.
+    posicionar({
+      hero: { top: 700, bottom: 776 },
+      preco: { top: 5200, bottom: 5276 },
+      final: { top: 8200, bottom: 8276 },
+      rodape: { top: 8500, bottom: 9100 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Rolou: nenhum botão da página à vista, rodapé longe.
+    posicionar({
+      hero: { top: -900, bottom: -824 },
+      preco: { top: 3000, bottom: 3076 },
+      final: { top: 6000, bottom: 6076 },
+      rodape: { top: 6300, bottom: 6900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(false);
+
+    // Botão da seção "Quanto custa" na tela: o fixo some (não ficam dois iguais).
+    posicionar({
+      hero: { top: -3900, bottom: -3824 },
+      preco: { top: 300, bottom: 376 },
+      final: { top: 3000, bottom: 3076 },
+      rodape: { top: 3300, bottom: 3900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Botão do final na tela.
+    posicionar({
+      hero: { top: -6900, bottom: -6824 },
+      preco: { top: -2700, bottom: -2624 },
+      final: { top: 200, bottom: 276 },
+      rodape: { top: 700, bottom: 1300 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+
+    // Rodapé na tela.
+    posicionar({
+      hero: { top: -7900, bottom: -7824 },
+      preco: { top: -3700, bottom: -3624 },
+      final: { top: -800, bottom: -724 },
+      rodape: { top: 100, bottom: 700 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+  });
+
+  it("CTA fixo das outras landings de loja segue a regra de antes (só o botão do hero)", () => {
+    montarNoCelular(LP2);
+    // Botão da seção de preço na tela: na landing padrão o fixo continua.
+    posicionar({
+      hero: { top: -3900, bottom: -3824 },
+      preco: { top: 300, bottom: 376 },
+      final: { top: 3000, bottom: 3076 },
+      rodape: { top: 3300, bottom: 3900 },
+    });
+    rolar();
+    expect(fixo().hidden).toBe(false);
+  });
+
+  it("no computador o CTA fixo nunca aparece", () => {
+    mount(OFERTA, { ua: UA.desktop });
+    rolar();
+    expect(fixo().hidden).toBe(true);
+  });
+
+  it("bloco de preço: arma a animação e solta quando o cartão entra na tela", () => {
+    const io = mockIntersectionObserver();
+    try {
+      mount(OFERTA);
+      const cartao = document.getElementById("oferta-card") as HTMLElement;
+      expect(cartao.classList.contains("arm")).toBe(true);
+      expect(cartao.classList.contains("on")).toBe(false);
+      io.entrar(cartao);
+      expect(cartao.classList.contains("on")).toBe(true);
+      // Saiu da página: volta ao estado final do CSS.
+      cleanup?.();
+      cleanup = undefined;
+      expect(cartao.className).toBe("of-card");
+    } finally {
+      io.restaurar();
+    }
+  });
+
+  it("movimento reduzido: o bloco de preço já chega no estado final, sem armar", () => {
+    const io = mockIntersectionObserver();
+    try {
+      mount(OFERTA, { reduce: true });
+      expect(document.getElementById("oferta-card")?.className).toBe("of-card");
+      expect(document.getElementById("hero-passo")?.textContent).toBe(
+        "Passo 5 de 6",
+      );
+      expect(lp().querySelectorAll(".play")).toHaveLength(0);
+    } finally {
+      io.restaurar();
+    }
+  });
+
+  it("sem IntersectionObserver nada é armado (preço e linha do tempo completos)", () => {
+    mount(OFERTA);
+    expect(document.getElementById("oferta-card")?.className).toBe("of-card");
+  });
+
+  it("o CSS da oferta só anima com movimento liberado e nunca esconde o preço", () => {
+    const cssOferta = fs
+      .readFileSync(path.join(__dirname, "../oferta.css"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const [parado, movimento] = cssOferta.split(
+      "@media (prefers-reduced-motion:no-preference){",
+    );
+    // Animação, transição e estado armado só existem com movimento liberado.
+    expect(parado).not.toMatch(/animation:|transition:|\.arm\b|\[data-pre\]/);
+    expect(movimento).toContain(".of-card.arm");
+    // Preço, legenda, linha do tempo e condição nunca ficam transparentes
+    // (só o selo de -50% entra com opacidade).
+    expect(movimento.match(/opacity/g)).toHaveLength(2);
+    expect(movimento).toMatch(/@keyframes lj-of-stkIn\{from\{opacity:0;/);
+    // Toda regra vale só com data-oferta: as outras landings de loja não mudam.
+    expect(
+      cssOferta.match(/#lp(?!\[data-oferta\]|\[data-pre\]\[data-oferta\])/g),
+    ).toBeNull();
+    expect(css).not.toContain("data-oferta");
+  });
+
+  it("App Store: o link leva a campanha (ct) da sessão, ou o slug quando a visita chega sem origem", () => {
+    const hrefs = () => [
+      ...new Set(
+        [...lp().querySelectorAll<HTMLAnchorElement>('a[data-store="app_store"]')].map(
+          (a) => a.getAttribute("href"),
+        ),
+      ),
+    ];
+    mount(OFERTA, { ua: UA.iphone });
+    expect(hrefs()).toEqual([`${APP_STORE_URL}?ct=oferta`]);
+    cleanup?.();
+
+    mount(OFERTA, {
+      ua: UA.iphone,
+      url: `${OFERTA.path}?utm_source=ig&utm_campaign=agendabela oferta/nov26 com nome bem comprido demais`,
+    });
+    // Só letras, números, _ . - e no máximo 40 caracteres (limite da Apple).
+    expect(hrefs()).toEqual([
+      `${APP_STORE_URL}?ct=agendabela_oferta_nov26_com_nome_bem_com`,
+    ]);
+    cleanup?.();
+
+    // Clique pago que chegou sem UTM: sem ct, para não virar "tráfego do site".
+    cleanup = undefined;
+    setNavigator(UA.iphone);
+    setMotion(false);
+    document.body.innerHTML = markup(OFERTA);
+    cleanup = initLandingLojas({
+      slug: OFERTA.slug,
+      track: jest.fn(),
+      attribution: { fbclid: "abc" },
+    });
+    expect(hrefs()).toEqual([APP_STORE_URL]);
+    // Antes do runtime (ou sem JavaScript) o link sai puro: o servidor não
+    // sabe a origem e não rotula a visita.
+    document.body.innerHTML = markup(OFERTA);
+    expect(hrefs()).toEqual([APP_STORE_URL]);
+  });
+
+  it("App Store nas outras landings de loja: link puro, sem ct, com ou sem UTM", () => {
+    mount(LP2, { ua: UA.iphone, url: `${LP2.path}?utm_campaign=teste` });
+    for (const a of lp().querySelectorAll<HTMLAnchorElement>(
+      'a[data-store="app_store"]',
+    )) {
+      expect(a.getAttribute("href")).toBe(APP_STORE_URL);
+    }
+  });
+
+  it("legendas da demonstração: as do runtime são as do HTML, e falam com a leitora", () => {
+    mount(OFERTA);
+    const lista = [...lp().querySelectorAll("#hero-stage ol.sr li")].map(
+      (li) => li.textContent,
+    );
+    expect(lista).toHaveLength(6);
+    lista.forEach((frase, i) => {
+      document.getElementById(`hero-passo-${i + 1}`)?.click();
+      expect(document.getElementById("hero-legenda")?.textContent).toBe(frase);
+      expect(
+        document.getElementById(`hero-passo-${i + 1}`)?.getAttribute("aria-label"),
+      ).toBe(`Passo ${i + 1} de 6: ${frase}`);
+    });
+    expect(lista.join(" ")).not.toMatch(/a Paula/);
+    document.getElementById("hero-passo-6")?.click();
+    expect(document.getElementById("hero-quem")?.textContent).toBe("Seu celular");
+    document.getElementById("hero-passo-1")?.click();
+    expect(document.getElementById("hero-quem")?.textContent).toBe(
+      "Celular da Camila",
+    );
+  });
+
+  it("as outras landings de loja seguem com as legendas e o chip de antes", () => {
+    mount(LP2);
+    document.getElementById("hero-passo-4")?.click();
+    expect(document.getElementById("hero-legenda")?.textContent).toBe(
+      "A Paula é avisada no celular, com o sinal já no saldo. Ela segue atendendo.",
+    );
+    expect(document.getElementById("hero-quem")?.textContent).toBe(
+      "Celular da Paula",
+    );
+    expect(lp().hasAttribute("data-oferta")).toBe(false);
+  });
+
+  it("medição: mesmos eventos e lugares das outras landings, com o slug oferta", () => {
+    mount(OFERTA, { ua: UA.android, url: `${OFERTA.path}?ref=qr_desktop` });
+    linksDoAparelho("a[data-store], a[data-sim], a[data-nav]").forEach((a) =>
+      a.click(),
+    );
+    // Os links novos da oferta (faixa, cartão, perguntas, WhatsApp) não criam evento.
+    lp()
+      .querySelectorAll<HTMLAnchorElement>("#faixa, .ofr, .of-link, .faq a")
+      .forEach((a) => a.click());
+    expect(new Set(eventos().map((e) => e.landing_slug))).toEqual(
+      new Set(["oferta"]),
+    );
+    expect(new Set(eventos().map((e) => e.event))).toEqual(
+      new Set(["lp_view", "store_click", "cta_click"]),
+    );
+    expect(eventos()[0].ref).toBe("qr_desktop");
+    expect(
+      new Set(
+        eventos()
+          .filter((e) => e.event !== "lp_view")
+          .map((e) => e.cta_location),
+      ),
+    ).toEqual(
+      new Set([
+        "hero",
+        "preco",
+        "final",
+        "sticky_mobile",
+        "rodape_selo",
+        "simulador_avaliacoes",
+        "rodape_tudo_agenda",
+      ]),
+    );
+  });
+});
+
+describe("Oferta Agenda Bela: cupom copiável", () => {
+  const caixa = (lugar: string) =>
+    lp().querySelector(`[data-cupom="${lugar}"]`) as HTMLElement;
+  const botao = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-btn") as HTMLButtonElement;
+  /** O "Cupom copiado!" que aparece no lugar do aviso de copiar. */
+  const msg = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-msg")?.textContent;
+  const status = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-status")?.textContent;
+  const falha = (lugar: string) =>
+    caixa(lugar).querySelector(".cupom-nojs .cupom-falha") as HTMLElement;
+  const ligado = (lugar: string) => caixa(lugar).hasAttribute("data-cupom-on");
+
+  function mockClipboard(writeText: jest.Mock | undefined) {
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: writeText ? { writeText } : undefined,
+      configurable: true,
+    });
+  }
+  /** jsdom não tem execCommand: cada teste diz se o campo temporário copia. */
+  function mockExecCommand(copia: boolean | Error) {
+    const exec = jest.fn(() => {
+      if (copia instanceof Error) throw copia;
+      return copia;
+    });
+    (document as unknown as { execCommand: unknown }).execCommand = exec;
+    return exec;
+  }
+  /** Aparelho com mouse: a mesma media query do CSS (.so-mouse). */
+  function comMouse() {
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes("pointer:fine"),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+  }
+  /** A cópia é uma promessa: deixa as continuações rodarem. */
+  const promessas = async () => {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+  /** Idem, e a região viva é preenchida (50 ms depois de esvaziada). */
+  const assentar = async () => {
+    await promessas();
+    jest.advanceTimersByTime(50);
+  };
+  const cliquesMedidos = () =>
+    eventos()
+      .filter((e) => e.event !== "lp_view")
+      .map((e) => `${e.event}:${e.cta_location}@${e.landing_slug}`);
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+    mockClipboard(undefined);
+    delete (document as unknown as { execCommand?: unknown }).execCommand;
+    window.getSelection()?.removeAllRanges();
+  });
+
+  it.each(["hero", "preco"])(
+    "%s: o toque copia o código da config, avisa por 2,5 s e volta",
+    async (lugar) => {
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      mockClipboard(writeText);
+      mount(OFERTA, { ua: UA.android });
+      expect(msg(lugar)).toBe("");
+
+      botao(lugar).click();
+      await assentar();
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith(OFERTA.oferta.cupom);
+      expect(msg(lugar)).toBe("Cupom copiado!");
+      expect(status(lugar)).toBe("Cupom copiado!");
+      expect(caixa(lugar).classList.contains("is-copiado")).toBe(true);
+      // O rótulo do botão não muda: quem avisa o leitor de tela é a região viva.
+      expect(botao(lugar).getAttribute("aria-label")).toBe("Copiar o cupom BELA50");
+
+      jest.advanceTimersByTime(2400);
+      expect(msg(lugar)).toBe("Cupom copiado!");
+      jest.advanceTimersByTime(100);
+      expect(msg(lugar)).toBe("");
+      expect(status(lugar)).toBe("");
+      expect(caixa(lugar).className).toBe(`cupom cupom-${lugar}`);
+      expect(ligado(lugar)).toBe(true);
+    },
+  );
+
+  it("medição: cada toque sai como cta_click, com o lugar do cupom e o slug da oferta", async () => {
+    mockClipboard(jest.fn().mockResolvedValue(undefined));
+    mount(OFERTA, { ua: UA.iphone });
+    botao("hero").click();
+    botao("preco").click();
+    await assentar();
+    expect(cliquesMedidos()).toEqual([
+      "cta_click:cupom_copiar_hero@oferta",
+      "cta_click:cupom_copiar_preco@oferta",
+    ]);
+  });
+
+  it("medição: toque repetido com o aviso na tela conta um só; depois que o aviso sai, conta de novo", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    mount(OFERTA, { ua: UA.iphone });
+    // Duplo toque, antes mesmo de a cópia terminar.
+    botao("hero").click();
+    botao("hero").click();
+    await assentar();
+    // E mais um com o "Cupom copiado!" na tela.
+    botao("hero").click();
+    await assentar();
+    expect(writeText).toHaveBeenCalledTimes(3);
+    expect(cliquesMedidos()).toEqual(["cta_click:cupom_copiar_hero@oferta"]);
+    // O aviso some 2,5 s depois do último toque: aí um toque novo conta.
+    jest.advanceTimersByTime(2500);
+    expect(msg("hero")).toBe("");
+    botao("hero").click();
+    await assentar();
+    expect(cliquesMedidos()).toEqual([
+      "cta_click:cupom_copiar_hero@oferta",
+      "cta_click:cupom_copiar_hero@oferta",
+    ]);
+  });
+
+  it("clipboard rejeita: copia pelo campo temporário e avisa do mesmo jeito", async () => {
+    const writeText = jest.fn().mockRejectedValue(new Error("NotAllowedError"));
+    mockClipboard(writeText);
+    const exec = mockExecCommand(true);
+    mount(OFERTA, { ua: UA.iphone });
+    botao("preco").click();
+    await assentar();
+    expect(writeText).toHaveBeenCalledWith("BELA50");
+    expect(exec).toHaveBeenCalledWith("copy");
+    expect(msg("preco")).toBe("Cupom copiado!");
+    expect(ligado("preco")).toBe(true);
+    // O campo temporário não fica na página.
+    expect(document.querySelector("textarea")).toBeNull();
+  });
+
+  it("sem Clipboard API (http, navegador interno antigo): vai direto ao campo temporário", async () => {
+    mockClipboard(undefined);
+    const exec = mockExecCommand(true);
+    mount(OFERTA, { ua: UA.androidInstagram });
+    botao("hero").click();
+    await assentar();
+    expect(exec).toHaveBeenCalledWith("copy");
+    expect(msg("hero")).toBe("Cupom copiado!");
+  });
+
+  it.each([
+    ["execCommand devolve false", false as boolean | Error],
+    ["execCommand lança", new Error("bloqueado")],
+  ])(
+    "nada copia (%s): sai o botão, volta o código em texto, selecionado, com o aviso de segurar",
+    async (_caso, resultado) => {
+      mockClipboard(jest.fn().mockRejectedValue(new Error("NotAllowedError")));
+      mockExecCommand(resultado);
+      mount(OFERTA, { ua: UA.iphone });
+      expect(falha("preco").hidden).toBe(true);
+      botao("preco").click();
+      await assentar();
+      // Sem data-cupom-on o CSS esconde o botão e mostra a versão em texto.
+      expect(ligado("preco")).toBe(false);
+      expect(caixa("preco").className).toBe("cupom cupom-preco is-falha");
+      expect(falha("preco").hidden).toBe(false);
+      expect(msg("preco")).toBe("");
+      // Selecionado o código da versão em texto (não o de dentro do botão).
+      const selecao = window.getSelection() as Selection;
+      expect(selecao.toString()).toBe("BELA50");
+      expect(
+        caixa("preco").querySelector(".cupom-nojs")?.contains(selecao.anchorNode),
+      ).toBe(true);
+      // Aparelho de toque: a região viva lê a redação de toque.
+      expect(status("preco")).toBe("Segure o código para copiar");
+      // Não volta sozinho ao botão.
+      jest.advanceTimersByTime(60_000);
+      expect(ligado("preco")).toBe(false);
+      expect(falha("preco").hidden).toBe(false);
+      expect(status("preco")).toBe("Segure o código para copiar");
+      // A outra caixa segue como botão.
+      expect(ligado("hero")).toBe(true);
+      expect(falha("hero").hidden).toBe(true);
+      // O toque que falhou foi medido, uma vez.
+      expect(cliquesMedidos()).toEqual(["cta_click:cupom_copiar_preco@oferta"]);
+    },
+  );
+
+  it("nada copia, com mouse: a região viva lê \"Código selecionado: copie\"", async () => {
+    mockClipboard(undefined);
+    mockExecCommand(false);
+    mount(OFERTA, { ua: UA.desktop });
+    comMouse();
+    botao("hero").click();
+    await assentar();
+    expect(ligado("hero")).toBe(false);
+    expect(falha("hero").hidden).toBe(false);
+    expect(status("hero")).toBe("Código selecionado: copie");
+    expect(window.getSelection()?.toString()).toBe("BELA50");
+  });
+
+  it("o cleanup desliga a cópia e desfaz os avisos, mesmo com cópia em andamento ou falha", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    mount(OFERTA, { ua: UA.iphone });
+    botao("hero").click();
+    await assentar();
+    expect(msg("hero")).toBe("Cupom copiado!");
+    botao("preco").click(); // ainda não assentou
+    cleanup?.();
+    cleanup = undefined;
+    await assentar();
+    expect(msg("hero")).toBe("");
+    expect(msg("preco")).toBe("");
+    expect(status("hero")).toBe("");
+    // O aviso da cópia que estava em andamento não aparece depois do cleanup.
+    jest.advanceTimersByTime(3000);
+    expect(msg("preco")).toBe("");
+    expect(caixa("preco").className).toBe("cupom cupom-preco");
+    const eventosAntes = eventos().length;
+    botao("hero").click();
+    await assentar();
+    expect(writeText).toHaveBeenCalledTimes(2);
+    expect(eventos()).toHaveLength(eventosAntes);
+
+    // Depois de uma falha, o cleanup devolve o HTML do servidor.
+    mockClipboard(undefined);
+    mockExecCommand(false);
+    mount(OFERTA, { ua: UA.iphone });
+    botao("hero").click();
+    await assentar();
+    expect(falha("hero").hidden).toBe(false);
+    cleanup?.();
+    cleanup = undefined;
+    expect(falha("hero").hidden).toBe(true);
+    expect(caixa("hero").className).toBe("cupom cupom-hero");
+    expect(lp().querySelectorAll("[data-cupom-on]")).toHaveLength(0);
+  });
+
+  it("o botão só aparece ligado: o runtime marca data-cupom-on e o cleanup tira", () => {
+    document.body.innerHTML = markup(OFERTA);
+    expect(lp().querySelectorAll("[data-cupom-on]")).toHaveLength(0);
+    mockClipboard(jest.fn().mockResolvedValue(undefined));
+    mount(OFERTA, { ua: UA.iphone });
+    expect(lp().querySelectorAll("[data-cupom][data-cupom-on]")).toHaveLength(2);
+    cleanup?.();
+    cleanup = undefined;
+    expect(lp().querySelectorAll("[data-cupom-on]")).toHaveLength(0);
+  });
+
+  it("segundo toque seguido: a região viva esvazia e volta a anunciar", async () => {
+    mockClipboard(jest.fn().mockResolvedValue(undefined));
+    mount(OFERTA, { ua: UA.iphone });
+    botao("hero").click();
+    await assentar();
+    expect(status("hero")).toBe("Cupom copiado!");
+    botao("hero").click();
+    await promessas();
+    expect(status("hero")).toBe("");
+    jest.advanceTimersByTime(50);
+    expect(status("hero")).toBe("Cupom copiado!");
+    // O prazo conta do último toque.
+    jest.advanceTimersByTime(2400);
+    expect(msg("hero")).toBe("Cupom copiado!");
+  });
+
+  it("medição quebrada não impede a cópia", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    mockClipboard(writeText);
+    setNavigator(UA.iphone);
+    setMotion(false);
+    document.body.innerHTML = markup(OFERTA);
+    let quebrar = false;
+    cleanup = initLandingLojas({
+      slug: OFERTA.slug,
+      track: () => {
+        if (quebrar) throw new Error("dataLayer congelado");
+      },
+    });
+    quebrar = true;
+    botao("preco").click();
+    await assentar();
+    expect(writeText).toHaveBeenCalledWith("BELA50");
+    expect(msg("preco")).toBe("Cupom copiado!");
+  });
+
+  it("campo temporário: o foco volta para o botão do cupom", async () => {
+    mockClipboard(undefined);
+    (document as unknown as { execCommand: unknown }).execCommand = jest.fn(() => {
+      // Como no navegador: o campo selecionado está com o foco na hora da cópia.
+      (document.querySelector("textarea") as HTMLTextAreaElement).focus();
+      return true;
+    });
+    mount(OFERTA, { ua: UA.iphone });
+    botao("preco").focus();
+    botao("preco").click();
+    await assentar();
+    expect(document.activeElement).toBe(botao("preco"));
+  });
+
+  it("as outras landings de loja não têm cupom", () => {
+    mount(LP2, { ua: UA.iphone });
+    expect(lp().querySelector("[data-cupom], .cupom-btn")).toBeNull();
+    expect(lp().innerHTML).not.toMatch(/cupom/i);
+  });
+});
+
+describe("Oferta Agenda Bela: rodapé", () => {
+  it("liga para a home, mas não para a landing principal (cadastro pela web, outro preço)", () => {
+    mount(OFERTA, { ua: UA.iphone });
+    expect(
+      lp().querySelector<HTMLAnchorElement>(".foot-brand a")?.getAttribute("href"),
+    ).toBe("/");
+    expect(lp().innerHTML).not.toContain("automatize-seu-atendimento");
+    expect(
+      [...lp().querySelectorAll(".foot nav a")].map((a) => a.getAttribute("href")),
+    ).toEqual([
+      "/termos",
+      "/privacidade",
+      "mailto:contato@tudoagenda.com.br",
+      "https://wa.me/5519936180533?text=Oi!%20Preciso%20de%20ajuda%20com%20o%20Agenda%20Bela",
+    ]);
+  });
+});
+
+describe.each([LP2, LP3])("landing de loja $slug: rodapé", (config) => {
   it("liga para a home e para a landing principal, com ?ref= da página", () => {
     mount(config, { ua: UA.iphone });
     const home = lp().querySelector<HTMLAnchorElement>(".foot-brand a");

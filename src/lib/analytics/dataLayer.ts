@@ -185,8 +185,8 @@ export type ExperimenteEvent =
 export type InAppBrowser = "instagram" | "facebook" | "none";
 
 /**
- * Eventos das landings de loja (/agendabela/app-para-salao-de-beleza e
- * /agendabela/black-friday): sem cadastro na web, a conversão da página é o
+ * Eventos das landings de loja (/agendabela/app-para-salao-de-beleza,
+ * /agendabela/black-friday e /agendabela/oferta): sem cadastro na web, a conversão da página é o
  * clique na loja. Mesmos nomes e parâmetros do Experimente, mais in_app_browser.
  */
 export type LojasEvent =
@@ -205,13 +205,18 @@ export type LojasEvent =
       in_app_browser: InAppBrowser;
     }
   | {
-      /** Link interno: simulador (?ref=...) ou os dois links do rodapé. */
+      /**
+       * Link interno: simulador (?ref=...) ou os dois links do rodapé. Na
+       * oferta, também o toque no cupom copiável (topo e bloco de preço).
+       */
       event: "cta_click";
       cta_location:
         | "simulador_hero"
         | "simulador_avaliacoes"
         | "rodape_conheca_agenda_bela"
-        | "rodape_tudo_agenda";
+        | "rodape_tudo_agenda"
+        | "cupom_copiar_hero"
+        | "cupom_copiar_preco";
     };
 
 /** Lugar do selo de loja na página (data-loc no HTML de markup.ts). */
@@ -353,8 +358,8 @@ const EXPERIMENTE_RESET_KEYS = [
 
 /**
  * Faz push de um evento de uma landing de loja. O landing_slug é o da rota
- * (app-para-salao-de-beleza ou black-friday), nunca o da landing principal:
- * as três páginas da campanha são separadas por ele no GA4.
+ * (app-para-salao-de-beleza, black-friday ou oferta), nunca o da landing
+ * principal: as páginas da campanha são separadas por ele no GA4.
  */
 export function pushAgendaBelaLojasEvent(
   landingSlug: LandingLojasSlug,

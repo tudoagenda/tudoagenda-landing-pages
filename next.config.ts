@@ -10,7 +10,19 @@ import type { NextConfig } from "next";
  */
 export const BLACK_FRIDAY_REDIRECT_ATIVO = false;
 
-export function buildRedirects(blackFridayRedirectAtivo: boolean) {
+/**
+ * Encerramento da Oferta Agenda Bela (/agendabela/oferta). A página não tem
+ * data: quando a oferta sair das lojas, trocar para `true`, fazer o deploy e
+ * invalidar `/agendabela/oferta*` no CloudFront. Redirect temporário (307)
+ * para a landing de loja padrão, com a query string preservada; a rota pode
+ * voltar com outra oferta.
+ */
+export const OFERTA_REDIRECT_ATIVO = false;
+
+export function buildRedirects(
+  blackFridayRedirectAtivo: boolean,
+  ofertaRedirectAtivo = false,
+) {
   return [
     {
       source: "/agendabela",
@@ -28,12 +40,22 @@ export function buildRedirects(blackFridayRedirectAtivo: boolean) {
           },
         ]
       : []),
+    ...(ofertaRedirectAtivo
+      ? [
+          {
+            source: "/agendabela/oferta",
+            destination: "/agendabela/app-para-salao-de-beleza",
+            permanent: false,
+            basePath: false as const,
+          },
+        ]
+      : []),
   ];
 }
 
 const nextConfig: NextConfig = {
   async redirects() {
-    return buildRedirects(BLACK_FRIDAY_REDIRECT_ATIVO);
+    return buildRedirects(BLACK_FRIDAY_REDIRECT_ATIVO, OFERTA_REDIRECT_ATIVO);
   },
 };
 

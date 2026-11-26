@@ -6,13 +6,19 @@
  * - links das lojas com a origem da sessão e medição (lp_view, store_click,
  *   cta_click);
  * - fim do tema Black Friday pela validade gravada em #lp;
+ * - Oferta Agenda Bela (data-oferta em #lp, protótipo lp4-oferta): legendas
+ *   em "você", CTA fixo que some com qualquer CTA da página à vista, a
+ *   animação do bloco de preço e o cupom copiável (o código é um botão);
  * - devolve um cleanup (a página pode sair por navegação client-side).
  *
  * Sem JavaScript, ou com movimento reduzido, a página já está completa: todo
  * mock mostra o estado final e os controles de animação ficam escondidos.
  */
-import { googlePlayUrl } from "@/config/app-stores";
-import { buildPlayReferrerAttribution } from "@/config/landing-lojas";
+import { appStoreUrl, googlePlayUrl } from "@/config/app-stores";
+import {
+  buildAppStoreCampaign,
+  buildPlayReferrerAttribution,
+} from "@/config/landing-lojas";
 import { detectDeviceOs, detectInAppBrowser } from "@/lib/device";
 
 const NB = " ";
@@ -24,6 +30,16 @@ const CAPS = [
   "A Paula é avisada no celular, com o sinal já no saldo. Ela segue atendendo.",
   "No dia, a Bela lembra a Camila. Ela confirma com um toque e a Paula é avisada.",
   "Atendeu: o valor entra no caixa. O que entrou, o que saiu e quanto sobrou.",
+];
+/* Oferta Agenda Bela: a legenda fala com a leitora ("você"), não da Paula.
+   As mesmas frases de PASSOS_OFERTA em markup.ts. */
+const CAPS_OFERTA = [
+  "A Camila marca sozinha, pelo seu link.",
+  "Ela paga o sinal de R$" + NB + "20,00 no Pix e o horário fica garantido.",
+  "A confirmação chega no WhatsApp dela. Você não precisa escrever nada.",
+  "Você é avisada no celular, com o sinal já no saldo. Segue atendendo.",
+  "No dia, a Bela lembra a Camila. Ela confirma com um toque e você é avisada.",
+  "Atendeu: o valor entra no caixa. Você vê o que entrou, o que saiu e quanto sobrou.",
 ];
 
 function fmt(v, f) {
@@ -50,6 +66,7 @@ export function initLandingLojas(opts) {
      só ela é desfeita. Os links das lojas e os eventos seguem funcionando. */
   const undoMedicao = [];
   const undoAnimacao = [];
+  const undoCupom = [];
   const desfazer = function (lista) {
     lista.splice(0).forEach(function (fn) {
       fn();
@@ -71,10 +88,18 @@ export function initLandingLojas(opts) {
     desfazer(undoAnimacao);
     lp.classList.remove("bf-live");
   }
+  /* Cupom copiável da oferta: lista própria, para não cair junto com a
+     animação nem derrubar a medição dos links. */
+  try {
+    ligarCupom(opts, lp, undoCupom);
+  } catch {
+    desfazer(undoCupom);
+  }
   /* Com ou sem animação, sai o estado provisório do CSS. */
   lp.removeAttribute("data-pre");
 
   return function cleanup() {
+    desfazer(undoCupom);
     desfazer(undoAnimacao);
     desfazer(undoMedicao);
     lp.classList.remove("bf-live");
@@ -109,9 +134,16 @@ function medir(opts, lp, undo) {
   const playHref = googlePlayUrl(
     buildPlayReferrerAttribution(opts.attribution, opts.slug),
   );
+  /* Só na oferta: o link da App Store leva a campanha (ct) da sessão. O HTML
+     do servidor sai com o link puro (sem JavaScript não há como saber a
+     origem). Nas outras landings o link da App Store segue puro. */
+  const appStoreHref = lp.hasAttribute("data-oferta")
+    ? appStoreUrl(buildAppStoreCampaign(opts.attribution, opts.slug))
+    : null;
   qa("a[data-store]").forEach(function (a) {
     const store = a.getAttribute("data-store");
     if (store === "google_play") a.setAttribute("href", playHref);
+    if (store === "app_store" && appStoreHref) a.setAttribute("href", appStoreHref);
     /* No celular a loja abre na mesma aba (navegador interno do Instagram e
        do Facebook lida mal com aba nova); no computador, em aba nova. */
     if (os === "desktop" && !a.getAttribute("target")) {
@@ -152,7 +184,162 @@ function medir(opts, lp, undo) {
   return os;
 }
 
-/** CTA fixo do celular, demonstração do hero, abas, chips e tema Black Friday. */
+/** Quanto tempo o aviso "Cupom copiado!" fica antes de voltar ao "toque para copiar". */
+const CUPOM_AVISO_MS = 2500;
+
+/** Cópia sem a Clipboard API (http sem ser localhost, navegador interno antigo). */
+function copiarComCampoTemporario(texto) {
+  /* O campo leva o foco ao ser selecionado: no fim ele volta para onde
+     estava (o botão do cupom, para quem usa teclado ou leitor de tela). */
+  const focoAntes = document.activeElement;
+  const campo = document.createElement("textarea");
+  campo.value = texto;
+  campo.setAttribute("readonly", "");
+  campo.setAttribute("aria-hidden", "true");
+  campo.style.cssText =
+    "position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;font-size:16px";
+  document.body.appendChild(campo);
+  let copiou = false;
+  try {
+    campo.select();
+    campo.setSelectionRange(0, texto.length);
+    copiou = document.execCommand("copy");
+  } catch {
+    copiou = false;
+  }
+  campo.remove();
+  if (focoAntes && focoAntes !== document.body && focoAntes.focus) {
+    focoAntes.focus({ preventScroll: true });
+  }
+  return copiou;
+}
+
+/** Copia o texto. Resolve true se foi para a área de transferência. */
+function copiarTexto(texto) {
+  const comCampo = function () {
+    return copiarComCampoTemporario(texto);
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(texto).then(function () {
+        return true;
+      }, comCampo);
+    }
+  } catch {
+    /* Clipboard API bloqueada: tenta o campo temporário. */
+  }
+  return Promise.resolve(comCampo());
+}
+
+/**
+ * Cupom copiável da Oferta Agenda Bela ([data-cupom] em markup.ts): o código
+ * é um botão. Toque ou clique copia e o aviso ao lado troca para "Cupom
+ * copiado!" (data-copiado) por um instante.
+ *
+ * Se nada copiar, a caixa volta à versão em texto (sai o data-cupom-on), com
+ * o código selecionado e o aviso .cupom-falha: segurar o dedo num <button>
+ * não abre o menu de copiar no WebKit, num texto abre. Esse estado fica até a
+ * página sair.
+ *
+ * Cada toque sai como cta_click (cupom_copiar_hero ou cupom_copiar_preco);
+ * toque repetido com o "Cupom copiado!" ainda na tela conta um só.
+ */
+function ligarCupom(opts, lp, undo) {
+  Array.prototype.slice.call(lp.querySelectorAll("[data-cupom]")).forEach(function (caixa) {
+    const botao = caixa.querySelector(".cupom-btn");
+    const codigo = botao && botao.querySelector(".cupom-cod");
+    const msg = botao && botao.querySelector(".cupom-msg");
+    const status = caixa.querySelector(".cupom-status");
+    const texto = caixa.querySelector(".cupom-nojs");
+    const falha = texto && texto.querySelector(".cupom-falha");
+    if (!botao || !codigo || !msg || !status || !falha) return;
+    let timer = 0;
+    let timerStatus = 0;
+    let vivo = true;
+    /* Toque já contado: só volta a contar quando o "Cupom copiado!" sair. */
+    let medido = false;
+    /* A região viva é preenchida um instante depois de esvaziada: num segundo
+       toque seguido, o leitor de tela anuncia de novo. */
+    const anunciar = function (frase) {
+      clearTimeout(timerStatus);
+      status.textContent = "";
+      timerStatus = setTimeout(function () {
+        status.textContent = frase;
+      }, 50);
+    };
+    const voltar = function () {
+      clearTimeout(timer);
+      clearTimeout(timerStatus);
+      msg.textContent = "";
+      status.textContent = "";
+      caixa.classList.remove("is-copiado");
+    };
+    const copiado = function () {
+      voltar();
+      const frase = caixa.getAttribute("data-copiado");
+      msg.textContent = frase;
+      anunciar(frase);
+      caixa.classList.add("is-copiado");
+      timer = setTimeout(function () {
+        voltar();
+        medido = false;
+      }, CUPOM_AVISO_MS);
+    };
+    /* Nada copiou: sai o botão, volta o código em texto, já selecionado. */
+    const falhou = function () {
+      voltar();
+      medido = false;
+      caixa.removeAttribute("data-cupom-on");
+      caixa.classList.add("is-falha");
+      falha.hidden = false;
+      const selecao = window.getSelection && window.getSelection();
+      if (selecao) {
+        const faixa = document.createRange();
+        faixa.selectNodeContents(texto.querySelector(".cupom-cod"));
+        selecao.removeAllRanges();
+        selecao.addRange(faixa);
+      }
+      /* A mesma pergunta do CSS (.so-mouse): com mouse, a outra redação. */
+      const comMouse =
+        window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+      const frase = falha.querySelector(comMouse ? ".so-mouse" : ".so-toque");
+      anunciar(frase ? frase.textContent : "");
+    };
+    listen(undo, botao, "click", function () {
+      /* A cópia começa dentro do clique (o navegador exige o gesto) e não
+         depende da medição: se o evento falhar, o cupom é copiado assim mesmo. */
+      const copia = copiarTexto(codigo.textContent);
+      if (!medido) {
+        medido = true;
+        try {
+          opts.track({
+            event: "cta_click",
+            cta_location: "cupom_copiar_" + caixa.getAttribute("data-cupom"),
+          });
+        } catch {
+          /* Sem medição o cupom continua copiável. */
+        }
+      }
+      copia.then(function (copiou) {
+        if (!vivo) return;
+        if (copiou) copiado();
+        else falhou();
+      });
+    });
+    /* Só agora o CSS troca o código em texto pelo botão com o aviso de
+       copiar: sem este runtime a página não promete o que não funciona. */
+    caixa.setAttribute("data-cupom-on", "");
+    undo.push(function () {
+      vivo = false;
+      voltar();
+      caixa.removeAttribute("data-cupom-on");
+      caixa.classList.remove("is-falha");
+      falha.hidden = true;
+    });
+  });
+}
+
+/** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */
 function animar(lp, undo, os) {
   const $ = function (id) {
     return document.getElementById(id);
@@ -177,20 +364,34 @@ function animar(lp, undo, os) {
     return io;
   };
   const bf = lp.getAttribute("data-tema") === "bf";
+  const oferta = lp.hasAttribute("data-oferta");
+  const caps = oferta ? CAPS_OFERTA : CAPS;
+  const celularDaDona = oferta ? "Seu celular" : "Celular da Paula";
 
   /* ============ CTA fixo do celular ============ */
   /* Só aparece depois que o CTA do hero saiu da tela e antes do rodapé: nunca
-     dois botões iguais à vista por causa dele. */
+     dois botões iguais à vista por causa dele. Na oferta some também enquanto
+     o botão da seção de preço ou o do final estiver na tela. */
   const sticky = $("cta-fixo");
   const heroCta = $("cta-hero");
   const foot = $("rodape");
+  const ctas = qa(".cta");
   const mq = media("(max-width:767px)");
+  function ctaDaPaginaNaTela() {
+    for (let i = 0; i < ctas.length; i++) {
+      const r = ctas[i].getBoundingClientRect();
+      if (r.height > 0 && r.bottom > 0 && r.top < window.innerHeight) return true;
+    }
+    return false;
+  }
   function updateSticky() {
     let show = false;
     if (os !== "desktop" && mq.matches) {
       const h = heroCta.getBoundingClientRect();
       const f = foot.getBoundingClientRect();
-      show = h.bottom < 0 && f.top > window.innerHeight;
+      show = oferta
+        ? !ctaDaPaginaNaTela() && h.top < window.innerHeight && f.top > window.innerHeight
+        : h.bottom < 0 && f.top > window.innerHeight;
     }
     sticky.hidden = !show;
   }
@@ -292,8 +493,8 @@ function animar(lp, undo, os) {
     quem: function () {
       const c = this.cur;
       if (c < 3) return "Celular da Camila";
-      if (c === 4) return RM ? "Celular da Paula" : this.e < 3400 ? "Celular da Camila" : "Celular da Paula";
-      return "Celular da Paula";
+      if (c === 4) return RM ? celularDaDona : this.e < 3400 ? "Celular da Camila" : celularDaDona;
+      return celularDaDona;
     },
     go: function (n) {
       this.cur = n;
@@ -309,7 +510,7 @@ function animar(lp, undo, os) {
         placeTaps(sc);
         counters(sc, 0, 0);
       }
-      this.cap.textContent = CAPS[n];
+      this.cap.textContent = caps[n];
       this.pas.textContent = "Passo " + (n + 1) + " de 6";
       this.who.textContent = this.quem();
       for (let d = 0; d < this.dots.length; d++) {
@@ -612,6 +813,29 @@ function animar(lp, undo, os) {
       folha.textContent = c.getAttribute("data-t");
     });
   });
+
+  /* ============ Oferta Agenda Bela: bloco de preço ============ */
+  /* Risca o preço cheio, entra o novo e a linha do tempo se preenche, uma vez,
+     quando o cartão entra na tela. Sem IntersectionObserver ou com movimento
+     reduzido nada é armado: o estado final já está no CSS. */
+  const cartaoOferta = oferta ? $("oferta-card") : null;
+  if (cartaoOferta && hasIO && !RM) {
+    cartaoOferta.classList.add("arm");
+    undo.push(function () {
+      cartaoOferta.classList.remove("arm", "on");
+    });
+    void cartaoOferta.offsetWidth;
+    const ofertaIo = observe(
+      function (en) {
+        if (en[0].isIntersecting) {
+          cartaoOferta.classList.add("on");
+          ofertaIo.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    ofertaIo.observe(cartaoOferta);
+  }
 
   /* ============ tema Black Friday ============ */
   if (bf) {

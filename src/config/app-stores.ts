@@ -7,6 +7,17 @@
 export const APP_STORE_URL =
   "https://apps.apple.com/br/app/agenda-bela/id6782112738";
 
+/**
+ * Link da App Store com a campanha (`ct`), que aparece no App Analytics.
+ * Sem provider token (`pt`) a Apple não atribui a instalação à campanha: o
+ * `ct` sozinho só fica pronto para quando o `pt` existir.
+ */
+export function appStoreUrl(campanha?: string): string {
+  return campanha
+    ? `${APP_STORE_URL}?ct=${encodeURIComponent(campanha)}`
+    : APP_STORE_URL;
+}
+
 export const GOOGLE_PLAY_BASE_URL =
   "https://play.google.com/store/apps/details?id=com.tudoagenda.agendabela.salao&hl=pt_BR&gl=BR";
 
