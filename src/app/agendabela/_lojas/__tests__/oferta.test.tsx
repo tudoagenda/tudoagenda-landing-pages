@@ -100,7 +100,9 @@ describe("Oferta Agenda Bela: valores vêm da config", () => {
     expect(htmlOutra).toContain("Depois do 5º mês, R$&nbsp;64,90 por mês.");
     expect(htmlOutra).toContain("&minus;51%");
     expect(htmlOutra).toContain("7 dias grátis · OUTRA10 dá 51% off");
-    expect(htmlOutra).toContain("(51% de desconto)");
+    expect(htmlOutra).toContain(
+      "O cupom OUTRA10 é para o desconto: com ele, você paga R$&nbsp;31,90 por mês nos 5 primeiros meses, em vez de R$&nbsp;64,90, uma cobrança por mês. Do 6º mês em diante, R$&nbsp;64,90 por mês.",
+    );
     expect(htmlOutra).toContain("digite OUTRA10 para ter 51% nos 5 primeiros meses.");
   });
 
@@ -127,7 +129,7 @@ describe("Oferta Agenda Bela: valores vêm da config", () => {
   it("todo valor em reais tem espaço que não quebra entre R$ e o número", () => {
     const visivel = html.replace(/aria-label="[^"]*"/g, "");
     expect(visivel).not.toMatch(/R\$ \d/);
-    expect(visivel.match(/R\$&nbsp;29,95/g)?.length).toBeGreaterThanOrEqual(8);
+    expect(visivel.match(/R\$&nbsp;29,95/g)?.length).toBeGreaterThanOrEqual(7);
   });
 
   it("leitor de tela ouve a oferta inteira no cartão do topo", () => {
@@ -162,11 +164,62 @@ describe("Oferta Agenda Bela: o que a página não pode dizer", () => {
     expect(htmlDaPagina).not.toMatch(proibido);
   });
 
-  it('"grátis" só na barra fixa do celular (frase do Carlos); no resto, "sem cartão"', () => {
-    const semBarraFixa = dom(html);
-    semBarraFixa.getElementById("cta-fixo")?.remove();
-    expect(semBarraFixa.body.innerHTML).not.toMatch(/gr[áa]tis|gratuit/i);
-    expect(html.match(/grátis/g)).toHaveLength(2);
+  it('"grátis" só na barra fixa do celular (frase do Carlos) e na pergunta sobre o teste; no resto, "sem cartão"', () => {
+    const semOsDois = dom(html);
+    semOsDois.getElementById("cta-fixo")?.remove();
+    const sobreOTeste = [...semOsDois.querySelectorAll(".faq details")].filter(
+      (d) => texto(d.querySelector("summary")) === "O cupom vale junto com o teste de 7 dias?",
+    );
+    expect(sobreOTeste).toHaveLength(1);
+    sobreOTeste[0].remove();
+    expect(semOsDois.body.innerHTML).not.toMatch(/gr[áa]tis|gratuit/i);
+    expect(html.match(/grátis/g)).toHaveLength(3);
+  });
+
+  describe("o cupom dá o desconto; os 7 dias são o teste do app (regra do Miguel, 26/11/2026)", () => {
+    const CUPOM_DA_O_TESTE = [
+      /(cupom|BELA50)[^.!?]*d[áa] 7 dias/i,
+      /com o cupom[^.!?]*test/i,
+      /7 dias[^.!?]*(com|pelo|usando) o cupom/i,
+    ];
+    const casa = (t: string) => CUPOM_DA_O_TESTE.some((re) => re.test(t));
+
+    it.each([
+      "Sim. O cupom dá 7 dias para testar, sem pagar nada.",
+      "Sim. Com o cupom, você testa 7 dias e depois paga R$ 29,95 por mês.",
+      "Você tem 7 dias para testar com o cupom BELA50.",
+    ])("os padrões pegam a frase errada: %s", (frase) => {
+      expect(casa(frase)).toBe(true);
+    });
+
+    it("nenhum texto da oferta, em nenhum aparelho, atribui o teste ao cupom", () => {
+      // Os blocos de todos os aparelhos (data-dev) estão no HTML; o CSS só esconde.
+      const lidos: string[] = [];
+      for (const pagina of [doc, dom(htmlDaPagina)]) {
+        for (const el of pagina.querySelectorAll("*")) {
+          if (["SCRIPT", "STYLE"].includes(el.tagName)) continue;
+          // Texto no menor elemento que o contém, com os filhos em linha, e a
+          // frase inteira quando ela é montada só com filhos (<b>, <span>).
+          if (
+            el.matches("p, li, summary, h1, h2, h3, a, button, small") ||
+            [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent?.trim())
+          ) {
+            lidos.push(texto(el));
+          }
+          for (const attr of ["aria-label", "alt", "title", "content", "data-copiado"]) {
+            const valor = el.getAttribute(attr);
+            if (valor) lidos.push(valor);
+          }
+        }
+      }
+      for (const item of buildOfertaFaq(OFERTA_AGENDA_BELA)) {
+        lidos.push(item.pergunta, texto(dom(item.respostaHtml).body));
+      }
+      // Prévia do link: title, description, Open Graph e Twitter.
+      lidos.push(JSON.stringify(ofertaMetadata));
+      expect(lidos.length).toBeGreaterThan(100);
+      expect(lidos.filter(casa)).toEqual([]);
+    });
   });
 
   it("o desconto não é automático: nada diz que ele aparece sozinho na loja", () => {
@@ -564,19 +617,14 @@ describe("Oferta Agenda Bela: perguntas", () => {
     expect(resposta("nojs")).toBe(resposta("desktop"));
   });
 
-  it("a resposta sobre o teste muda com o aparelho", () => {
-    const resposta = (dev: string) =>
-      texto(itens[4].querySelector(`[data-dev="${dev}"]`));
-    expect(resposta("ios")).toBe(
-      "Sim. O cupom dá 7 dias para testar, sem pagar nada. Depois, a App Store cobra R$ 29,95 por mês nos 3 primeiros meses, uma cobrança por mês, não tudo de uma vez. Do 4º mês em diante, R$ 59,90 por mês.",
+  it("a resposta sobre o teste é uma só nos quatro aparelhos e separa o teste do cupom", () => {
+    const resposta = itens[4].querySelector("p");
+    // Sem data-dev: iPhone, Android, computador e sem JavaScript leem o mesmo texto.
+    expect(resposta?.querySelectorAll("[data-dev]")).toHaveLength(0);
+    expect(itens[4].querySelectorAll("p")).toHaveLength(1);
+    expect(texto(resposta)).toBe(
+      "Sim, são duas coisas separadas. Os 7 dias grátis são o período de teste do app, sem cartão. O cupom BELA50 é para o desconto: com ele, você paga R$ 29,95 por mês nos 3 primeiros meses, em vez de R$ 59,90, uma cobrança por mês. Do 4º mês em diante, R$ 59,90 por mês.",
     );
-    expect(resposta("android")).toBe(
-      "Sim. Com o cupom, você testa 7 dias e depois paga R$ 29,95 por mês nos 3 primeiros meses (50% de desconto). Do 4º mês em diante, R$ 59,90 por mês.",
-    );
-    expect(resposta("desktop")).toBe(
-      "Sim. Os 7 dias sem cartão continuam. Ao assinar pelo app, use o cupom BELA50 para ter o desconto nos 3 primeiros meses.",
-    );
-    expect(resposta("nojs")).toBe(resposta("desktop"));
   });
 
   it("quem já assinou tem para onde ir: WhatsApp do suporte, em aba nova, já falando do cupom", () => {

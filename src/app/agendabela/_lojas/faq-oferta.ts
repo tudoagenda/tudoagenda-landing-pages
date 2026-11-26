@@ -3,10 +3,11 @@
  * 16 da campanha (cupom, 26/11/2026); todo valor e o código do cupom saem da
  * config da oferta.
  *
- * Diferente de faq.ts, a resposta é HTML: uma leva link e duas mudam com o
- * aparelho (data-dev). A página é noindex e não tem JSON-LD, então não há
- * FAQPage para acompanhar. As três últimas perguntas são as mesmas da landing
- * de loja padrão e vêm de faq.ts.
+ * Diferente de faq.ts, a resposta é HTML: uma leva link e uma muda com o
+ * aparelho (data-dev). O teste de 7 dias é do app e o cupom é só o desconto:
+ * nenhuma resposta atribui o teste ao cupom. A página é noindex e não tem
+ * JSON-LD, então não há FAQPage para acompanhar. As três últimas perguntas
+ * são as mesmas da landing de loja padrão e vêm de faq.ts.
  */
 import { formatarCentavos, type OfertaConfig } from "@/config/landing-lojas";
 import { supportWhatsappUrl } from "@/config/company";
@@ -63,11 +64,10 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     },
     {
       pergunta: "O cupom vale junto com o teste de 7 dias?",
-      respostaHtml: porAparelho(
-        `Sim. O cupom dá 7 dias para testar, sem pagar nada. Depois, a App Store cobra ${promo} por mês nos ${m} primeiros meses, uma cobrança por mês, não tudo de uma vez. Do ${m + 1}º mês em diante, ${cheio} por mês.`,
-        `Sim. Com o cupom, você testa 7 dias e depois paga ${promo} por mês nos ${m} primeiros meses (${oferta.percentual}% de desconto). Do ${m + 1}º mês em diante, ${cheio} por mês.`,
-        `Sim. Os 7 dias sem cartão continuam. Ao assinar pelo app, use o cupom ${cupom} para ter o desconto nos ${m} primeiros meses.`,
-      ),
+      // Uma resposta só, em todo aparelho: o teste de 7 dias é do app e o
+      // cupom é só o desconto. Nenhum texto pode dizer que o cupom dá o teste
+      // (regra do Miguel, 26/11/2026; oferta.test.tsx trava).
+      respostaHtml: `Sim, são duas coisas separadas. Os 7 dias grátis são o período de teste do app, sem cartão. O cupom ${cupom} é para o desconto: com ele, você paga ${promo} por mês nos ${m} primeiros meses, em vez de ${cheio}, uma cobrança por mês. Do ${m + 1}º mês em diante, ${cheio} por mês.`,
     },
     {
       pergunta: "E se eu não usar o cupom?",
