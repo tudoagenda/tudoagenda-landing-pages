@@ -468,7 +468,16 @@ describe.each(PAGINAS)("landing de loja $slug: medição", (config) => {
     }
     // Parâmetro novo de LojasEvent tem que entrar na lista de reset.
     expect([...LOJAS_RESET_KEYS].sort()).toEqual(
-      ["cta_location", "device_os", "event_id", "in_app_browser", "ref", "store"].sort(),
+      [
+        "cta_location",
+        "device_os",
+        "event_id",
+        "faq_id",
+        "in_app_browser",
+        "ref",
+        "section",
+        "store",
+      ].sort(),
     );
   });
 

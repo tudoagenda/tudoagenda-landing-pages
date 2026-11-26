@@ -194,6 +194,7 @@ export type InAppBrowser = "instagram" | "facebook" | "none";
  * Eventos das landings de loja (/agendabela/app-para-salao-de-beleza,
  * /agendabela/black-friday e /agendabela/oferta): sem cadastro na web, a conversão da página é o
  * clique na loja. Mesmos nomes e parâmetros do Experimente, mais in_app_browser.
+ * section_view e faq_open são engajamento (o que a pessoa viu antes de decidir).
  */
 export type LojasEvent =
   | {
@@ -223,7 +224,47 @@ export type LojasEvent =
         | "rodape_tudo_agenda"
         | "cupom_copiar_hero"
         | "cupom_copiar_preco";
+    }
+  | {
+      /**
+       * A seção entrou de fato na tela (não só encostou na borda). Uma vez por
+       * seção por carga de página. Engajamento: não mapear para conversão.
+       */
+      event: "section_view";
+      section: LojasSection;
+      device_os: DeviceOs;
+      in_app_browser: InAppBrowser;
+    }
+  | {
+      /** Abriu uma pergunta das "Perguntas rápidas". Uma vez por pergunta por carga. */
+      event: "faq_open";
+      faq_id: LojasFaqId;
+      device_os: DeviceOs;
+      in_app_browser: InAppBrowser;
     };
+
+/** Seção medida pelo section_view (data-sec no HTML de markup.ts). */
+export type LojasSection = "preco" | "faq";
+
+/**
+ * Pergunta das landings de loja (data-faq no HTML; id em faq.ts e
+ * faq-oferta.ts). Fixo e em ASCII: não acompanha a redação da pergunta.
+ */
+export type LojasFaqId =
+  | "o_que_e"
+  | "precisa_cartao"
+  | "quanto_custa_depois"
+  | "iphone_android"
+  | "whatsapp_numero"
+  | "cliente_baixar"
+  /* Só na oferta. */
+  | "cupom_como_funciona"
+  | "cupom_onde_colocar"
+  | "cupom_ja_assinou"
+  | "cupom_com_teste"
+  | "sem_cupom"
+  | "depois_da_oferta"
+  | "cancelar_antes";
 
 /** Lugar do selo de loja na página (data-loc no HTML de markup.ts). */
 export type LojasStoreCtaLocation =
@@ -302,14 +343,21 @@ export const MAIN_RESET_KEYS = [
 
 /**
  * Faz push de um evento da LP de reativação do Agenda Bela.
- * Contexto: campaign, slug = reativacao.
+ * Contexto: campaign, slug = reativacao. Os eventos são os mesmos da landing
+ * principal (LandingEvent), então a lista de reset também é: sem ela, o
+ * store/cta_location de um store_click grudaria no evento seguinte no modelo
+ * do GTM.
  */
 export function pushAgendaBelaReativacaoEvent(eventData: LandingEvent): void {
-  pushLandingEvent(eventData, {
-    product: "agendabela",
-    landing_type: "campaign",
-    landing_slug: "reativacao",
-  });
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "campaign",
+      landing_slug: "reativacao",
+    },
+    MAIN_RESET_KEYS,
+  );
 }
 
 /**
@@ -397,6 +445,8 @@ export const LOJAS_RESET_KEYS = [
   "device_os",
   "ref",
   "in_app_browser",
+  "section",
+  "faq_id",
 ] as const;
 
 /**

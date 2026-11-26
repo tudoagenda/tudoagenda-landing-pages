@@ -4,7 +4,7 @@
  * 19/11/2026, com a mesma lógica de animação. O que muda para produção:
  * - o aparelho vem do User-Agent (sem os seletores do protótipo);
  * - links das lojas com a origem da sessão e medição (lp_view, store_click,
- *   cta_click);
+ *   cta_click) e o engajamento (section_view, faq_open);
  * - fim do tema Black Friday pela validade gravada em #lp;
  * - Oferta Agenda Bela (data-oferta em #lp, protótipo lp4-oferta): legendas
  *   em "você", CTA fixo que some com qualquer CTA da página à vista, a
@@ -65,6 +65,7 @@ export function initLandingLojas(opts) {
      primeiro: se a animação quebrar (HTML alterado por extensão ou tradutor),
      só ela é desfeita. Os links das lojas e os eventos seguem funcionando. */
   const undoMedicao = [];
+  const undoEngajamento = [];
   const undoAnimacao = [];
   const undoCupom = [];
   const desfazer = function (lista) {
@@ -79,6 +80,13 @@ export function initLandingLojas(opts) {
   } catch {
     /* Sem medição a página continua inteira; a animação é tentada assim mesmo. */
     desfazer(undoMedicao);
+  }
+  /* Engajamento (section_view, faq_open): lista própria, depois do lp_view.
+     Se quebrar, não leva junto os links das lojas nem os cliques. */
+  try {
+    medirEngajamento(opts, lp, undoEngajamento, os);
+  } catch {
+    desfazer(undoEngajamento);
   }
   try {
     animar(lp, undoAnimacao, os);
@@ -101,6 +109,7 @@ export function initLandingLojas(opts) {
   return function cleanup() {
     desfazer(undoCupom);
     desfazer(undoAnimacao);
+    desfazer(undoEngajamento);
     desfazer(undoMedicao);
     lp.classList.remove("bf-live");
   };
@@ -182,6 +191,90 @@ function medir(opts, lp, undo) {
     in_app_browser: inApp,
   });
   return os;
+}
+
+/**
+ * Quanto do marcador (data-sec) precisa estar dentro da área útil da tela
+ * para a seção contar como vista.
+ */
+const SECAO_VISTA_LIMIAR = 0.75;
+/**
+ * Área útil: a faixa de baixo da tela não conta. É onde a seção só encosta ao
+ * chegar e onde fica o CTA fixo do celular, por cima do conteúdo.
+ */
+const SECAO_VISTA_MARGEM = "0px 0px -15% 0px";
+
+/**
+ * Engajamento: section_view (preço e perguntas) e faq_open. Cada um sai no
+ * máximo uma vez por carga de página (por seção, por pergunta).
+ *
+ * section_view: os marcadores são os títulos com data-sec. Uma seção pode ter
+ * mais de um (na Black Friday, o bloco do tema e o "Quanto custa"): vale o
+ * primeiro que aparecer. Marcador escondido (tema vencido) nunca cruza a tela.
+ * Sem IntersectionObserver o evento não sai: não há como saber o que foi visto.
+ *
+ * faq_open: o toggle do <details> cobre toque, teclado e a busca do navegador
+ * que abre a resposta. Fechar não mede.
+ */
+function medirEngajamento(opts, lp, undo, os) {
+  const track = opts.track;
+  const inApp = detectInAppBrowser();
+  const qa = function (sel) {
+    return Array.prototype.slice.call(lp.querySelectorAll(sel));
+  };
+
+  const abertas = {};
+  qa("details[data-faq]").forEach(function (d) {
+    listen(undo, d, "toggle", function () {
+      const id = d.getAttribute("data-faq");
+      if (!d.open || !id || abertas[id]) return;
+      abertas[id] = true;
+      track({
+        event: "faq_open",
+        faq_id: id,
+        device_os: os,
+        in_app_browser: inApp,
+      });
+    });
+  });
+
+  const marcadores = qa("[data-sec]");
+  if (!marcadores.length || !("IntersectionObserver" in window)) return;
+  const vistas = {};
+  const io = new IntersectionObserver(
+    function (entradas) {
+      entradas.forEach(function (x) {
+        const secao = x.target.getAttribute("data-sec");
+        if (
+          !x.isIntersecting ||
+          !(x.intersectionRatio >= SECAO_VISTA_LIMIAR) ||
+          !secao ||
+          vistas[secao]
+        ) {
+          return;
+        }
+        vistas[secao] = true;
+        marcadores.forEach(function (m) {
+          if (m.getAttribute("data-sec") === secao) io.unobserve(m);
+        });
+        track({
+          event: "section_view",
+          section: secao,
+          device_os: os,
+          in_app_browser: inApp,
+        });
+      });
+    },
+    /* Dois limiares: se a leitura ao cruzar o primeiro vier um pouco abaixo
+       dele (arredondamento do navegador), a do título inteiro confirma. */
+    { threshold: [SECAO_VISTA_LIMIAR, 1], rootMargin: SECAO_VISTA_MARGEM },
+  );
+  undo.push(function () {
+    io.disconnect();
+  });
+  marcadores.forEach(function (m) {
+    io.observe(m);
+  });
 }
 
 /** Quanto tempo o aviso "Cupom copiado!" fica antes de voltar ao "toque para copiar". */
