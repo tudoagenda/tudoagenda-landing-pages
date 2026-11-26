@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { APP_STORE_URL, GOOGLE_PLAY_BASE_URL } from "@/config/app-stores";
+import {
+  APP_STORE_URL,
+  GOOGLE_PLAY_BASE_URL,
+  googlePlayUrl,
+} from "@/config/app-stores";
 import { COMPANY_LEGAL_IDENTIFICATION, SUPPORT_WHATSAPP_URL } from "@/config/company";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -10,8 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useReactivationLookup, useReactivationStart } from "@/hooks/use-reactivation";
 import {
+  getLandingAttribution,
   pushAgendaBelaReativacaoEvent,
 } from "@/lib/analytics/dataLayer";
+import { detectDeviceOs } from "@/lib/device";
 import type { ReactivationLookupResponse } from "@/services/reactivation";
 
 // ---------------------------------------------------------------------------
@@ -69,11 +75,16 @@ export function ReactivationFlow() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // Sem atribuição no servidor; no client o link da Google Play ganha o referrer.
+  const [androidHref, setAndroidHref] = useState<string>(GOOGLE_PLAY_BASE_URL);
+
   const lookup = useReactivationLookup();
   const startReactivation = useReactivationStart();
 
   // Detecta volta do AbacatePay com ?reactivation=success
   useEffect(() => {
+    // Antes de limpar a URL: a origem da sessão (UTMs) vai no link da Google Play.
+    setAndroidHref(googlePlayUrl(getLandingAttribution()));
     const params = new URLSearchParams(window.location.search);
     if (params.get("reactivation") === "success") {
       setStep("success");
@@ -86,6 +97,21 @@ export function ReactivationFlow() {
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
+
+  /** Clique num link de loja. cta_location diz de qual tela saiu. */
+  function trackStoreClick(
+    store: "app_store" | "google_play",
+    ctaLocation:
+      | "reativacao_concluida_baixar_app"
+      | "ja_assinante_baixar_app",
+  ) {
+    pushAgendaBelaReativacaoEvent({
+      event: "store_click",
+      store,
+      cta_location: ctaLocation,
+      device_os: detectDeviceOs(),
+    });
+  }
 
   function handleLookupSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -686,14 +712,16 @@ export function ReactivationFlow() {
                 href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackStoreClick("app_store", "reativacao_concluida_baixar_app")}
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
               >
                 App Store (iOS)
               </a>
               <a
-                href={GOOGLE_PLAY_BASE_URL}
+                href={androidHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackStoreClick("google_play", "reativacao_concluida_baixar_app")}
                 className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
               >
                 Google Play (Android)
@@ -731,14 +759,16 @@ export function ReactivationFlow() {
                 href={APP_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackStoreClick("app_store", "ja_assinante_baixar_app")}
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
               >
                 Baixar app (iOS)
               </a>
               <a
-                href={GOOGLE_PLAY_BASE_URL}
+                href={androidHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackStoreClick("google_play", "ja_assinante_baixar_app")}
                 className="inline-flex items-center justify-center h-12 px-5 rounded-full bg-brand-petroleo text-white font-inter text-[14px] font-semibold hover:opacity-90 transition-opacity"
               >
                 Baixar app (Android)

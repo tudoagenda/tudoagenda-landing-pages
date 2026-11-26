@@ -294,14 +294,21 @@ export const MAIN_RESET_KEYS = [
 
 /**
  * Faz push de um evento da LP de reativação do Agenda Bela.
- * Contexto: campaign, slug = reativacao.
+ * Contexto: campaign, slug = reativacao. Os eventos são os mesmos da landing
+ * principal (LandingEvent), então a lista de reset também é: sem ela, o
+ * store/cta_location de um store_click grudaria no evento seguinte no modelo
+ * do GTM.
  */
 export function pushAgendaBelaReativacaoEvent(eventData: LandingEvent): void {
-  pushLandingEvent(eventData, {
-    product: "agendabela",
-    landing_type: "campaign",
-    landing_slug: "reativacao",
-  });
+  pushLandingEvent(
+    eventData,
+    {
+      product: "agendabela",
+      landing_type: "campaign",
+      landing_slug: "reativacao",
+    },
+    MAIN_RESET_KEYS,
+  );
 }
 
 /**
