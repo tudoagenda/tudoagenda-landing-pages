@@ -193,7 +193,7 @@ exports[`as outras landings de loja não mudam com a oferta app-para-salao-de-be
 <section class="price-sec" aria-labelledby="preco-titulo"><div class="wrap"><div class="price">
   <div>
     <span class="mono">Quanto custa</span>
-    <h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
+    <h2 id="preco-titulo" data-sec="preco">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
@@ -229,14 +229,14 @@ exports[`as outras landings de loja não mudam com a oferta app-para-salao-de-be
 </div></div></section>
 
 <section class="sec faq" aria-labelledby="faq-titulo"><div class="wrap">
-  <div class="sec-head"><h2 class="t" id="faq-titulo">Perguntas rápidas</h2></div>
+  <div class="sec-head"><h2 class="t" id="faq-titulo" data-sec="faq">Perguntas rápidas</h2></div>
   <div class="faq-list">
-    <details><summary>O que é o Agenda Bela?</summary><p>O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão; depois, R$&nbsp;59,90 por mês.</p></details>
-    <details><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
-    <details><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
-    <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
-    <details><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
-    <details><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>
+    <details data-faq="o_que_e"><summary>O que é o Agenda Bela?</summary><p>O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão; depois, R$&nbsp;59,90 por mês.</p></details>
+    <details data-faq="precisa_cartao"><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
+    <details data-faq="quanto_custa_depois"><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
+    <details data-faq="iphone_android"><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
+    <details data-faq="whatsapp_numero"><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
+    <details data-faq="cliente_baixar"><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>
   </div>
 </div></section>
 
@@ -379,7 +379,7 @@ exports[`as outras landings de loja não mudam com a oferta black-friday: HTML d
   </div>
 </header>
 
-<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo">Apenas <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p></div></div></div></section>
+<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo" data-sec="preco">Apenas <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p></div></div></div></section>
 
 <section class="sec how" aria-labelledby="como-titulo"><div class="wrap">
   <div class="sec-head rv"><span class="mono">Sem complicação</span><h2 class="t" id="como-titulo" style="max-width:18ch">Em poucos minutos a Bela já está trabalhando para você.</h2></div>
@@ -481,7 +481,7 @@ exports[`as outras landings de loja não mudam com a oferta black-friday: HTML d
 <section class="price-sec" aria-labelledby="preco-titulo"><div class="wrap"><div class="price">
   <div>
     <span class="mono">Quanto custa</span>
-    <h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
+    <h2 id="preco-titulo" data-sec="preco">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
@@ -517,14 +517,14 @@ exports[`as outras landings de loja não mudam com a oferta black-friday: HTML d
 </div></div></section>
 
 <section class="sec faq" aria-labelledby="faq-titulo"><div class="wrap">
-  <div class="sec-head"><h2 class="t" id="faq-titulo">Perguntas rápidas</h2></div>
+  <div class="sec-head"><h2 class="t" id="faq-titulo" data-sec="faq">Perguntas rápidas</h2></div>
   <div class="faq-list">
-    <details><summary>O que é o Agenda Bela?</summary><p>O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão; depois, R$&nbsp;59,90 por mês.</p></details>
-    <details><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
-    <details><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
-    <details><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
-    <details><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
-    <details><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>
+    <details data-faq="o_que_e"><summary>O que é o Agenda Bela?</summary><p>O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão; depois, R$&nbsp;59,90 por mês.</p></details>
+    <details data-faq="precisa_cartao"><summary>Preciso de cartão para começar?</summary><p>Não. Você usa 7 dias sem cartão. Eles começam quando você configura sua agenda no app.</p></details>
+    <details data-faq="quanto_custa_depois"><summary>Quanto custa depois?</summary><p>R$&nbsp;59,90 por mês. Cancele quando quiser.</p></details>
+    <details data-faq="iphone_android"><summary>Funciona no iPhone e no Android?</summary><p>Sim, nos dois. Procure por “Agenda Bela” nas lojas.</p></details>
+    <details data-faq="whatsapp_numero"><summary>As mensagens para minhas clientes saem do meu WhatsApp?</summary><p>Saem do número do Agenda Bela, não do seu.</p></details>
+    <details data-faq="cliente_baixar"><summary>Minha cliente precisa baixar algo?</summary><p>Não. Ela marca pelo seu link e recebe a confirmação e o lembrete no WhatsApp.</p></details>
   </div>
 </div></section>
 

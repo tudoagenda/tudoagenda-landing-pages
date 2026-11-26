@@ -7,13 +7,21 @@
  * aparelho (data-dev). O teste de 7 dias é do app e o cupom é só o desconto:
  * nenhuma resposta atribui o teste ao cupom. A página é noindex e não tem
  * JSON-LD, então não há FAQPage para acompanhar. As três últimas perguntas
- * são as mesmas da landing de loja padrão e vêm de faq.ts.
+ * são as mesmas da landing de loja padrão e vêm de faq.ts (com o mesmo id).
+ *
+ * O id é o faq_id do evento faq_open (ver faq.ts). Pergunta que existe nas
+ * duas páginas usa o mesmo id: o landing_slug do evento diz de qual veio.
  */
 import { formatarCentavos, type OfertaConfig } from "@/config/landing-lojas";
 import { supportWhatsappUrl } from "@/config/company";
+import type { LojasFaqId } from "@/lib/analytics/dataLayer";
 import { LOJAS_FAQ } from "./faq";
 
-export type OfertaFaqItem = { pergunta: string; respostaHtml: string };
+export type OfertaFaqItem = {
+  id: LojasFaqId;
+  pergunta: string;
+  respostaHtml: string;
+};
 
 const PERGUNTAS_COMUNS = [
   "Funciona no iPhone e no Android?",
@@ -43,14 +51,17 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     `Na tela de assinatura do app, toque em “Tenho um cupom”. Vai abrir ${tela}: digite ${cupom} e confirme. Esse link aparece também quando você está montando sua conta, no começo.`;
   return [
     {
+      id: "o_que_e",
       pergunta: "O que é o Agenda Bela?",
       respostaHtml: `O Agenda Bela é um app de agenda para salão de beleza, para iPhone e Android. Feito para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais, ele confirma e lembra suas clientes no WhatsApp, recebe o sinal no Pix pelo seu link e mostra o caixa do dia. Você testa 7 dias sem cartão e depois assina pelo app. O cupom ${cupom} e os valores estão na pergunta “${comoFunciona}”.`,
     },
     {
+      id: "cupom_como_funciona",
       pergunta: comoFunciona,
       respostaHtml: `Na hora de assinar, toque em “Tenho um cupom” e digite ${cupom}. Nos ${m} primeiros meses da assinatura, você paga ${promo} por mês em vez de ${cheio}. Do ${m + 1}º mês em diante, a assinatura continua por ${cheio} por mês, até você cancelar. A cobrança é feita pela loja (App Store ou Google Play).`,
     },
     {
+      id: "cupom_onde_colocar",
       pergunta: "Onde eu coloco o cupom?",
       respostaHtml: porAparelho(
         ondeDigita("uma tela da Apple"),
@@ -59,10 +70,12 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
       ),
     },
     {
+      id: "cupom_ja_assinou",
       pergunta: "O cupom vale para quem já assinou?",
       respostaHtml: `Não. O cupom vale só para a primeira assinatura do Agenda Bela. Se você já assinou antes, o preço é o normal, ${cheio} por mês. Dúvida? <a href="${whatsapp}" target="_blank" rel="noopener noreferrer">Chame a gente no WhatsApp<span class="sr"> (abre em nova aba)</span></a>.`,
     },
     {
+      id: "cupom_com_teste",
       pergunta: "O cupom vale junto com o teste de 7 dias?",
       // Uma resposta só, em todo aparelho: o teste de 7 dias é do app e o
       // cupom é só o desconto. Nenhum texto pode dizer que o cupom dá o teste
@@ -70,19 +83,23 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
       respostaHtml: `Sim, são duas coisas separadas. Os 7 dias grátis são o período de teste do app, sem cartão. O cupom ${cupom} é para o desconto: com ele, você paga ${promo} por mês nos ${m} primeiros meses, em vez de ${cheio}, uma cobrança por mês. Do ${m + 1}º mês em diante, ${cheio} por mês.`,
     },
     {
+      id: "sem_cupom",
       pergunta: "E se eu não usar o cupom?",
       respostaHtml: `Sem o cupom, a assinatura custa ${cheio} por mês. Digite o ${cupom} antes de confirmar a assinatura.`,
     },
     {
+      id: "precisa_cartao",
       pergunta: "Preciso de cartão para começar?",
       respostaHtml:
         "Para testar, não. Você usa 7 dias sem cartão, que contam a partir de quando você monta sua agenda no app. Só quando decidir assinar, a loja vai pedir seu cartão ou outra forma de pagar.",
     },
     {
+      id: "depois_da_oferta",
       pergunta: `E depois dos ${m} meses, quanto custa?`,
       respostaHtml: `${cheio} por mês, o preço normal. A assinatura renova sozinha, e você cancela quando quiser, em Assinaturas da App Store ou do Google Play, antes da data da cobrança.`,
     },
     {
+      id: "cancelar_antes",
       pergunta: `E se eu cancelar antes dos ${m} meses?`,
       respostaHtml:
         "Você deixa de ser cobrada na renovação seguinte. Se voltar depois, o preço é o normal, porque o cupom vale só para a primeira assinatura.",
@@ -90,6 +107,7 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     ...LOJAS_FAQ.filter((item) =>
       PERGUNTAS_COMUNS.includes(item.pergunta),
     ).map((item) => ({
+      id: item.id,
       pergunta: item.pergunta,
       respostaHtml: item.resposta,
     })),
