@@ -195,5 +195,42 @@ principal e reativação), porque é feito no helper central
    válido, mesmo com o backend fora. Página em `localhost` nunca repassa ao
    backend de produção. Sem dado pessoal, e o IP não é logado.
 
+### O que a rota precisa para a Meta aceitar o evento
+
+A Meta exige `client_user_agent` em evento de site e recusa o evento que só
+tem ele (erro 2804050, medido em produção em 26/11/2026: os dois cliques sem
+cookie foram recusados; o clique de uma visitante com mais dados foi aceito).
+A rota só repassa com User-Agent **e** mais um sinal: IP, `fbp` ou `fbc`. Sem
+isso responde 204 e não chama o backend.
+
+Onde a landing de produção roda (medido em 26/11/2026): atrás do CloudFront,
+num servidor da AWS (us-east-1), **não** no serviço do Railway. O Railway
+recebe o deploy, mas os pedidos de `tudoagenda.com.br` não aparecem no log
+HTTP dele, a resposta não traz os cabeçalhos dele e o backend recebe as
+chamadas da landing de um IP da AWS. Por isso os logs da rota não estão no
+Railway e não existe `X-Real-IP`.
+
+IP da visitante (`src/lib/server/visitor-ip.ts`), na ordem: o
+`resolveClientIp` das outras rotas; o cabeçalho `CloudFront-Viewer-Address`;
+a cadeia do Railway; e o `X-Forwarded-For` lido da direita para a esquerda,
+pulando IP privado e faixas da AWS. Nunca IP privado nem de proxy.
+
+**Configuração do CloudFront que ajuda (não depende de código):** no
+comportamento que atende `/api/*`, a política de pedido à origem deve
+repassar os cabeçalhos da visitante (`User-Agent`, `Cookie`,
+`X-Forwarded-For`) e acrescentar `CloudFront-Viewer-Address`. A política
+gerenciada `AllViewerAndCloudFrontHeaders-2022-06` faz as duas coisas; se a
+origem não aceitar o `Host` da visitante, criar uma política própria com
+"todos os cabeçalhos da visitante exceto Host", todos os cookies e o
+cabeçalho `CloudFront-Viewer-Address`.
+
+**Diagnóstico sem log:** um pedido com `"diag": true` no corpo responde 200
+com o que o servidor viu daquele pedido, só em sim/não e contagens
+(`xff_len`, `has_real_ip`, `has_cf_viewer_address`, `has_ip`, `ip_fonte`,
+`ua_cloudfront`, `has_cookie_header`, `has_fbp`, `has_fbc`, `repassaria`,
+`motivo`), e nunca repassa nada. Os mesmos campos saem numa linha de log
+`landing_web_event` por evento válido, no log do servidor que atende a
+produção. Nenhum IP, cookie ou User-Agent aparece em nenhum dos dois.
+
 Um clique = um `event_id` = um push = um envio. Componente nenhum chama o
 envio direto: basta empurrar `store_click` pelo helper da página.

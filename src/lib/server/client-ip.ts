@@ -222,20 +222,41 @@ export function parseCloudFrontRanges(json: unknown): Cidr[] {
 }
 
 const RANGES_TTL_MS = 6 * 60 * 60 * 1000;
-let rangesCache: { at: number; cidrs: Cidr[] } | null = null;
-let rangesLoading: Promise<Cidr[] | null> | null = null;
+type AwsRanges = { cloudfront: Cidr[]; aws: Cidr[] };
+let rangesCache: ({ at: number } & AwsRanges) | null = null;
+let rangesLoading: Promise<AwsRanges | null> | null = null;
 
-async function loadCloudFrontRanges(): Promise<Cidr[] | null> {
-  if (rangesCache && Date.now() - rangesCache.at < RANGES_TTL_MS) return rangesCache.cidrs;
+/** Todas as faixas publicadas da AWS (qualquer serviço), para `ipInCidrs`. */
+export function parseAwsRanges(json: unknown): Cidr[] {
+  const data = json as {
+    prefixes?: { ip_prefix?: string }[];
+    ipv6_prefixes?: { ipv6_prefix?: string }[];
+  };
+  const out: Cidr[] = [];
+  for (const p of data?.prefixes ?? []) {
+    const c = p.ip_prefix ? parseCidr(p.ip_prefix) : null;
+    if (c) out.push(c);
+  }
+  for (const p of data?.ipv6_prefixes ?? []) {
+    const c = p.ipv6_prefix ? parseCidr(p.ipv6_prefix) : null;
+    if (c) out.push(c);
+  }
+  return out;
+}
+
+async function loadRanges(): Promise<AwsRanges | null> {
+  if (rangesCache && Date.now() - rangesCache.at < RANGES_TTL_MS) return rangesCache;
   if (!rangesLoading) {
     rangesLoading = fetch("https://ip-ranges.amazonaws.com/ip-ranges.json", {
       signal: AbortSignal.timeout(5000),
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
-        const cidrs = json ? parseCloudFrontRanges(json) : [];
-        if (cidrs.length) rangesCache = { at: Date.now(), cidrs };
-        return cidrs.length ? cidrs : null;
+        const cloudfront = json ? parseCloudFrontRanges(json) : [];
+        const aws = json ? parseAwsRanges(json) : [];
+        if (!cloudfront.length || !aws.length) return null;
+        rangesCache = { at: Date.now(), cloudfront, aws };
+        return rangesCache;
       })
       .catch(() => null)
       .finally(() => {
@@ -243,6 +264,15 @@ async function loadCloudFrontRanges(): Promise<Cidr[] | null> {
       });
   }
   return rangesLoading;
+}
+
+async function loadCloudFrontRanges(): Promise<Cidr[] | null> {
+  return (await loadRanges())?.cloudfront ?? null;
+}
+
+/** Faixas da AWS (cache de 6 h); `null` se a lista não pôde ser lida. */
+export async function loadAwsRanges(): Promise<Cidr[] | null> {
+  return (await loadRanges())?.aws ?? null;
 }
 
 /**

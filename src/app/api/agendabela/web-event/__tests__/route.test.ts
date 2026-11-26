@@ -3,10 +3,22 @@
  */
 
 import { LANDING_LOJAS } from "@/config/landing-lojas";
+import { loadAwsRanges, parseAwsRanges } from "@/lib/server/client-ip";
 import { webEventRateLimiter } from "@/lib/server/rate-limit";
 import * as route from "../route";
 
+jest.mock("@/lib/server/client-ip", () => ({
+  ...jest.requireActual("@/lib/server/client-ip"),
+  loadAwsRanges: jest.fn(),
+}));
+
 const { POST } = route;
+const IP = "203.0.113.7";
+/** Faixas "da AWS" do teste: 130.176.0.0/16 faz o papel do CloudFront. */
+const FAIXAS_AWS = parseAwsRanges({
+  prefixes: [{ ip_prefix: "130.176.0.0/16" }, { ip_prefix: "3.80.0.0/12" }],
+  ipv6_prefixes: [{ ipv6_prefix: "2600:9000::/28" }],
+});
 const ENV = { ...process.env };
 const EVENT_ID = "3f2b8c1e-9a4d-4e7b-8c21-5d6f7a8b9c0d";
 const UA = "Mozilla/5.0 (teste)";
@@ -22,11 +34,17 @@ const valido = {
   event_source_url: "https://tudoagenda.com.br/agendabela/oferta?utm_source=meta",
 };
 
-function req(body: unknown, headers: Record<string, string> = {}) {
+/** Pedido com User-Agent e IP (X-Real-IP), o mínimo para ser repassado. `semIp` tira o IP. */
+function req(body: unknown, headers: Record<string, string> = {}, semIp = false) {
   return new Request(URL_ROTA, {
     method: "POST",
     // O sendBeacon manda texto puro.
-    headers: { "Content-Type": "text/plain;charset=UTF-8", "user-agent": UA, ...headers },
+    headers: {
+      "Content-Type": "text/plain;charset=UTF-8",
+      "user-agent": UA,
+      ...(semIp ? {} : { "x-real-ip": IP }),
+      ...headers,
+    },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -52,6 +70,7 @@ function setNodeEnv(value: string) {
 beforeEach(() => {
   jest.restoreAllMocks();
   webEventRateLimiter.reset();
+  (loadAwsRanges as jest.Mock).mockReset().mockResolvedValue(FAIXAS_AWS);
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "info").mockImplementation(() => {});
   process.env = { ...ENV, BACKEND_API_URL: "https://api.test/api" };
@@ -119,7 +138,11 @@ describe("POST /api/agendabela/web-event", () => {
     const f = mockFetch();
     const res = await POST(req({ ...valido, fbclid: "IwAR0_abc-123" }));
     expect(res.status).toBe(204);
-    expect(sent(f).body.user).toEqual({ fbc: "fb.1.1790000000000.IwAR0_abc-123", user_agent: UA });
+    expect(sent(f).body.user).toEqual({
+      fbc: "fb.1.1790000000000.IwAR0_abc-123",
+      client_ip: IP,
+      user_agent: UA,
+    });
   });
 
   it("o fbc leva a hora em que o fbclid foi visto na sessão, não a do clique", async () => {
@@ -154,13 +177,13 @@ describe("POST /api/agendabela/web-event", () => {
       req({ ...valido, fbclid: "com espaço<script>" }, { cookie: "_fbp=qualquer-coisa; _fbc=%E0%A4%A" }),
     );
     expect(res.status).toBe(204);
-    expect(sent(f).body.user).toEqual({ user_agent: UA });
+    expect(sent(f).body.user).toEqual({ client_ip: IP, user_agent: UA });
   });
 
   it("cookie com data fora do formato que o backend aceita fica de fora; o clique segue", async () => {
     const f = mockFetch();
     await POST(req(valido, { cookie: "_fbp=fb.1.1.1; _fbc=fb.1.123.abc" }));
-    expect(sent(f).body.user).toEqual({ user_agent: UA });
+    expect(sent(f).body.user).toEqual({ client_ip: IP, user_agent: UA });
   });
 
   it("User-Agent: caractere de controle vira espaço e o tamanho é limitado", async () => {
@@ -191,10 +214,35 @@ describe("POST /api/agendabela/web-event", () => {
     expect(f).toHaveBeenCalledTimes(1);
   });
 
-  it("sem cookies nem IP: user só com o User-Agent", async () => {
-    const f = mockFetch();
-    await POST(req(valido));
-    expect(sent(f).body.user).toEqual({ user_agent: UA });
+  describe("mínimo de user_data que a Meta aceita", () => {
+    const FBP = "_fbp=fb.1.1700000000000.1234567890";
+
+    it("só User-Agent (sem IP, fbp nem fbc): 204 sem repassar", async () => {
+      const f = mockFetch();
+      const res = await POST(req(valido, {}, true));
+      expect(res.status).toBe(204);
+      expect(f).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["IP", { "x-real-ip": IP }, {}, { client_ip: IP }],
+      ["fbp", { cookie: FBP }, {}, { fbp: "fb.1.1700000000000.1234567890" }],
+      ["fbc do cookie", { cookie: "_fbc=fb.1.1700000000001.AbCdEf" }, {}, { fbc: "fb.1.1700000000001.AbCdEf" }],
+      ["fbc montado do fbclid", {}, { fbclid: "IwAR0abc" }, { fbc: expect.stringMatching(/^fb\.1\.\d{13}\.IwAR0abc$/) }],
+    ])("User-Agent + %s: repassa", async (_nome, headers, extra, esperado) => {
+      const f = mockFetch();
+      const res = await POST(req({ ...valido, ...extra }, headers as Record<string, string>, true));
+      expect(res.status).toBe(204);
+      expect(f).toHaveBeenCalledTimes(1);
+      expect(sent(f).body.user).toEqual({ ...esperado, user_agent: UA });
+    });
+
+    it('User-Agent "Amazon CloudFront" (o CloudFront não repassou o da visitante) conta como sem User-Agent', async () => {
+      const f = mockFetch();
+      const res = await POST(req(valido, { "user-agent": "Amazon CloudFront", cookie: FBP }));
+      expect(res.status).toBe(204);
+      expect(f).not.toHaveBeenCalled();
+    });
   });
 
   it.each([["ausente", ""], ["só espaço e controle", " \t "]])(
@@ -207,20 +255,62 @@ describe("POST /api/agendabela/web-event", () => {
     },
   );
 
-  it("atrás do CloudFront, última entrada do X-Forwarded-For diferente do X-Real-IP: sem IP", async () => {
-    const f = mockFetch();
-    await POST(
-      req(valido, {
-        "x-amz-cf-id": "abc",
-        "x-forwarded-for": "203.0.113.7, 130.176.1.1",
-        "x-real-ip": "130.176.9.9",
-      }),
-    );
-    await POST(req(valido, { "x-amz-cf-id": "abc", "x-forwarded-for": "203.0.113.7, 130.176.1.1" }));
-    for (const call of f.mock.calls) {
-      expect(JSON.parse((call[1] as RequestInit).body as string).user.client_ip).toBeUndefined();
-    }
-    expect(f).toHaveBeenCalledTimes(2);
+  describe("IP atrás do CloudFront sem a borda do Railway (produção de hoje)", () => {
+    const cf = (h: Record<string, string>) => ({ "x-amz-cf-id": "abc", cookie: "_fbp=fb.1.1700000000000.1", ...h });
+    const ipEnviado = async (h: Record<string, string>) => {
+      const f = mockFetch();
+      f.mockClear();
+      await POST(req(valido, cf(h), true));
+      expect(f).toHaveBeenCalledTimes(1);
+      return sent(f).body.user.client_ip as string | undefined;
+    };
+
+    it("CloudFront-Viewer-Address vence (IPv4 e IPv6, sem a porta)", async () => {
+      expect(await ipEnviado({ "cloudfront-viewer-address": "198.51.100.10:46532", "x-forwarded-for": "6.6.6.6" })).toBe(
+        "198.51.100.10",
+      );
+      expect(await ipEnviado({ "cloudfront-viewer-address": "2804:14c:1::abcd:46532" })).toBe("2804:14c:1::abcd");
+    });
+
+    it("CloudFront-Viewer-Address privado ou quebrado é ignorado", async () => {
+      expect(await ipEnviado({ "cloudfront-viewer-address": "10.0.0.5:1234" })).toBeUndefined();
+      expect(await ipEnviado({ "cloudfront-viewer-address": "lixo" })).toBeUndefined();
+    });
+
+    it("X-Forwarded-For sem X-Real-IP: a última entrada é a visitante (o CloudFront acrescenta ao fim)", async () => {
+      expect(await ipEnviado({ "x-forwarded-for": "198.51.100.10" })).toBe("198.51.100.10");
+      // A da esquerda veio do navegador (forjável) e nunca é lida.
+      expect(await ipEnviado({ "x-forwarded-for": "6.6.6.6, 198.51.100.10" })).toBe("198.51.100.10");
+    });
+
+    it("saltos de infraestrutura à direita (nó do CloudFront, IP da AWS, IP privado) são pulados", async () => {
+      expect(await ipEnviado({ "x-forwarded-for": "198.51.100.10, 130.176.1.1" })).toBe("198.51.100.10");
+      expect(await ipEnviado({ "x-forwarded-for": "6.6.6.6, 198.51.100.10, 130.176.1.1, 10.0.3.4" })).toBe(
+        "198.51.100.10",
+      );
+      expect(await ipEnviado({ "x-forwarded-for": "198.51.100.10, 2600:9000::1" })).toBe("198.51.100.10");
+    });
+
+    it("só infraestrutura no X-Forwarded-For: sem IP (nunca o IP de um proxy)", async () => {
+      expect(await ipEnviado({ "x-forwarded-for": "130.176.1.1" })).toBeUndefined();
+      expect(await ipEnviado({ "x-forwarded-for": "3.85.1.1, 10.0.0.1" })).toBeUndefined();
+    });
+
+    it("entrada que não é IP antes de achar a visitante: sem IP", async () => {
+      expect(await ipEnviado({ "x-forwarded-for": "198.51.100.10, lixo, 130.176.1.1" })).toBeUndefined();
+    });
+
+    it("sem a lista de faixas da AWS, o X-Forwarded-For não é usado", async () => {
+      (loadAwsRanges as jest.Mock).mockResolvedValue(null);
+      expect(await ipEnviado({ "x-forwarded-for": "198.51.100.10" })).toBeUndefined();
+    });
+
+    it("cadeia do Railway (última = X-Real-IP): penúltima, mesmo sem a lista de faixas", async () => {
+      (loadAwsRanges as jest.Mock).mockResolvedValue(null);
+      expect(
+        await ipEnviado({ "x-forwarded-for": "6.6.6.6, 198.51.100.10, 130.176.1.1", "x-real-ip": "130.176.1.1" }),
+      ).toBe("198.51.100.10");
+    });
   });
 
   it.each([
@@ -237,16 +327,12 @@ describe("POST /api/agendabela/web-event", () => {
     "::ffff:10.0.0.1",
   ])("IP privado ou reservado (%s) nunca vai como client_ip", async (ip) => {
     const f = mockFetch();
-    // Direto (sem CloudFront) e atrás do CloudFront.
-    await POST(req(valido, { "x-real-ip": ip }));
-    await POST(
-      req(valido, {
-        "x-amz-cf-id": "abc",
-        "x-forwarded-for": `${ip}, 130.176.1.1`,
-        "x-real-ip": "130.176.1.1",
-      }),
-    );
-    expect(f).toHaveBeenCalledTimes(2);
+    const cookie = "_fbp=fb.1.1700000000000.1";
+    // Direto, no CloudFront-Viewer-Address e no X-Forwarded-For.
+    await POST(req(valido, { "x-real-ip": ip, cookie }));
+    await POST(req(valido, { "x-amz-cf-id": "abc", "cloudfront-viewer-address": `${ip}:443`, cookie }, true));
+    await POST(req(valido, { "x-amz-cf-id": "abc", "x-forwarded-for": ip, cookie }, true));
+    expect(f).toHaveBeenCalledTimes(3);
     for (const call of f.mock.calls) {
       expect(JSON.parse((call[1] as RequestInit).body as string).user.client_ip).toBeUndefined();
     }
@@ -314,14 +400,6 @@ describe("POST /api/agendabela/web-event", () => {
     expect(body.user.client_ip).toBe("203.0.113.7");
     expect(headers["X-Landing-Key"]).toBeUndefined();
     expect(headers["X-Client-IP"]).toBeUndefined();
-  });
-
-  it("atrás do CloudFront com X-Forwarded-For estranho: sem IP", async () => {
-    const f = mockFetch();
-    await POST(req(valido, { "x-amz-cf-id": "abc", "x-forwarded-for": "não-é-ip, 130.176.1.1" }));
-    expect(sent(f).body.user.client_ip).toBeUndefined();
-    await POST(req(valido, { "x-amz-cf-id": "abc", "x-forwarded-for": "130.176.1.1" }));
-    expect(JSON.parse((f.mock.calls[1][1] as RequestInit).body as string).user.client_ip).toBeUndefined();
   });
 
   it("o IP nunca é logado", async () => {
@@ -435,6 +513,102 @@ describe("POST /api/agendabela/web-event", () => {
     });
   });
 
+  describe("diagnóstico (só sim/não e contagens)", () => {
+    const CAMPOS = [
+      "xff_len",
+      "xff_publicos",
+      "has_real_ip",
+      "last_eq_real_ip",
+      "has_cf_viewer_address",
+      "via_cloudfront",
+      "has_ip",
+      "ip_fonte",
+      "has_ua",
+      "ua_cloudfront",
+      "has_cookie_header",
+      "has_fbp",
+      "has_fbc",
+    ];
+    const SEGREDOS = ["198.51.100.10", "6.6.6.6", "130.176.1.1", "fb.1.1700000000000.555", "Mozilla", UA];
+    const pedido = (extra: Record<string, unknown> = {}) =>
+      req(
+        { ...valido, ...extra },
+        {
+          "x-amz-cf-id": "abc",
+          "x-forwarded-for": "6.6.6.6, 198.51.100.10, 130.176.1.1",
+          cookie: "_fbp=fb.1.1700000000000.555",
+        },
+        true,
+      );
+
+    it("diag: true devolve o que o servidor viu e NÃO repassa nem gasta o limite", async () => {
+      const f = mockFetch();
+      const res = await POST(pedido({ diag: true }));
+      expect(res.status).toBe(200);
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      const texto = await res.text();
+      expect(JSON.parse(texto)).toEqual({
+        xff_len: 3,
+        xff_publicos: 3,
+        has_real_ip: false,
+        last_eq_real_ip: false,
+        has_cf_viewer_address: false,
+        via_cloudfront: true,
+        has_ip: true,
+        ip_fonte: "xff_rightmost",
+        has_ua: true,
+        ua_cloudfront: false,
+        has_cookie_header: true,
+        has_fbp: true,
+        has_fbc: false,
+        repassaria: true,
+        motivo: null,
+      });
+      for (const s of SEGREDOS) expect(texto).not.toContain(s);
+      expect(f).not.toHaveBeenCalled();
+      expect(webEventRateLimiter.size()).toBe(0);
+    });
+
+    it("diag: true sem o mínimo diz o motivo", async () => {
+      const res = await POST(req({ ...valido, diag: true }, {}, true));
+      expect(await res.json()).toEqual(
+        expect.objectContaining({ has_ip: false, ip_fonte: "none", repassaria: false, motivo: "sem_user_data" }),
+      );
+    });
+
+    it("diag que não é true é ignorado (evento normal)", async () => {
+      const f = mockFetch();
+      expect((await POST(pedido({ diag: "true" }))).status).toBe(204);
+      expect(f).toHaveBeenCalledTimes(1);
+    });
+
+    it("uma linha de log por evento válido, repassado ou não, sem IP, cookie nem User-Agent", async () => {
+      const info = jest.spyOn(console, "info").mockImplementation(() => {});
+      mockFetch();
+      await POST(pedido());
+      await POST(req(valido, {}, true));
+      const linhas = info.mock.calls
+        .map((c) => String(c[0]))
+        .filter((l) => l.includes('"landing_web_event"'));
+      expect(linhas).toHaveLength(2);
+      const [ok, descartado] = linhas.map((l) => JSON.parse(l));
+      expect(Object.keys(ok).sort()).toEqual(["msg", ...CAMPOS, "repassado", "motivo"].sort());
+      expect(ok).toEqual(expect.objectContaining({ repassado: true, motivo: null, ip_fonte: "xff_rightmost" }));
+      expect(descartado).toEqual(expect.objectContaining({ repassado: false, motivo: "sem_user_data" }));
+      for (const s of SEGREDOS) expect(linhas.join(" ")).not.toContain(s);
+    });
+
+    it("o log diz quando o limite por IP segurou o evento", async () => {
+      const info = jest.spyOn(console, "info").mockImplementation(() => {});
+      mockFetch();
+      for (let i = 0; i < 21; i += 1) await POST(req(valido));
+      const ultimo = JSON.parse(
+        info.mock.calls.map((c) => String(c[0])).filter((l) => l.includes('"landing_web_event"')).pop()!,
+      );
+      expect(ultimo).toEqual(expect.objectContaining({ repassado: false, motivo: "limite_por_ip" }));
+    });
+  });
+
   describe("ambiente", () => {
     const local = { ...valido, event_source_url: "http://localhost:3000/agendabela/oferta" };
 
@@ -472,7 +646,10 @@ describe("POST /api/agendabela/web-event", () => {
       delete process.env.BACKEND_API_URL;
       const f = mockFetch();
       expect((await POST(req(valido, { origin: "https://www.tudoagenda.com.br" }))).status).toBe(204);
-      expect(sent(f).url).toBe("https://api.agendabela.tudoagenda.com.br/api/tracking/web-events");
+      // Em produção o diagnóstico de IP também usa o fetch (faixas do CloudFront).
+      expect(f.mock.calls.map((c) => String(c[0]))).toContain(
+        "https://api.agendabela.tudoagenda.com.br/api/tracking/web-events",
+      );
     });
   });
 });

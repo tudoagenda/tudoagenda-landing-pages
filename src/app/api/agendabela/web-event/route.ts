@@ -1,4 +1,5 @@
-import { cloudFrontViewerIp, isPublicIp, resolveClientIp } from "@/lib/server/client-ip";
+import { isPublicIp } from "@/lib/server/client-ip";
+import { resolveVisitorIp, splitForwardedFor } from "@/lib/server/visitor-ip";
 import { webEventRateLimiter } from "@/lib/server/rate-limit";
 import { buildLandingHeaders, getBackendApiUrl } from "@/lib/server/landing-backend";
 import { SOURCE_URL_PARAMS } from "@/lib/analytics/storeClickBeacon";
@@ -15,8 +16,13 @@ import { LANDING_LOJAS } from "@/config/landing-lojas";
  * Respostas:
  *  - 204 sempre que o corpo é válido, mesmo com o backend fora, lento ou
  *    respondendo erro (nada do backend vaza para o navegador).
- *  - 204 sem repasse: sem User-Agent, ou acima de 20 cliques/min do mesmo IP
- *    (rate-limit.ts), ou página em localhost contra o backend de produção.
+ *  - 204 sem repasse: sem User-Agent; só com User-Agent (sem IP, `fbp` nem
+ *    `fbc`: a Meta recusaria); acima de 20 cliques/min do mesmo IP
+ *    (rate-limit.ts); ou página em localhost contra o backend de produção.
+ *  - 200 com JSON no modo de diagnóstico (`diag: true` no corpo): o que o
+ *    servidor viu do pedido, em sim/não e contagens, sem repassar.
+ *  - Uma linha de log `landing_web_event` por evento válido, com os mesmos
+ *    campos e se foi repassado.
  *  - 400 corpo inválido · 403 pedido de outra origem · 413 corpo grande.
  *  - Outros métodos: 405 (o Next responde; só POST é exportado).
  *
@@ -71,6 +77,8 @@ type ValidEvent = {
   /** Quando o fbclid foi visto na sessão (epoch ms); null se não veio ou não é plausível. */
   fbclidSeenAt: number | null;
   local: boolean;
+  /** Pedido de diagnóstico (`diag: true`): responde o que o servidor viu e não repassa. */
+  diag: boolean;
 };
 
 /** O fbclid da sessão não é mais velho que isso (a sessão é de uma aba). */
@@ -147,6 +155,7 @@ function validate(body: unknown): ValidEvent | null {
     fbclid,
     fbclidSeenAt: fbclid ? plausibleSeenAt(b.fbclid_seen_at, Date.now()) : null,
     local: source.local,
+    diag: b.diag === true,
   };
 }
 
@@ -167,22 +176,36 @@ function readCookie(req: Request, name: string): string | null {
   return null;
 }
 
+/** O CloudFront põe este User-Agent quando não repassa o da visitante. */
+const CLOUDFRONT_UA = /^Amazon CloudFront$/i;
+
 /**
- * IP da visitante para a Meta casar o clique com a pessoa (e para o limite
- * por IP desta rota). Nunca um IP de proxy nem privado: sem IP confiável, o
- * evento vai sem `client_ip`.
- *
- * Primeiro o mesmo `resolveClientIp` das outras rotas. Em produção ele devolve
- * "sem IP" de propósito enquanto o segredo de origem do CloudFront não está
- * configurado (lá o IP decide limite no backend e não pode ser forjado). Aqui
- * o IP é só um sinal de correspondência, então, com sinal de CloudFront, vale
- * a mesma leitura mesmo sem o segredo (`cloudFrontViewerIp`: penúltima entrada
- * do X-Forwarded-For, só se a última for o X-Real-IP).
+ * O que chegou ao servidor, só em sim/não e contagens: nenhum IP, cookie ou
+ * User-Agent. Sai numa linha de log por evento válido e na resposta do modo
+ * de diagnóstico.
  */
-function visitorIp(headers: Headers): string | null {
-  const resolved = resolveClientIp(headers);
-  const ip = resolved.ip ?? (resolved.viaCloudFront ? cloudFrontViewerIp(headers) : null);
-  return ip && isPublicIp(ip) ? ip : null;
+function diagnostics(
+  req: Request,
+  seen: { ipSource: string; hasIp: boolean; hasFbp: boolean; hasFbc: boolean; hasUa: boolean },
+) {
+  const h = req.headers;
+  const xff = splitForwardedFor(h);
+  const realIp = h.get("x-real-ip")?.trim() || null;
+  return {
+    xff_len: xff.length,
+    xff_publicos: xff.filter((e) => isPublicIp(e)).length,
+    has_real_ip: realIp !== null,
+    last_eq_real_ip: realIp !== null && xff.length > 0 && xff[xff.length - 1] === realIp,
+    has_cf_viewer_address: h.has("cloudfront-viewer-address"),
+    via_cloudfront: h.has("x-amz-cf-id") || /cloudfront/i.test(h.get("via") ?? ""),
+    has_ip: seen.hasIp,
+    ip_fonte: seen.ipSource,
+    has_ua: seen.hasUa,
+    ua_cloudfront: CLOUDFRONT_UA.test(h.get("user-agent")?.trim() ?? ""),
+    has_cookie_header: h.has("cookie"),
+    has_fbp: seen.hasFbp,
+    has_fbc: seen.hasFbc,
+  };
 }
 
 /**
@@ -260,19 +283,16 @@ export async function POST(req: Request) {
   const event = validate(parsed);
   if (!event) return refuse(400);
 
-  if (localAgainstProduction(event)) return noContent();
-
   // Sem caractere de controle (o backend recusa) e no tamanho que ele aceita.
-  const userAgent = (req.headers.get("user-agent") ?? "")
+  // "Amazon CloudFront" é o CloudFront falando por ela: não é User-Agent.
+  const rawUa = (req.headers.get("user-agent") ?? "")
     .replace(/[\u0000-\u001f\u007f]+/g, " ")
     .trim()
     .slice(0, 512);
-  // Sem User-Agent a Meta tende a recusar o evento: não vale o repasse.
-  if (!userAgent) return noContent();
+  const userAgent = CLOUDFRONT_UA.test(rawUa) ? "" : rawUa;
 
-  const clientIp = visitorIp(req.headers);
-  // Uma pessoa em laço não gasta sozinha o limite do backend (60/min de todas).
-  if (!webEventRateLimiter.allow(clientIp ?? "sem-ip")) return noContent();
+  const visitor = await resolveVisitorIp(req.headers);
+  const clientIp = visitor.ip;
 
   const cookieFbp = readCookie(req, "_fbp");
   const cookieFbc = readCookie(req, "_fbc");
@@ -284,6 +304,45 @@ export async function POST(req: Request) {
       : event.fbclid
         ? `fb.1.${event.fbclidSeenAt ?? Date.now()}.${event.fbclid}`
         : null;
+
+  const diag = diagnostics(req, {
+    ipSource: visitor.source,
+    hasIp: clientIp !== null,
+    hasFbp: fbp !== null,
+    hasFbc: fbc !== null,
+    hasUa: userAgent !== "",
+  });
+
+  /*
+   * Mínimo que a Meta aceita num evento de site: `client_user_agent` é
+   * obrigatório, e só ele não basta (erro 2804050, "dados de parâmetros do
+   * cliente insuficientes", medido em produção em 26/11/2026). Precisa de
+   * mais um sinal: IP, `fbp` ou `fbc`. Sem isso o evento não é repassado.
+   */
+  const motivo = !userAgent
+    ? "sem_user_agent"
+    : !clientIp && !fbp && !fbc
+      ? "sem_user_data"
+      : null;
+
+  // Modo de diagnóstico: devolve o que o servidor viu deste pedido e nunca
+  // repassa (nada vai à Meta). Só sim/não e contagens.
+  if (event.diag) {
+    return Response.json(
+      { ...diag, repassaria: motivo === null, motivo },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  if (localAgainstProduction(event)) return noContent();
+
+  // Uma pessoa em laço não gasta sozinha o limite do backend (60/min de todas).
+  const limitado = motivo === null && !webEventRateLimiter.allow(clientIp ?? "sem-ip");
+  const descartado = motivo ?? (limitado ? "limite_por_ip" : null);
+  console.info(
+    JSON.stringify({ msg: "landing_web_event", ...diag, repassado: descartado === null, motivo: descartado }),
+  );
+  if (descartado) return noContent();
 
   const payload = {
     event_name: "StoreClick",
