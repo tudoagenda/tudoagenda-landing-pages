@@ -7,8 +7,8 @@
  *   cta_click);
  * - fim do tema Black Friday pela validade gravada em #lp;
  * - Oferta Agenda Bela (data-oferta em #lp, protótipo lp4-oferta): legendas
- *   em "você", CTA fixo que some com qualquer CTA da página à vista e a
- *   animação do bloco de preço;
+ *   em "você", CTA fixo que some com qualquer CTA da página à vista, a
+ *   animação do bloco de preço e o cupom copiável (o código é um botão);
  * - devolve um cleanup (a página pode sair por navegação client-side).
  *
  * Sem JavaScript, ou com movimento reduzido, a página já está completa: todo
@@ -66,6 +66,7 @@ export function initLandingLojas(opts) {
      só ela é desfeita. Os links das lojas e os eventos seguem funcionando. */
   const undoMedicao = [];
   const undoAnimacao = [];
+  const undoCupom = [];
   const desfazer = function (lista) {
     lista.splice(0).forEach(function (fn) {
       fn();
@@ -87,10 +88,18 @@ export function initLandingLojas(opts) {
     desfazer(undoAnimacao);
     lp.classList.remove("bf-live");
   }
+  /* Cupom copiável da oferta: lista própria, para não cair junto com a
+     animação nem derrubar a medição dos links. */
+  try {
+    ligarCupom(opts, lp, undoCupom);
+  } catch {
+    desfazer(undoCupom);
+  }
   /* Com ou sem animação, sai o estado provisório do CSS. */
   lp.removeAttribute("data-pre");
 
   return function cleanup() {
+    desfazer(undoCupom);
     desfazer(undoAnimacao);
     desfazer(undoMedicao);
     lp.classList.remove("bf-live");
@@ -173,6 +182,129 @@ function medir(opts, lp, undo) {
     in_app_browser: inApp,
   });
   return os;
+}
+
+/** Quanto tempo o aviso "Cupom copiado!" fica antes de voltar ao "toque para copiar". */
+const CUPOM_AVISO_MS = 2500;
+
+/** Cópia sem a Clipboard API (http sem ser localhost, navegador interno antigo). */
+function copiarComCampoTemporario(texto) {
+  /* O campo leva o foco ao ser selecionado: no fim ele volta para onde
+     estava (o botão do cupom, para quem usa teclado ou leitor de tela). */
+  const focoAntes = document.activeElement;
+  const campo = document.createElement("textarea");
+  campo.value = texto;
+  campo.setAttribute("readonly", "");
+  campo.setAttribute("aria-hidden", "true");
+  campo.style.cssText =
+    "position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;font-size:16px";
+  document.body.appendChild(campo);
+  let copiou = false;
+  try {
+    campo.select();
+    campo.setSelectionRange(0, texto.length);
+    copiou = document.execCommand("copy");
+  } catch {
+    copiou = false;
+  }
+  campo.remove();
+  if (focoAntes && focoAntes !== document.body && focoAntes.focus) {
+    focoAntes.focus({ preventScroll: true });
+  }
+  return copiou;
+}
+
+/** Copia o texto. Resolve true se foi para a área de transferência. */
+function copiarTexto(texto) {
+  const comCampo = function () {
+    return copiarComCampoTemporario(texto);
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(texto).then(function () {
+        return true;
+      }, comCampo);
+    }
+  } catch {
+    /* Clipboard API bloqueada: tenta o campo temporário. */
+  }
+  return Promise.resolve(comCampo());
+}
+
+/**
+ * Cupom copiável da Oferta Agenda Bela ([data-cupom] em markup.ts): o código
+ * é um botão. Toque ou clique copia e o aviso ao lado troca para "Cupom
+ * copiado!" por um instante. Se nada copiar, o código fica selecionado e o
+ * aviso pede para segurar. Os textos vêm do HTML (data-copiado, data-segure).
+ * Cada toque sai como cta_click (cupom_copiar_hero ou cupom_copiar_preco).
+ */
+function ligarCupom(opts, lp, undo) {
+  Array.prototype.slice.call(lp.querySelectorAll("[data-cupom]")).forEach(function (caixa) {
+    const botao = caixa.querySelector(".cupom-btn");
+    const codigo = botao && botao.querySelector(".cupom-cod");
+    const aviso = botao && botao.querySelector(".cupom-aviso");
+    const status = caixa.querySelector(".cupom-status");
+    if (!botao || !codigo || !aviso || !status) return;
+    const avisoInicial = aviso.textContent;
+    let timer = 0;
+    let timerStatus = 0;
+    let vivo = true;
+    const voltar = function () {
+      clearTimeout(timer);
+      clearTimeout(timerStatus);
+      aviso.textContent = avisoInicial;
+      status.textContent = "";
+      caixa.classList.remove("is-copiado", "is-segure");
+    };
+    const mostrar = function (texto, classe) {
+      voltar();
+      aviso.textContent = texto;
+      /* A região viva é preenchida um instante depois de esvaziada: num
+         segundo toque seguido, o leitor de tela anuncia de novo. */
+      timerStatus = setTimeout(function () {
+        status.textContent = texto;
+      }, 50);
+      caixa.classList.add(classe);
+      timer = setTimeout(voltar, CUPOM_AVISO_MS);
+    };
+    listen(undo, botao, "click", function () {
+      /* A cópia começa dentro do clique (o navegador exige o gesto) e não
+         depende da medição: se o evento falhar, o cupom é copiado assim mesmo. */
+      const copia = copiarTexto(codigo.textContent);
+      try {
+        opts.track({
+          event: "cta_click",
+          cta_location: "cupom_copiar_" + caixa.getAttribute("data-cupom"),
+        });
+      } catch {
+        /* Sem medição o cupom continua copiável. */
+      }
+      copia.then(function (copiou) {
+        if (!vivo) return;
+        if (copiou) {
+          mostrar(caixa.getAttribute("data-copiado"), "is-copiado");
+          return;
+        }
+        /* Nada copiou: deixa o código selecionado para ela copiar à mão. */
+        const selecao = window.getSelection && window.getSelection();
+        if (selecao) {
+          const faixa = document.createRange();
+          faixa.selectNodeContents(codigo);
+          selecao.removeAllRanges();
+          selecao.addRange(faixa);
+        }
+        mostrar(caixa.getAttribute("data-segure"), "is-segure");
+      });
+    });
+    /* Só agora o CSS troca o código em texto pelo botão com o aviso de
+       copiar: sem este runtime a página não promete o que não funciona. */
+    caixa.setAttribute("data-cupom-on", "");
+    undo.push(function () {
+      vivo = false;
+      voltar();
+      caixa.removeAttribute("data-cupom-on");
+    });
+  });
 }
 
 /** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */

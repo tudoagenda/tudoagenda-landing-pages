@@ -205,13 +205,18 @@ export type LojasEvent =
       in_app_browser: InAppBrowser;
     }
   | {
-      /** Link interno: simulador (?ref=...) ou os dois links do rodapé. */
+      /**
+       * Link interno: simulador (?ref=...) ou os dois links do rodapé. Na
+       * oferta, também o toque no cupom copiável (topo e bloco de preço).
+       */
       event: "cta_click";
       cta_location:
         | "simulador_hero"
         | "simulador_avaliacoes"
         | "rodape_conheca_agenda_bela"
-        | "rodape_tudo_agenda";
+        | "rodape_tudo_agenda"
+        | "cupom_copiar_hero"
+        | "cupom_copiar_preco";
     };
 
 /** Lugar do selo de loja na página (data-loc no HTML de markup.ts). */

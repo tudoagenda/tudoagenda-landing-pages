@@ -22,7 +22,8 @@ sem JavaScript → dois selos).
   importado pela rota da oferta e só vale com `data-oferta` em `#lp`.
 - `lojas.css`: CSS do protótipo, escopado em `#lp`, mais as regras de produção
   no fim (CTA por aparelho, fim do tema).
-- `runtime.js`: animações, links das lojas e medição. Devolve um cleanup.
+- `runtime.js`: animações, links das lojas, medição e o cupom copiável da
+  oferta. Devolve um cleanup.
 - `landing-lojas.tsx`: componente de servidor e metadata comum.
 - `assets/`: logo e os QR codes (um por rota, com `?ref=qr_desktop`). Gerados
   com `segno` (correção M, `scale=8`, `border=2`); `__tests__/qr.test.ts` lê
@@ -32,14 +33,40 @@ sem JavaScript → dois selos).
 
 Todo evento sai por `pushAgendaBelaLojasEvent(slug, …)` com
 `landing_type: "campaign"` e o `landing_slug` da rota. Eventos: `lp_view`,
-`store_click` e `cta_click`. A medição é ligada antes da animação e não cai com ela. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
+`store_click` e `cta_click` (na oferta, também o toque no cupom:
+`cta_location` `cupom_copiar_hero` e `cupom_copiar_preco`). A medição é ligada antes da animação e não cai com ela. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
 `__tests__/rotas.test.tsx` falha se um evento sair com o slug de outra página.
 
 ## Oferta Agenda Bela
 
-O desconto é configurado nas lojas; a página só anuncia. Todo CTA leva à loja
-do aparelho, como na landing padrão: não há modal de cadastro nem cobrança
-pela web.
+O desconto vale com o cupom (decisão de 26/11/2026): não é automático. A
+assinante digita o código em "Tenho um cupom", na tela de assinatura do app
+(no Android abre um campo do app; no iPhone, a tela de resgate da Apple). O
+cupom é configurado nas lojas e no RevenueCat; a página só anuncia. Todo CTA
+leva à loja do aparelho, como na landing padrão: não há modal de cadastro nem
+cobrança pela web.
+
+- **Cupom em um lugar só**: `OFERTA_AGENDA_BELA.cupom` em
+  `src/config/landing-lojas.ts`. Faixa, topo, bloco de preço, perguntas, barra
+  fixa e o texto pré-preenchido do WhatsApp saem dele; `oferta.test.tsx` falha
+  se o código aparecer escrito em `markup.ts`, `faq-oferta.ts`, `runtime.js`
+  ou no CSS. O texto é o da nota 16 da campanha
+  (`projetos-compartilhados/lps-campanha-nov-2026/notas/16-bolt-cupom-bela50.md`
+  no Companion OS).
+- **Cupom copiável** (`cupomCopiavel` em `markup.ts`, `ligarCupom` em
+  `runtime.js`, bloco 5 de `oferta.css`): o próprio código é um
+  `<button type="button">`, no topo (logo abaixo do cartão de preço, que é um
+  link e por isso não pode conter o botão) e no bloco de preço. O toque copia
+  (`navigator.clipboard`; se falhar, `execCommand("copy")` num campo
+  temporário; se nada copiar, o código fica selecionado e o aviso vira
+  "Segure para copiar"), o aviso troca para "Cupom copiado!" por 2,5 s e a
+  região `aria-live` repete. Sem JavaScript, ou enquanto o runtime não ligou a
+  cópia (`data-cupom-on`), o CSS mostra o código em texto, selecionável, sem o
+  aviso de copiar.
+- **Antes de ligar tráfego**: a versão do app com "Tenho um cupom" (1.11.0)
+  publicada nas duas lojas e o cupom configurado em App Store Connect, Play
+  Console e RevenueCat. Antes disso a página manda digitar um código que não
+  tem onde ser digitado.
 
 - **Valores em um lugar só**: `OFERTA_AGENDA_BELA` em
   `src/config/landing-lojas.ts` (preço cheio, preço promocional, meses e
@@ -63,7 +90,8 @@ pela web.
   config, com fonte e data. Nota e número de avaliações das lojas não entram.
 - **Primeira tela**: o texto e a ordem do topo seguem os ajustes de
   24/11/2026 (nota 14 da campanha), por cima do protótipo; o botão da loja
-  tem que caber na primeira tela em 320×568 e 375×667. As outras landings de
+  tem que caber na primeira tela em 320×568 e 375×667 (com o cupom, a base do
+  botão fica em y=537 em 375×667 e y=556 em 320×568). As outras landings de
   loja não mudam: `oferta.test.tsx` compara o HTML inteiro delas com o de
   antes.
 

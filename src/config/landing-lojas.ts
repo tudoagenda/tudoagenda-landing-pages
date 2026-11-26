@@ -17,8 +17,10 @@ export const BLACK_FRIDAY_THEME_ENDS_AT = "2026-12-01T00:00:00-03:00";
 
 /**
  * Oferta Agenda Bela (/agendabela/oferta): desconto nos primeiros meses para
- * quem assina pela primeira vez, pelo app. O desconto é configurado nas lojas
- * (App Store e Google Play); a página só anuncia.
+ * quem assina pela primeira vez, pelo app, com o cupom (`cupom`). O desconto
+ * não é automático: a assinante digita o cupom em "Tenho um cupom", na tela
+ * de assinatura do app (decisão de 26/11/2026). O cupom é configurado nas
+ * lojas (App Store e Google Play) e no RevenueCat; a página só anuncia.
  *
  * ÚNICO lugar dos valores. Todo preço, prazo e economia da página saem daqui
  * (markup.ts, faq-oferta.ts e a metadata da rota); nenhum é escrito à mão.
@@ -38,6 +40,8 @@ export const OFERTA_AGENDA_BELA = {
   meses: 3,
   /** Percentual anunciado ("50% nos 3 primeiros meses"). */
   percentual: 50,
+  /** Código do cupom, como a assinante digita no app. Único lugar em que ele é escrito. */
+  cupom: "BELA50",
 } as const satisfies OfertaConfig;
 
 /**
@@ -55,13 +59,6 @@ export const OFERTA_PROVA_DE_USO = {
 /** 2147 vira "Mais de 2 mil avisos" (arredonda para baixo: nunca promete mais do que foi medido). */
 export function avisosEnviadosEmTexto(avisos: number): string {
   return `Mais de ${Math.floor(avisos / 1000)} mil avisos`;
-}
-
-/** Como a página chama o desconto por extenso: 50% é "metade do preço". */
-export function descontoPorExtenso(oferta: OfertaConfig): string {
-  return oferta.percentual === 50
-    ? "metade do preço"
-    : `${oferta.percentual}% de desconto`;
 }
 
 /**
@@ -92,6 +89,7 @@ export type OfertaConfig = {
   precoPromoCentavos: number;
   meses: number;
   percentual: number;
+  cupom: string;
 };
 
 /** Quanto a assinante deixa de pagar se ficar todos os meses da oferta. */

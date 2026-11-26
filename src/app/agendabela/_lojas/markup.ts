@@ -163,7 +163,7 @@ function seloRodape(): string {
 /** CTA fixo do celular: o runtime mostra quando o CTA do hero sai da tela. */
 function blocoFixo(p: LojasMarkupParams): string {
   const apoio = p.oferta
-    ? `7 dias grátis · depois ${p.oferta.percentual}% off`
+    ? `7 dias grátis · ${p.oferta.cupom} dá ${p.oferta.percentual}% off`
     : "7 dias grátis · depois R$&nbsp;59,90/mês";
   return `<div class="sticky" id="cta-fixo" data-loc="sticky_mobile" hidden>
   <div class="sticky-slot">
@@ -202,20 +202,48 @@ const reaisFalado = (centavos: number) => `R$ ${formatarCentavos(centavos)}`;
 
 /** Faixa do topo: leva ao bloco de preço. */
 function faixaOferta(o: OfertaConfig): string {
-  return `<a class="ribbon" id="faixa" href="#preco" aria-label="Oferta Agenda Bela: ${o.percentual}% de desconto nos ${o.meses} primeiros meses. Ver a oferta."><i aria-hidden="true"></i><span>Oferta Agenda Bela · ${o.percentual}% de desconto</span></a>`;
+  return `<a class="ribbon" id="faixa" href="#preco" aria-label="Oferta Agenda Bela: use o cupom ${o.cupom} e tenha ${o.percentual}% de desconto nos ${o.meses} primeiros meses. Ver a oferta."><i aria-hidden="true"></i><span>Cupom ${o.cupom} · ${o.percentual}% de desconto</span></a>`;
 }
 
 /**
  * Cartão escuro do hero, enxuto: de/por e o prazo em uma faixa só, para o
  * botão da loja caber na primeira tela do celular pequeno. O que vem depois
- * dos meses da oferta fica na linha de condição, abaixo do botão.
+ * dos meses da oferta fica na linha de condição, abaixo do botão. O cartão
+ * inteiro é um link: o cupom copiável fica fora dele, logo abaixo (botão
+ * dentro de link não é HTML válido).
  */
 function cartaoOferta(o: OfertaConfig): string {
   const cheio = reaisFalado(o.precoCheioCentavos);
-  return `<a class="ofr" href="#preco" aria-label="Oferta Agenda Bela: em vez de ${cheio} por mês, ${reaisFalado(o.precoPromoCentavos)} por mês nos ${o.meses} primeiros meses. Depois, volta a ${cheio} por mês. Ver os detalhes.">
+  return `<a class="ofr" href="#preco" aria-label="Oferta Agenda Bela: com o cupom ${o.cupom}, em vez de ${cheio} por mês, ${reaisFalado(o.precoPromoCentavos)} por mês nos ${o.meses} primeiros meses. Depois, volta a ${cheio} por mês. Ver os detalhes.">
         <span class="ofr-top" aria-hidden="true"><span class="ofr-old"><small>em vez de</small><b>${reais(o.precoCheioCentavos)}</b></span><span class="ofr-stk">&minus;${o.percentual}%</span></span>
         <span class="ofr-row" aria-hidden="true"><span class="ofr-new"><i>R$</i>&nbsp;${formatarCentavos(o.precoPromoCentavos)}</span><span class="ofr-cap">por mês nos ${o.meses} primeiros meses</span></span>
       </a>`;
+}
+
+const ICONE_COPIAR = `<svg class="cupom-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 017.5 4H15"/></svg>`;
+
+/**
+ * Cupom copiável: o próprio código é o botão (toque ou clique copia; o
+ * runtime liga a cópia, o aviso e a medição pelo data-cupom, que vira o
+ * cta_location cupom_copiar_<lugar>). Enquanto o runtime não liga a cópia
+ * (data-cupom-on), e sempre sem JavaScript, o CSS mostra a versão em texto,
+ * selecionável, sem o aviso de "toque para copiar": a página não promete o
+ * que não funciona.
+ */
+function cupomCopiavel(o: OfertaConfig, lugar: "hero" | "preco"): string {
+  const codigo = `<b class="cupom-cod">${o.cupom}</b>`;
+  const hero = lugar === "hero";
+  const antes = hero ? `<span class="cupom-pre">Cupom </span>` : "";
+  const aviso = hero
+    ? `<span class="cupom-sep" aria-hidden="true">·</span>${ICONE_COPIAR}<span class="cupom-aviso">toque para copiar</span>`
+    : `${ICONE_COPIAR}<span class="cupom-aviso">Toque para copiar</span>`;
+  return `<div class="cupom cupom-${lugar}" data-cupom="${lugar}" data-copiado="Cupom copiado!" data-segure="Segure para copiar">${
+    hero ? "" : `<span class="mono">Seu cupom</span>`
+  }<p class="cupom-pill cupom-nojs">${antes}${codigo}</p><button type="button" class="cupom-pill cupom-btn" aria-label="Copiar o cupom ${o.cupom}">${antes}${codigo}<span class="cupom-dica">${aviso}</span></button><span class="sr cupom-status" aria-live="polite"></span>${
+    hero
+      ? ""
+      : `<p class="cupom-leg">Anote e digite em “Tenho um cupom”, na tela de assinatura do app.</p>`
+  }</div>`;
 }
 
 /**
@@ -223,7 +251,7 @@ function cartaoOferta(o: OfertaConfig): string {
  * de como cada loja cobra fica no bloco de preço e nas perguntas.
  */
 function blocoMicroOferta(p: LojasMarkupParams, o: OfertaConfig): string {
-  const condicao = `<p class="micro">7 dias sem cartão. Depois do ${o.meses}º mês, ${reais(o.precoCheioCentavos)} por mês. Cancele quando quiser.</p>`;
+  const condicao = `<p class="micro">7 dias sem cartão. Na hora de assinar, use o cupom ${o.cupom}. Depois do ${o.meses}º mês, ${reais(o.precoCheioCentavos)} por mês. Cancele quando quiser.</p>`;
   const simulador = `<p class="micro">${linkSimulador(p, "hero", "Prefere ver antes? Teste o app sem cadastro →")}</p>`;
   return `<div id="micro">
         <div data-dev="ios">${condicao}</div>
@@ -254,13 +282,14 @@ function heroTextoOferta(p: LojasMarkupParams, o: OfertaConfig): string {
       <p class="sub">Pode atender tranquila.</p>
       <p class="dor">Cliente que falta é horário vazio. Eu lembro cada uma e te conto quem confirmou.</p>
       ${cartaoOferta(o)}
+      ${cupomCopiavel(o, "hero")}
 ${blocoCta(p, "hero")}
 ${blocoMicro(p)}
       <p class="audience">Para cabeleireiras, manicures e esteticistas que atendem sozinhas ou com poucas profissionais.</p>
       ${blocoProva()}`;
 }
 
-/** Bloco de preço logo abaixo do hero: de/por, linha do tempo, economia e quem pode. */
+/** Bloco de preço logo abaixo do hero: de/por, o cupom, linha do tempo, economia e como usar. */
 function blocoOferta(o: OfertaConfig): string {
   const cheio = reais(o.precoCheioCentavos);
   const promo = reais(o.precoPromoCentavos);
@@ -268,20 +297,21 @@ function blocoOferta(o: OfertaConfig): string {
   <span class="ofr-pill of-pill">Oferta Agenda Bela</span>
   <p class="of-was">Em vez de <span class="of-oldp"><b>${cheio}</b></span> por mês</p>
   <h2 id="oferta-titulo"><span class="of-newp">${promo}</span><span class="of-per">por mês nos ${o.meses} primeiros meses.</span></h2>
+  ${cupomCopiavel(o, "preco")}
   <ol class="tl" aria-label="Como a oferta funciona">
     <li class="tl-i"><span class="tl-n" aria-hidden="true"></span><div><b class="t">Teste de 7 dias</b><span class="v">sem cartão</span></div></li>
-    <li class="tl-i tl-hi"><span class="tl-n" aria-hidden="true"></span><div><b class="t">Nos ${o.meses} primeiros meses<span class="sr">:</span></b><span class="v">${promo} por mês</span></div></li>
+    <li class="tl-i tl-hi"><span class="tl-n" aria-hidden="true"></span><div><b class="t">Nos ${o.meses} primeiros meses<span class="sr">:</span></b><span class="v">${promo} por mês com o cupom ${o.cupom}</span></div></li>
     <li class="tl-i"><span class="tl-n" aria-hidden="true"></span><div><b class="t">Do ${o.meses + 1}º mês em diante<span class="sr">:</span></b><span class="v">${cheio} por mês</span></div></li>
   </ol>
-  <p class="of-eco">Você economiza <b id="eco-val">${reais(economiaDaOfertaCentavos(o))}</b> se ficar os ${o.meses} meses.</p>
+  <p class="of-eco">Com o cupom, você economiza <b id="eco-val">${reais(economiaDaOfertaCentavos(o))}</b> se ficar os ${o.meses} meses.</p>
   <div class="of-cond">
-    <span class="mono">Quem pode</span>
-    <p>Vale para quem assina o Agenda Bela pela primeira vez, pelo app. A oferta vale enquanto aparecer na tela da loja na hora de assinar. Passados os ${o.meses} meses, o valor volta para ${cheio} por mês e a cobrança continua todo mês, até você cancelar.</p>
-    <p>Você cancela quando quiser, nos ajustes da App Store ou do Google Play. A tela da loja mostra o desconto antes de você assinar.</p>
-    <p data-dev="ios">Na App Store, a cobrança é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
-    <p data-dev="android">No Google Play, a cobrança também é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
+    <span class="mono">Como usar</span>
+    <p>O cupom vale só para a primeira assinatura do Agenda Bela, feita pelo app. Sem o cupom, o valor é ${cheio} por mês. Passados os ${o.meses} meses, o valor volta para ${cheio} por mês e a cobrança continua todo mês, até você cancelar.</p>
+    <p>Você cancela quando quiser, nos ajustes da App Store ou do Google Play.</p>
+    <p data-dev="ios">No iPhone, ao tocar em “Tenho um cupom”, abre uma tela da Apple para você digitar ${o.cupom}. A cobrança é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
+    <p data-dev="android">No Android, você digita ${o.cupom} num campo do próprio app. A cobrança é mensal: ${promo} todo mês nos ${o.meses} primeiros meses.</p>
   </div>
-  <a class="of-link" href="#faq">Ver as perguntas sobre o <span style="white-space:nowrap">desconto <span aria-hidden="true">↓</span></span></a>
+  <a class="of-link" href="#faq">Ver as perguntas sobre o <span style="white-space:nowrap">cupom <span aria-hidden="true">↓</span></span></a>
 </div></div></section>`;
 }
 
@@ -496,7 +526,7 @@ ${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
   <div>
     <span class="mono">Quanto custa</span>
     ${o ? `<h2 id="preco-titulo">Tudo que você viu aqui está incluso.</h2>
-    <p>Teste 7 dias, sem cartão, e decida. Cancele quando quiser. Os valores e as regras do desconto estão no começo desta página.</p>` : `<h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
+    <p>Teste 7 dias, sem cartão, e decida. Cancele quando quiser. O desconto vem com o cupom ${o.cupom}, que você digita na hora de assinar. Os valores e as regras estão no começo desta página.</p>` : `<h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>`}
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
@@ -504,7 +534,7 @@ ${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
     <ol>
       <li><b>1</b><span>Baixe o app, iPhone ou Android.</span></li>
       <li><b>2</b><span>Cadastre seu salão e marque sua primeira cliente. Pense em quem vai ser: é com ela que a Bela começa a trabalhar.</span></li>
-      <li><b>3</b><span>Depois dos 7 dias, sua agenda continua lá para você consultar. Para seguir marcando, é só assinar pelo app${t(".", ". O desconto aparece na tela da loja, para quem assina pela primeira vez.")}</span></li>
+      <li><b>3</b><span>Depois dos 7 dias, sua agenda continua lá para você consultar. Para seguir marcando, é só assinar pelo app.${o ? ` Na tela de assinatura, toque em “Tenho um cupom” e digite ${o.cupom} para ter ${o.percentual}% nos ${o.meses} primeiros meses.` : ""}</span></li>
     </ol>
 ${blocoCta(p, "preco")}
   </div>
@@ -533,7 +563,7 @@ ${blocoFaq(p)}
 
 <section class="final-sec" aria-labelledby="final-titulo"><div class="wrap"><div class="final">
   <h2 id="final-titulo">${o ? "Comece com a Bela e atenda tranquila." : variante(p, "Baixe o app e deixe a Bela cuidar da sua agenda.", "Deixe a agenda em ordem e atenda tranquila.")}</h2>
-  ${o ? `<p>Teste 7 dias, sem cartão. Se gostar, os ${o.meses} primeiros meses custam ${reais(o.precoPromoCentavos)} por mês; depois, ${reais(o.precoCheioCentavos)} por mês.</p>` : bf ? `<p class="txt-padrao">7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p><p class="txt-tema">Baixe o app e teste por 7 dias, sem cartão. Depois, R$&nbsp;59,90 por mês.</p>` : `<p>7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p>`}
+  ${o ? `<p>Teste 7 dias, sem cartão. Com o cupom ${o.cupom}, os ${o.meses} primeiros meses custam ${reais(o.precoPromoCentavos)} por mês; depois, ${reais(o.precoCheioCentavos)} por mês.</p>` : bf ? `<p class="txt-padrao">7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p><p class="txt-tema">Baixe o app e teste por 7 dias, sem cartão. Depois, R$&nbsp;59,90 por mês.</p>` : `<p>7 dias grátis, sem cartão para começar. Depois, R$&nbsp;59,90 por mês.</p>`}
 ${blocoCta(p, "final")}
 </div></div></section>
 

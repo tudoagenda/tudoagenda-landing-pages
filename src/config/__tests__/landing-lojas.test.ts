@@ -6,19 +6,21 @@ import {
   avisosEnviadosEmTexto,
   buildAppStoreCampaign,
   buildPlayReferrerAttribution,
-  descontoPorExtenso,
   economiaDaOfertaCentavos,
   formatarCentavos,
 } from "../landing-lojas";
 
 describe("valores da Oferta Agenda Bela (único lugar)", () => {
-  it("preço cheio R$ 59,90, promocional R$ 29,95 (provisório), por 3 meses", () => {
+  it("preço cheio R$ 59,90, promocional R$ 29,95 (provisório), por 3 meses, com o cupom BELA50", () => {
     expect(OFERTA_AGENDA_BELA).toEqual({
       precoCheioCentavos: 5990,
       precoPromoCentavos: 2995,
       meses: 3,
       percentual: 50,
+      cupom: "BELA50",
     });
+    // O código como a assinante digita no app: maiúsculas e números, sem espaço.
+    expect(OFERTA_AGENDA_BELA.cupom).toMatch(/^[A-Z0-9]{4,12}$/);
     expect(LANDING_LOJAS.oferta.oferta).toBe(OFERTA_AGENDA_BELA);
   });
 
@@ -33,20 +35,11 @@ describe("valores da Oferta Agenda Bela (único lugar)", () => {
     ).toBe(9000);
   });
 
-  it("o preço promocional bate com o percentual anunciado, e o texto diz metade", () => {
+  it("o preço promocional bate com o percentual anunciado", () => {
     const { precoCheioCentavos, precoPromoCentavos, percentual } =
       OFERTA_AGENDA_BELA;
     expect(Math.round((1 - precoPromoCentavos / precoCheioCentavos) * 100)).toBe(
       percentual,
-    );
-    // A página escreve "metade do preço": se o percentual mudar, o texto muda junto.
-    expect(percentual).toBe(50);
-  });
-
-  it("por extenso, 50% é metade do preço; outro percentual vira o número", () => {
-    expect(descontoPorExtenso(OFERTA_AGENDA_BELA)).toBe("metade do preço");
-    expect(descontoPorExtenso({ ...OFERTA_AGENDA_BELA, percentual: 40 })).toBe(
-      "40% de desconto",
     );
   });
 

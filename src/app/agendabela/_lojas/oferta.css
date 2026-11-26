@@ -14,6 +14,7 @@
  * selo do Google Play). Bloco 2: protótipo. Bloco 3: regras de produção.
  * Bloco 4: ajustes pedidos pelo Carlos em 24/11/2026 (nota 14 da campanha),
  * por cima do protótipo: primeira tela, prova, pontes e áreas de toque.
+ * Bloco 5: cupom copiável (26/11/2026, nota 16 da campanha).
  */
 
 /* ---------- bloco 1: diferenças no CSS comum ---------- */
@@ -228,4 +229,45 @@
 }
 @media (prefers-reduced-motion:no-preference){
   #lp[data-oferta] .ofr-stk{animation:lj-of-stkIn .7s 1.2s cubic-bezier(.2,1.4,.4,1) both}
+}
+
+/* ---------- bloco 5: cupom copiável (26/11/2026) ---------- */
+/* O código do cupom é um botão: toque ou clique copia (runtime.js). Pílula
+   tracejada, código em mono. Alvo de toque de 44 px. */
+#lp[data-oferta] .cupom-pill{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin:0;padding:4px 12px;border:1.5px dashed var(--vinho);border-radius:999px;background:#FFF8FA;color:var(--petro);font:500 13px/18px var(--inter);white-space:nowrap;-webkit-user-select:text;user-select:text}
+#lp[data-oferta] .cupom-btn{-webkit-appearance:none;appearance:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#lp[data-oferta] .cupom-btn:focus-visible{outline:3px solid var(--petro);outline-offset:3px;border-radius:999px}
+#lp[data-oferta] .cupom-pre{white-space:pre}
+#lp[data-oferta] .cupom-cod{font:400 17px/22px var(--mono);letter-spacing:1px;color:var(--vinho);-webkit-user-select:all;user-select:all}
+#lp[data-oferta] .cupom-dica{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+#lp[data-oferta] .cupom-sep{margin-right:1px}
+#lp[data-oferta] .cupom-ic{flex:none}
+#lp[data-oferta] .cupom.is-copiado .cupom-pill{border-style:solid;background:#FFF1F5}
+#lp[data-oferta] .cupom.is-copiado .cupom-ic,#lp[data-oferta] .cupom.is-segure .cupom-ic{display:none}
+/* No topo, com o aviso trocado, a palavra "Cupom" sai para a linha não repetir. */
+#lp[data-oferta] .cupom-hero.is-copiado .cupom-pre{display:none}
+/* Topo: logo abaixo do cartão de preço (que é um link: o botão fica fora dele). */
+/* position/z-index: a sombra do cartão (posicionado) não escurece a pílula. */
+#lp[data-oferta] .cupom-hero{position:relative;z-index:1;margin-top:6px}
+#lp[data-oferta] .hero-txt .cupom-hero+.cta{margin-top:6px}
+/* Bloco de preço: "Seu cupom", com o código grande. */
+#lp[data-oferta] .cupom-preco{margin-top:18px}
+#lp[data-oferta] .cupom-preco .mono{display:block;color:var(--vinho);font-size:12px;margin-bottom:6px}
+#lp[data-oferta] .cupom-preco .cupom-pill{display:inline-flex;flex-wrap:wrap;width:auto;max-width:100%;gap:2px 14px;padding:8px 20px;border-width:2px;border-radius:18px;white-space:normal}
+#lp[data-oferta] .cupom-preco .cupom-btn:focus-visible{border-radius:18px}
+#lp[data-oferta] .cupom-preco .cupom-cod{font-size:34px;line-height:42px;letter-spacing:2px}
+#lp[data-oferta] .cupom-preco .cupom-dica{font-size:14px;line-height:20px;white-space:nowrap}
+#lp[data-oferta] .cupom-leg{margin-top:8px;font-size:14px;line-height:20px;color:var(--ink)}
+#lp[data-oferta] .of-card .tl{margin-top:22px}
+/* Sem o runtime (sem JavaScript, ou enquanto ele não ligou a cópia) fica o
+   código em texto, selecionável, sem o aviso de copiar. O runtime marca
+   data-cupom-on quando o botão passa a copiar de verdade. */
+#lp[data-oferta] .cupom:not([data-cupom-on]) .cupom-btn{display:none!important}
+#lp[data-oferta] .cupom[data-cupom-on] .cupom-nojs{display:none!important}
+@media (max-width:359px){
+  #lp[data-oferta] .cupom-hero .cupom-pill{padding-inline:8px;gap:4px}
+}
+@media (min-width:900px){
+  #lp[data-oferta] .cupom-hero{max-width:460px}
+  #lp[data-oferta] .cupom-hero .cupom-pill{font-size:14px}
 }
