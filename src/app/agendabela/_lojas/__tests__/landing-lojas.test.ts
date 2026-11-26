@@ -471,6 +471,7 @@ describe.each(PAGINAS)("landing de loja $slug: medição", (config) => {
       [
         "cta_location",
         "device_os",
+        "event_id",
         "faq_id",
         "in_app_browser",
         "ref",

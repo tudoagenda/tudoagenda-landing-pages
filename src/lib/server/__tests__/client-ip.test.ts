@@ -3,7 +3,9 @@
  */
 
 import {
+  cloudFrontViewerIp,
   ipInCidrs,
+  isPublicIp,
   logClientIpDiagnostics,
   parseCloudFrontRanges,
   resolveClientIp,
@@ -198,5 +200,35 @@ describe("faixas do CloudFront", () => {
     expect(ipInCidrs("130.177.0.1", cidrs)).toBe(false);
     expect(ipInCidrs("2600:9000:2001::5", cidrs)).toBe(true);
     expect(ipInCidrs("2600:9001::5", cidrs)).toBe(false);
+  });
+});
+
+describe("isPublicIp", () => {
+  it.each(["203.0.113.7", "8.8.8.8", "172.15.0.1", "172.32.0.1", "100.128.0.1", "2804:14c::1", "2001:db8::1"])(
+    "%s é público",
+    (ip) => expect(isPublicIp(ip)).toBe(true),
+  );
+  it.each([
+    "10.0.0.1", "172.16.0.1", "172.31.255.255", "192.168.0.1", "127.0.0.1", "169.254.1.1",
+    "100.64.0.1", "0.0.0.0", "224.0.0.1", "255.255.255.255",
+    "::1", "::", "fe80::1", "fc00::1", "fdff::1", "ff02::1", "::ffff:192.168.0.1", "não-é-ip", "",
+  ])("%s não é público", (ip) => expect(isPublicIp(ip)).toBe(false));
+});
+
+describe("cloudFrontViewerIp", () => {
+  it("penúltima entrada quando a última é o X-Real-IP", () => {
+    expect(
+      cloudFrontViewerIp(h({ "x-forwarded-for": "6.6.6.6, 203.0.113.7, 130.176.1.1", "x-real-ip": "130.176.1.1" })),
+    ).toBe("203.0.113.7");
+  });
+  it("null sem X-Real-IP, com última entrada diferente, com uma entrada só ou penúltima inválida", () => {
+    expect(cloudFrontViewerIp(h({ "x-forwarded-for": "203.0.113.7, 130.176.1.1" }))).toBeNull();
+    expect(
+      cloudFrontViewerIp(h({ "x-forwarded-for": "203.0.113.7, 130.176.1.1", "x-real-ip": "130.176.9.9" })),
+    ).toBeNull();
+    expect(cloudFrontViewerIp(h({ "x-forwarded-for": "130.176.1.1", "x-real-ip": "130.176.1.1" }))).toBeNull();
+    expect(
+      cloudFrontViewerIp(h({ "x-forwarded-for": "lixo, 130.176.1.1", "x-real-ip": "130.176.1.1" })),
+    ).toBeNull();
   });
 });

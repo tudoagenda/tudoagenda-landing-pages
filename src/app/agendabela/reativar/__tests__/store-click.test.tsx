@@ -222,3 +222,54 @@ describe("reativação: lista de reset não muda os eventos que já existiam", (
     }
   });
 });
+
+describe("reativação: store_click também vai ao servidor (API de Conversões)", () => {
+  const sendBeacon = jest.fn(() => true);
+
+  beforeEach(() => {
+    sendBeacon.mockClear();
+    Object.defineProperty(navigator, "sendBeacon", { value: sendBeacon, configurable: true });
+  });
+  afterEach(() => {
+    // @ts-expect-error o jsdom não tem sendBeacon; devolve o navigator como estava
+    delete navigator.sendBeacon;
+  });
+
+  it.each([
+    ["reativação concluída", abrirConcluida, /App Store \(iOS\)/i, "reativacao_concluida_baixar_app"],
+    ["já assinante", abrirJaAssinante, /Baixar app \(iOS\)/i, "ja_assinante_baixar_app"],
+  ])("%s: um clique = um push com event_id = um envio com os mesmos dados", async (_nome, abrir, link, local) => {
+    await abrir();
+    fireEvent.click(screen.getByRole("link", { name: link }));
+
+    expect(eventos()).toHaveLength(1);
+    const push = eventos()[0];
+    expect(push.event_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(push.in_app_browser).toBe("none");
+    expect(push.cta_location).toBe(local);
+
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+    const [url, corpo] = sendBeacon.mock.calls[0] as unknown as [string, string];
+    expect(url).toBe("/api/agendabela/web-event");
+    expect(JSON.parse(corpo)).toEqual({
+      event_id: push.event_id,
+      store: push.store,
+      cta_location: push.cta_location,
+      device_os: push.device_os,
+      in_app_browser: push.in_app_browser,
+      landing_slug: "reativacao",
+      // Sem a query da reativação (?reactivation=...): só a origem da visita segue.
+      event_source_url: "http://localhost/agendabela/reativar",
+    });
+  });
+
+  it("dois cliques: ids diferentes e dois envios; event_id e in_app_browser estão na lista de reset", async () => {
+    await abrirJaAssinante();
+    fireEvent.click(screen.getByRole("link", { name: /Baixar app \(iOS\)/i }));
+    fireEvent.click(screen.getByRole("link", { name: /Baixar app \(Android\)/i }));
+    const [a, b] = eventos();
+    expect(a.event_id).not.toBe(b.event_id);
+    expect(MAIN_RESET_KEYS).toEqual(expect.arrayContaining(["event_id", "in_app_browser"]));
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+  });
+});

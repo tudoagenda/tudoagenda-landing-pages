@@ -60,6 +60,22 @@ function validIp(value: string | null | undefined): string | null {
   return v && isIP(v) !== 0 ? v : null;
 }
 
+/**
+ * Atrás do CloudFront, o IP que o CloudFront viu: a PENÚLTIMA entrada do
+ * X-Forwarded-For, e só quando a última (o nó do CloudFront, acrescentado
+ * pelo Railway) é igual ao `X-Real-IP`. Fora desse formato, `null`.
+ * Não decide confiança: quem chama diz se o pedido veio mesmo do CloudFront.
+ */
+export function cloudFrontViewerIp(headers: Headers): string | null {
+  const realIp = validIp(headers.get("x-real-ip"));
+  const xff = (headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (realIp === null || xff.length < 2 || xff[xff.length - 1] !== realIp) return null;
+  return validIp(xff[xff.length - 2]);
+}
+
 export function resolveClientIp(
   headers: Headers,
   cfOriginSecret: string | null | undefined = process.env.LANDING_CF_ORIGIN_SECRET,
@@ -87,10 +103,8 @@ export function resolveClientIp(
 
   if (viaCloudFront) {
     if (!cfVerified) return { ip: null, source: "none", ...base };
-    const penultimate = xff.length >= 2 ? validIp(xff[xff.length - 2]) : null;
-    if (realIp !== null && last === realIp && penultimate) {
-      return { ip: penultimate, source: "cf_penultimate", ...base };
-    }
+    const viewer = cloudFrontViewerIp(headers);
+    if (viewer) return { ip: viewer, source: "cf_penultimate", ...base };
     return { ip: null, source: "none", ...base };
   }
 
@@ -153,6 +167,37 @@ export function ipInCidrs(ip: string, cidrs: Cidr[]): boolean {
     const shift = BigInt(width - c.bits);
     return parsed.value >> shift === c.base >> shift;
   });
+}
+
+/**
+ * Faixas que nunca são o IP de uma visitante na internet: privadas (10/8,
+ * 172.16/12, 192.168/16), loopback, link-local, CGNAT, "esta rede",
+ * multicast/reservadas e, no IPv6, loopback, não especificado, link-local e
+ * ULA (fc00::/7).
+ */
+const NON_PUBLIC_CIDRS: Cidr[] = [
+  "0.0.0.0/8",
+  "10.0.0.0/8",
+  "100.64.0.0/10",
+  "127.0.0.0/8",
+  "169.254.0.0/16",
+  "172.16.0.0/12",
+  "192.168.0.0/16",
+  "224.0.0.0/3",
+  "::/127",
+  "fc00::/7",
+  "fe80::/10",
+  "ff00::/8",
+]
+  .map(parseCidr)
+  .filter((c): c is Cidr => c !== null);
+
+/** IP válido e roteável na internet (nem privado, nem reservado). */
+export function isPublicIp(ip: string): boolean {
+  if (isIP(ip) === 0) return false;
+  // IPv4 embutido em IPv6 (::ffff:10.0.0.1): vale a regra do IPv4.
+  const mapped = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  return !ipInCidrs(mapped ? mapped[1] : ip, NON_PUBLIC_CIDRS);
 }
 
 export function parseCloudFrontRanges(json: unknown): Cidr[] {

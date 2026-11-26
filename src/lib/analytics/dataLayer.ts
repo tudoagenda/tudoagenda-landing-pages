@@ -12,6 +12,12 @@
  */
 
 import type { LandingLojasSlug } from "@/config/landing-lojas";
+import { detectInAppBrowser } from "@/lib/device";
+import {
+  fbclidSeenAt,
+  newEventId,
+  sendStoreClickBeacon,
+} from "./storeClickBeacon";
 
 declare global {
   interface Window {
@@ -318,6 +324,8 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
  * landing_slug fica de fora: vem do contexto da landing em todo push.
  */
 export const MAIN_RESET_KEYS = [
+  "event_id",
+  "in_app_browser",
   "cta_position",
   "cta_intent",
   "form_name",
@@ -387,6 +395,8 @@ export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): voi
  * (ex.: entry=deep_link grudando na jornada seguinte). Parâmetro novo entra aqui.
  */
 const EXPERIMENTE_RESET_KEYS = [
+  "event_id",
+  "in_app_browser",
   "journey_number",
   "journeys_completed",
   "entry",
@@ -429,6 +439,7 @@ export function pushAgendaBelaLojasEvent(
  * MAIN_RESET_KEYS). Parâmetro novo em LojasEvent entra aqui.
  */
 export const LOJAS_RESET_KEYS = [
+  "event_id",
   "cta_location",
   "store",
   "device_os",
@@ -441,6 +452,9 @@ export const LOJAS_RESET_KEYS = [
 /**
  * Push genérico — só usar em componentes que sabem o contexto deles.
  * Componentes da landing principal devem usar pushAgendaBelaMainEvent.
+ *
+ * Todo store_click, de qualquer landing, ganha aqui um event_id e é enviado
+ * também ao servidor (contrato em storeClickBeacon.ts).
  */
 export function pushLandingEvent(
   eventData: LandingEvent | ExperimenteEvent | LojasEvent,
@@ -456,11 +470,47 @@ export function pushLandingEvent(
         [...resetKeys, ...ATTRIBUTION_KEYS].map((k) => [k, undefined]),
       )
     : {};
+  const attribution = getAttributionContext();
+  const fbclidSeen = fbclidSeenAt(attribution.fbclid);
+  // Só o store_click leva event_id (um UUID por clique): é o que deduplica o
+  // Pixel com a API de Conversões (storeClickBeacon.ts). Em todo outro push
+  // ele vai undefined explícito, para nenhum evento herdar o id do clique
+  // anterior no modelo do GTM: está nas listas de reset e, para os pushes sem
+  // lista, é zerado aqui também.
+  if (eventData.event !== "store_click") {
+    window.dataLayer.push({
+      ...context,
+      ...reset,
+      ...attribution,
+      ...eventData,
+      event_id: undefined,
+    });
+    return;
+  }
+  // O que vai ao Pixel (dataLayer) e ao servidor (beacon) sai do mesmo objeto:
+  // os dois caminhos mandam o mesmo custom_data. Página que não detecta o
+  // navegador interno (Experimente, principal, reativação) ganha o valor aqui.
+  const click = {
+    store: eventData.store,
+    cta_location: eventData.cta_location,
+    device_os: eventData.device_os,
+    in_app_browser:
+      ("in_app_browser" in eventData && eventData.in_app_browser) ||
+      detectInAppBrowser(),
+    landing_slug: context.landing_slug,
+    event_id: newEventId(),
+  };
   window.dataLayer.push({
     ...context,
     ...reset,
-    ...getAttributionContext(),
+    ...attribution,
     ...eventData,
+    ...click,
+  });
+  sendStoreClickBeacon({
+    ...click,
+    fbclid: attribution.fbclid,
+    fbclid_seen_at: fbclidSeen,
   });
 }
 
