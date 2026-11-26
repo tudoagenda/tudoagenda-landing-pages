@@ -12,6 +12,7 @@
  */
 
 import type { LandingLojasSlug } from "@/config/landing-lojas";
+import { newEventId, sendStoreClickBeacon } from "./storeClickBeacon";
 
 declare global {
   interface Window {
@@ -277,6 +278,7 @@ export function pushAgendaBelaMainEvent(eventData: LandingEvent): void {
  * landing_slug fica de fora: vem do contexto da landing em todo push.
  */
 export const MAIN_RESET_KEYS = [
+  "event_id",
   "cta_position",
   "cta_intent",
   "form_name",
@@ -339,6 +341,7 @@ export function pushAgendaBelaExperimenteEvent(eventData: ExperimenteEvent): voi
  * (ex.: entry=deep_link grudando na jornada seguinte). Parâmetro novo entra aqui.
  */
 const EXPERIMENTE_RESET_KEYS = [
+  "event_id",
   "journey_number",
   "journeys_completed",
   "entry",
@@ -381,6 +384,7 @@ export function pushAgendaBelaLojasEvent(
  * MAIN_RESET_KEYS). Parâmetro novo em LojasEvent entra aqui.
  */
 export const LOJAS_RESET_KEYS = [
+  "event_id",
   "cta_location",
   "store",
   "device_os",
@@ -391,6 +395,9 @@ export const LOJAS_RESET_KEYS = [
 /**
  * Push genérico — só usar em componentes que sabem o contexto deles.
  * Componentes da landing principal devem usar pushAgendaBelaMainEvent.
+ *
+ * Todo store_click, de qualquer landing, ganha aqui um event_id e é enviado
+ * também ao servidor (contrato em storeClickBeacon.ts).
  */
 export function pushLandingEvent(
   eventData: LandingEvent | ExperimenteEvent | LojasEvent,
@@ -406,12 +413,32 @@ export function pushLandingEvent(
         [...resetKeys, ...ATTRIBUTION_KEYS].map((k) => [k, undefined]),
       )
     : {};
+  const attribution = getAttributionContext();
+  // Só o store_click leva event_id (um UUID por clique): é o que deduplica o
+  // Pixel com a API de Conversões (storeClickBeacon.ts). Em todo outro push
+  // ele vai undefined explícito, para nenhum evento herdar o id do clique
+  // anterior no modelo do GTM: está nas listas de reset e, para os pushes sem
+  // lista, é zerado aqui também.
+  const eventId = eventData.event === "store_click" ? newEventId() : undefined;
   window.dataLayer.push({
     ...context,
     ...reset,
-    ...getAttributionContext(),
+    ...attribution,
     ...eventData,
+    event_id: eventId,
   });
+  if (eventData.event === "store_click" && eventId) {
+    sendStoreClickBeacon({
+      event_id: eventId,
+      store: eventData.store,
+      cta_location: eventData.cta_location,
+      device_os: eventData.device_os,
+      in_app_browser:
+        "in_app_browser" in eventData ? eventData.in_app_browser : undefined,
+      landing_slug: context.landing_slug,
+      fbclid: attribution.fbclid,
+    });
+  }
 }
 
 /**

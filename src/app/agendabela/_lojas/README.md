@@ -120,3 +120,41 @@ npx jest src/app/agendabela/_lojas src/config src/lib/__tests__ src/app/__tests_
 
 Para ver cada aparelho, troque o User-Agent no navegador (o `data-os` em `#lp`
 mostra o que foi detectado). Para ver o fim do tema, adiante o relógio.
+
+## Clique na loja também pelo servidor (API de Conversões)
+
+Vale para todo `store_click` do site (landings de loja, Experimente, landing
+principal e reativação), porque é feito no helper central
+(`pushLandingEvent`, em `src/lib/analytics/dataLayer.ts`):
+
+1. Cada clique gera um `event_id` (UUID v4) que vai no push do dataLayer. O
+   GTM passa esse valor ao Pixel como `eventID`. Nenhum outro evento leva
+   `event_id`: ele está nas listas de reset (`MAIN_RESET_KEYS`,
+   `EXPERIMENTE_RESET_KEYS`, `LOJAS_RESET_KEYS`) e sai `undefined` em todo
+   outro push, para não herdar o do clique anterior.
+2. No mesmo clique, `src/lib/analytics/storeClickBeacon.ts` manda
+   `navigator.sendBeacon` (ou `fetch` com `keepalive`) para
+   `POST /api/agendabela/web-event`, sem esperar resposta:
+   `{ event_id, store, cta_location, device_os, in_app_browser, landing_slug, event_source_url, fbclid? }`.
+   Onde a página não manda `in_app_browser`, o envio detecta pelo User-Agent
+   (`"none"` fora do Instagram/Facebook); `fbclid` só vai se a
+   sessão tiver um; da URL só seguem UTMs, `fbclid`, `gclid` e `ref`.
+3. A rota (`src/app/api/agendabela/web-event/route.ts`) confere o corpo (listas
+   fechadas, tamanhos, URL de `tudoagenda.com.br/agendabela/…`), lê os cookies
+   `_fbp` e `_fbc`, o IP e o User-Agent, e repassa ao backend com os mesmos
+   cabeçalhos das outras rotas (`buildLandingHeaders`):
+
+   ```
+   POST {BACKEND_API_URL}/tracking/web-events
+   { "event_name": "StoreClick", "event_id": "<uuid v4>", "event_source_url": "https://tudoagenda.com.br/agendabela/...",
+     "custom_data": { "store", "landing_slug", "cta_location", "device_os", "in_app_browser" },
+     "user": { "fbp"?, "fbc"?, "client_ip"?, "user_agent"? } }
+   ```
+
+   Sem cookie `_fbc` e com `fbclid`, o `fbc` é montado como
+   `fb.1.<timestamp_ms>.<fbclid>`. A rota responde 204 sempre que o corpo é
+   válido, mesmo com o backend fora. Página em `localhost` nunca repassa ao
+   backend de produção. Sem dado pessoal, e o IP não é logado.
+
+Um clique = um `event_id` = um push = um envio. Componente nenhum chama o
+envio direto: basta empurrar `store_click` pelo helper da página.
