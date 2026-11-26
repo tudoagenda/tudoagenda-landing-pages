@@ -139,20 +139,21 @@ function blocoMicro(p: LojasMarkupParams): string {
 
 /**
  * Perguntas rápidas, do array único de faq.ts (o mesmo do JSON-LD). A oferta
- * tem as próprias (faq-oferta.ts), com HTML na resposta.
+ * tem as próprias (faq-oferta.ts), com HTML na resposta. data-faq é o faq_id
+ * do evento faq_open (id fixo do dado, não o texto da pergunta).
  */
 function blocoFaq(p: LojasMarkupParams): string {
   if (p.oferta) {
     return buildOfertaFaq(p.oferta)
       .map(
         (item) =>
-          `    <details><summary>${item.pergunta}</summary><p>${item.respostaHtml}</p></details>`,
+          `    <details data-faq="${item.id}"><summary>${item.pergunta}</summary><p>${item.respostaHtml}</p></details>`,
       )
       .join("\n");
   }
   return LOJAS_FAQ.map(
     (item) =>
-      `    <details><summary>${item.pergunta}</summary><p>${item.resposta.replace(/R\$ /g, () => "R$&nbsp;")}</p></details>`,
+      `    <details data-faq="${item.id}"><summary>${item.pergunta}</summary><p>${item.resposta.replace(/R\$ /g, () => "R$&nbsp;")}</p></details>`,
   ).join("\n");
 }
 
@@ -193,7 +194,7 @@ const FAIXA = `<div class="ribbon so-tema" id="slot-faixa">
 </div>`;
 const HALO = `<div class="so-tema bf-halo" aria-hidden="true"></div>`;
 const TITULO_GIGANTE = `<p class="so-tema bf-big" aria-hidden="true"><span class="bf-l"><span class="bf-w">Black</span></span><span class="bf-l"><span class="bf-w">Friday</span></span></p>`;
-const BLOCO_PRECO = `<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo">Apenas <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p></div></div></div></section>`;
+const BLOCO_PRECO = `<section class="so-tema bf" id="slot-bloco" aria-labelledby="bloco-titulo"><div class="wrap"><div class="bf-card rv"><span class="pill">Black Friday</span><h2 id="bloco-titulo" data-sec="preco">Apenas <span class="bf-preco">R$&nbsp;59,90 por mês.</span></h2><div><p>Os 7 dias para testar são sem cartão, e você cancela quando quiser. É assim hoje, é assim na Black Friday e é assim depois dela.</p></div></div></div></section>`;
 
 /* ---------- peças da Oferta Agenda Bela (protótipo lp4-oferta, aprovado em 24/11/2026) ---------- */
 const reais = (centavos: number) => `R$&nbsp;${formatarCentavos(centavos)}`;
@@ -306,7 +307,7 @@ function blocoOferta(o: OfertaConfig): string {
   return `<section class="oferta" id="preco" aria-labelledby="oferta-titulo"><div class="wrap"><p class="of-ponte">Gostou? Veja quanto custa.</p><div class="of-card" id="oferta-card">
   <span class="ofr-pill of-pill">Oferta Agenda Bela</span>
   <p class="of-was">Em vez de <span class="of-oldp"><b>${cheio}</b></span> por mês</p>
-  <h2 id="oferta-titulo"><span class="of-newp">${promo}</span><span class="of-per">por mês nos ${o.meses} primeiros meses.</span></h2>
+  <h2 id="oferta-titulo" data-sec="preco"><span class="of-newp">${promo}</span><span class="of-per">por mês nos ${o.meses} primeiros meses.</span></h2>
   ${cupomCopiavel(o, "preco")}
   <ol class="tl" aria-label="Como a oferta funciona">
     <li class="tl-i"><span class="tl-n" aria-hidden="true"></span><div><b class="t">Teste de 7 dias</b><span class="v">sem cartão</span></div></li>
@@ -536,7 +537,7 @@ ${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
   <div>
     <span class="mono">Quanto custa</span>
     ${o ? `<h2 id="preco-titulo">Tudo que você viu aqui está incluso.</h2>
-    <p>Teste 7 dias, sem cartão, e decida. Cancele quando quiser. O desconto vem com o cupom ${o.cupom}, que você digita na hora de assinar. Os valores e as regras estão no começo desta página.</p>` : `<h2 id="preco-titulo">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
+    <p>Teste 7 dias, sem cartão, e decida. Cancele quando quiser. O desconto vem com o cupom ${o.cupom}, que você digita na hora de assinar. Os valores e as regras estão no começo desta página.</p>` : `<h2 id="preco-titulo" data-sec="preco">7 dias grátis. Depois, R$&nbsp;59,90 por mês.</h2>
     <p>Um preço só, com tudo que você viu aqui. Teste por 7 dias, sem cartão, e decida. Cancele quando quiser.</p>`}
     <div class="d7" aria-hidden="true"><i style="--i:0">1</i><i style="--i:1">2</i><i style="--i:2">3</i><i style="--i:3">4</i><i style="--i:4">5</i><i style="--i:5">6</i><i style="--i:6">7</i></div>
   </div>
@@ -565,7 +566,7 @@ ${blocoCta(p, "preco")}
 </div></div></section>
 
 <section class="sec faq"${t("", ' id="faq"')} aria-labelledby="faq-titulo"><div class="wrap">
-  <div class="sec-head"><h2 class="t" id="faq-titulo">Perguntas rápidas</h2></div>
+  <div class="sec-head"><h2 class="t" id="faq-titulo" data-sec="faq">Perguntas rápidas</h2></div>
   <div class="faq-list">
 ${blocoFaq(p)}
   </div>
