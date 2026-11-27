@@ -8,7 +8,8 @@
  * - fim do tema Black Friday pela validade gravada em #lp;
  * - Oferta Agenda Bela (data-oferta em #lp, protótipo lp4-oferta): legendas
  *   em "você", CTA fixo que some com qualquer CTA da página à vista, a
- *   animação do bloco de preço e o cupom copiável (o código é um botão);
+ *   animação do bloco de preço, o cupom copiável (o código é um botão) e
+ *   as abas iPhone/Android do "Como usar o cupom";
  * - devolve um cleanup (a página pode sair por navegação client-side).
  *
  * Sem JavaScript, ou com movimento reduzido, a página já está completa: todo
@@ -68,6 +69,7 @@ export function initLandingLojas(opts) {
   const undoEngajamento = [];
   const undoAnimacao = [];
   const undoCupom = [];
+  const undoAbasCupom = [];
   const desfazer = function (lista) {
     lista.splice(0).forEach(function (fn) {
       fn();
@@ -103,10 +105,18 @@ export function initLandingLojas(opts) {
   } catch {
     desfazer(undoCupom);
   }
+  /* Abas do "Como usar o cupom": lista própria. Se quebrar, o bloco volta ao
+     HTML do servidor (as duas listas à vista). */
+  try {
+    ligarAbasCupom(opts, lp, undoAbasCupom, os);
+  } catch {
+    desfazer(undoAbasCupom);
+  }
   /* Com ou sem animação, sai o estado provisório do CSS. */
   lp.removeAttribute("data-pre");
 
   return function cleanup() {
+    desfazer(undoAbasCupom);
     desfazer(undoCupom);
     desfazer(undoAnimacao);
     desfazer(undoEngajamento);
@@ -430,6 +440,111 @@ function ligarCupom(opts, lp, undo) {
       falha.hidden = true;
     });
   });
+}
+
+/**
+ * "Como usar o cupom" (oferta): duas abas, iPhone e Android, no padrão de
+ * abas do WAI-ARIA (setas, Home e End; só a aba aberta entra no Tab). Abre
+ * a do aparelho: Android no Android; iPhone no iPhone e no computador.
+ *
+ * O HTML do servidor mostra as duas listas, cada uma com o seu título, e as
+ * abas escondidas: é o que vale sem JavaScript. Aqui as abas aparecem, ganham
+ * os papéis e o título repetido sai da tela (fica para o leitor de tela).
+ * O cleanup devolve o bloco ao HTML do servidor.
+ *
+ * Trocar de aba é cta_click (cupom_aba_iphone ou cupom_aba_android), uma vez
+ * por aba por carga de página; a aba aberta sozinha não conta.
+ */
+function ligarAbasCupom(opts, lp, undo, os) {
+  const bloco = lp.querySelector("#como-usar-cupom");
+  const lista = bloco && bloco.querySelector("#cp-abas");
+  if (!lista) return;
+  const abas = Array.prototype.slice.call(lista.querySelectorAll("[data-aba]"));
+  const paineis = abas.map(function (aba) {
+    return bloco.querySelector("#" + aba.getAttribute("aria-controls"));
+  });
+  if (abas.length < 2 || paineis.indexOf(null) !== -1) return;
+
+  const ROTULO_DO_EVENTO = { ios: "iphone", android: "android" };
+  const medidas = {};
+  let atual = -1;
+  function abrir(n, foco) {
+    atual = n;
+    abas.forEach(function (aba, i) {
+      const aberta = i === n;
+      aba.setAttribute("aria-selected", aberta ? "true" : "false");
+      aba.tabIndex = aberta ? 0 : -1;
+      paineis[i].hidden = !aberta;
+    });
+    if (foco) abas[n].focus();
+  }
+  function escolher(n, foco) {
+    if (n === atual) {
+      if (foco) abas[n].focus();
+      return;
+    }
+    abrir(n, foco);
+    const plat = abas[n].getAttribute("data-aba");
+    if (!ROTULO_DO_EVENTO[plat] || medidas[plat]) return;
+    medidas[plat] = true;
+    try {
+      opts.track({
+        event: "cta_click",
+        cta_location: "cupom_aba_" + ROTULO_DO_EVENTO[plat],
+      });
+    } catch {
+      /* Sem medição as abas continuam funcionando. */
+    }
+  }
+
+  undo.push(function () {
+    lista.hidden = true;
+    lista.removeAttribute("role");
+    bloco.removeAttribute("data-abas");
+    abas.forEach(function (aba, i) {
+      aba.removeAttribute("role");
+      aba.removeAttribute("aria-selected");
+      aba.removeAttribute("tabindex");
+      paineis[i].hidden = false;
+      paineis[i].removeAttribute("role");
+      paineis[i].removeAttribute("aria-labelledby");
+      paineis[i].removeAttribute("tabindex");
+    });
+  });
+
+  lista.setAttribute("role", "tablist");
+  abas.forEach(function (aba, i) {
+    aba.setAttribute("role", "tab");
+    paineis[i].setAttribute("role", "tabpanel");
+    paineis[i].setAttribute("aria-labelledby", aba.id);
+    paineis[i].tabIndex = 0;
+    listen(undo, aba, "click", function () {
+      escolher(i, false);
+    });
+    listen(undo, aba, "keydown", function (ev) {
+      const k = ev.key;
+      let n = -1;
+      if (k === "ArrowRight" || k === "ArrowDown") n = (i + 1) % abas.length;
+      else if (k === "ArrowLeft" || k === "ArrowUp") n = (i + abas.length - 1) % abas.length;
+      else if (k === "Home") n = 0;
+      else if (k === "End") n = abas.length - 1;
+      if (n < 0) return;
+      ev.preventDefault();
+      escolher(n, true);
+    });
+  });
+  const padrao = os === "android" ? "android" : "ios";
+  abrir(
+    Math.max(
+      0,
+      abas.findIndex(function (aba) {
+        return aba.getAttribute("data-aba") === padrao;
+      }),
+    ),
+    false,
+  );
+  lista.hidden = false;
+  bloco.setAttribute("data-abas", "");
 }
 
 /** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */

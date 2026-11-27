@@ -36,6 +36,13 @@ const MARCADORES_DE_PRECO: Record<string, string[]> = {
   [OFERTA.slug]: ["oferta-titulo"],
 };
 
+/** Outras seções medidas, além de preço e perguntas (só a oferta tem). */
+const OUTROS_MARCADORES: Record<string, { id: string; section: string }[]> = {
+  [LP2.slug]: [],
+  [LP3.slug]: [],
+  [OFERTA.slug]: [{ id: "cp-titulo", section: "cupom" }],
+};
+
 function markup(config: LandingLojasConfig): string {
   return buildLojasMarkup({
     slug: config.slug,
@@ -247,7 +254,11 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
       rootMargin: "0px 0px -15% 0px",
     });
     expect([...observadores[0].alvos].map((x) => x.id).sort()).toEqual(
-      [...MARCADORES_DE_PRECO[config.slug], "faq-titulo"].sort(),
+      [
+        ...MARCADORES_DE_PRECO[config.slug],
+        "faq-titulo",
+        ...OUTROS_MARCADORES[config.slug].map((m) => m.id),
+      ].sort(),
     );
   });
 
@@ -277,6 +288,7 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
     const preco = el(MARCADORES_DE_PRECO[config.slug][0]);
     io!.cruzar(preco, 0.75);
     io!.cruzar(el("faq-titulo"), 1);
+    for (const m of OUTROS_MARCADORES[config.slug]) io!.cruzar(el(m.id), 1);
     expect(
       eventos("section_view").map((e) => ({
         section: e.section,
@@ -287,7 +299,7 @@ describe.each(PAGINAS)("landing de loja $slug: section_view", (config) => {
         product: e.product,
       })),
     ).toEqual(
-      ["preco", "faq"].map((section) => ({
+      ["preco", "faq", ...OUTROS_MARCADORES[config.slug].map((m) => m.section)].map((section) => ({
         section,
         device_os: "android",
         in_app_browser: "instagram",
@@ -510,4 +522,98 @@ it("se o engajamento quebrar, os links das lojas continuam medidos", () => {
       delete (window as { IntersectionObserver?: unknown })
         .IntersectionObserver;
   }
+});
+
+describe('oferta: "Como usar o cupom"', () => {
+  const abas = () => [...lp().querySelectorAll<HTMLElement>("#cp-abas [data-aba]")];
+  const aberta = () =>
+    abas()
+      .filter((a) => a.getAttribute("aria-selected") === "true")
+      .map((a) => a.getAttribute("data-aba"));
+  const visiveis = () =>
+    [...lp().querySelectorAll<HTMLElement>(".cp-painel")]
+      .filter((p) => !p.hidden)
+      .map((p) => p.getAttribute("data-plat"));
+  const tecla = (alvo: HTMLElement, key: string) =>
+    alvo.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+  const abasNoDado = () => eventos("cta_click").map((e) => e.cta_location);
+
+  it("section_view com section cupom quando o título entra na tela, uma vez", () => {
+    mount(OFERTA);
+    io!.cruzar(el("cp-titulo"), 1);
+    io!.cruzar(el("cp-titulo"), 1);
+    expect(eventos("section_view").map((e) => e.section)).toEqual(["cupom"]);
+  });
+
+  it.each([
+    ["iPhone", UA.iphone, "ios"],
+    ["Android", UA.androidInstagram, "android"],
+    [
+      "computador",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+      "ios",
+    ],
+  ])("%s: abre a aba do aparelho (computador abre iPhone)", (_nome, ua, esperada) => {
+    mount(OFERTA, { ua });
+    expect(el("cp-abas").hidden).toBe(false);
+    expect(el("cp-abas").getAttribute("role")).toBe("tablist");
+    expect(aberta()).toEqual([esperada]);
+    expect(visiveis()).toEqual([esperada]);
+    // Abrir sozinha não conta como troca.
+    expect(abasNoDado()).toEqual([]);
+  });
+
+  it("abas acessíveis: tab e tabpanel ligados, só a aberta entra no Tab", () => {
+    mount(OFERTA);
+    for (const aba of abas()) {
+      expect(aba.getAttribute("role")).toBe("tab");
+      const painel = el(aba.getAttribute("aria-controls")!);
+      expect(painel.getAttribute("role")).toBe("tabpanel");
+      expect(painel.getAttribute("aria-labelledby")).toBe(aba.id);
+      expect(aba.tabIndex).toBe(aba.getAttribute("aria-selected") === "true" ? 0 : -1);
+    }
+    expect(lp().querySelector("#como-usar-cupom")!.hasAttribute("data-abas")).toBe(true);
+  });
+
+  it("clique e teclado trocam a aba; cada aba conta uma vez por carga", () => {
+    mount(OFERTA);
+    const [ios, android] = abas();
+    android.click();
+    expect(aberta()).toEqual(["android"]);
+    expect(visiveis()).toEqual(["android"]);
+    // Tocar de novo na aba aberta não conta.
+    android.click();
+    tecla(android, "ArrowRight");
+    expect(aberta()).toEqual(["ios"]);
+    expect(document.activeElement).toBe(ios);
+    tecla(ios, "End");
+    expect(aberta()).toEqual(["android"]);
+    tecla(android, "Home");
+    expect(aberta()).toEqual(["ios"]);
+    expect(abasNoDado()).toEqual(["cupom_aba_android", "cupom_aba_iphone"]);
+    // Só cta_location: nenhum parâmetro de outro evento vai junto.
+    const ultimo = eventos("cta_click").at(-1)!;
+    expect(ultimo.landing_slug).toBe(OFERTA.slug);
+    expect(ultimo.section).toBeUndefined();
+  });
+
+  it("o cleanup devolve o HTML do servidor: as duas listas à vista e as abas escondidas", () => {
+    mount(OFERTA, { ua: UA.androidInstagram });
+    cleanup!();
+    cleanup = undefined;
+    expect(el("cp-abas").hidden).toBe(true);
+    expect(el("cp-abas").hasAttribute("role")).toBe(false);
+    for (const aba of abas()) {
+      expect(aba.hasAttribute("aria-selected") || aba.hasAttribute("tabindex")).toBe(false);
+    }
+    expect(visiveis()).toEqual(["ios", "android"]);
+    expect(lp().querySelector("#como-usar-cupom")!.hasAttribute("data-abas")).toBe(false);
+  });
+
+  it("as outras landings de loja não têm o bloco", () => {
+    for (const config of [LP2, LP3]) {
+      document.body.innerHTML = markup(config);
+      expect(document.getElementById("como-usar-cupom")).toBeNull();
+    }
+  });
 });

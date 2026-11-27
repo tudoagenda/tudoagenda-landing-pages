@@ -223,7 +223,10 @@ export type LojasEvent =
         | "rodape_conheca_agenda_bela"
         | "rodape_tudo_agenda"
         | "cupom_copiar_hero"
-        | "cupom_copiar_preco";
+        | "cupom_copiar_preco"
+        /* Oferta: trocou de aba no "Como usar o cupom" (uma vez por aba por carga). */
+        | "cupom_aba_iphone"
+        | "cupom_aba_android";
     }
   | {
       /**
@@ -244,7 +247,8 @@ export type LojasEvent =
     };
 
 /** Seção medida pelo section_view (data-sec no HTML de markup.ts). */
-export type LojasSection = "preco" | "faq";
+/** "cupom" só na oferta: o título do "Como usar o cupom". */
+export type LojasSection = "preco" | "faq" | "cupom";
 
 /**
  * Pergunta das landings de loja (data-faq no HTML; id em faq.ts e
