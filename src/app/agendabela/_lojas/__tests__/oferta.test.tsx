@@ -573,7 +573,7 @@ describe('Oferta Agenda Bela: "Como usar o cupom"', () => {
 
   it("iPhone: atualizar, tela de assinatura, “Tenho um cupom”, tela da Apple e confirmar", () => {
     expect(passos("ios")).toEqual([
-      "Atualize o Agenda Bela na App Store.",
+      "Baixe ou atualize o Agenda Bela na App Store.",
       "No app, abra a tela de assinatura.",
       "Toque em “Tenho um cupom”.",
       "Na tela da Apple, digite BELA50 e confirme.",
@@ -583,12 +583,14 @@ describe('Oferta Agenda Bela: "Como usar o cupom"', () => {
 
   it("Android: atualizar, tela de assinatura, aplicar o cupom no app, conferir o preço e assinar", () => {
     expect(passos("android")).toEqual([
-      "Atualize o Agenda Bela no Google Play.",
+      "Baixe ou atualize o Agenda Bela no Google Play.",
       "No app, abra a tela de assinatura.",
       "Toque em “Tenho um cupom”, digite BELA50 e toque em “Aplicar”.",
-      "Confira “Cupom BELA50 aplicado” e o preço de R$ 29,95 por mês.",
+      "Confira “Cupom BELA50 aplicado” e o preço com desconto.",
       "Toque para assinar.",
     ]);
+    // O preço no Android vem da oferta do Google Play, não da config: nenhum valor no painel.
+    expect(texto(bloco.querySelector("#cp-painel-android"))).not.toMatch(/R\$/);
   });
 
   it("sem JavaScript as duas listas ficam à vista, cada uma com o seu título; as abas ficam escondidas", () => {

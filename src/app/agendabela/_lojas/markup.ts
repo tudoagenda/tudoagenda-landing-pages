@@ -348,17 +348,17 @@ function passosDoCupom(o: OfertaConfig): Record<"ios" | "android", string[]> {
   const codigo = `<b class="cp-cod">${o.cupom}</b>`;
   return {
     ios: [
-      "Atualize o Agenda Bela na App&nbsp;Store.",
+      "Baixe ou atualize o Agenda Bela na App&nbsp;Store.",
       "No app, abra a tela de assinatura.",
       "Toque em “Tenho um cupom”.",
       `Na tela da Apple, digite ${codigo} e confirme.`,
       "Confira o resumo da Apple e confirme com Face ID ou senha.",
     ],
     android: [
-      "Atualize o Agenda Bela no Google&nbsp;Play.",
+      "Baixe ou atualize o Agenda Bela no Google&nbsp;Play.",
       "No app, abra a tela de assinatura.",
       `Toque em “Tenho um cupom”, digite ${codigo} e toque em “Aplicar”.`,
-      `Confira “Cupom ${o.cupom} aplicado” e o preço de ${reais(o.precoPromoCentavos)} por mês.`,
+      `Confira “Cupom ${o.cupom} aplicado” e o preço com desconto.`,
       "Toque para assinar.",
     ],
   };
