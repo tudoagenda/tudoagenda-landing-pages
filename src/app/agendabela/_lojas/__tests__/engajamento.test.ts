@@ -603,6 +603,9 @@ describe('oferta: "Como usar o cupom"', () => {
     cleanup = undefined;
     expect(el("cp-abas").hidden).toBe(true);
     expect(el("cp-abas").hasAttribute("role")).toBe(false);
+    for (const aba of abas()) {
+      expect(aba.hasAttribute("aria-selected") || aba.hasAttribute("tabindex")).toBe(false);
+    }
     expect(visiveis()).toEqual(["ios", "android"]);
     expect(lp().querySelector("#como-usar-cupom")!.hasAttribute("data-abas")).toBe(false);
   });

@@ -334,7 +334,8 @@ function blocoOferta(o: OfertaConfig): string {
  * não nomeia menu.
  *
  * Sem JavaScript, as duas listas aparecem, cada uma com o seu título. O
- * runtime (ligarAbasCupom) mostra as abas, dá os papéis de tab/tabpanel, abre
+ * runtime (ligarAbasCupom) mostra as abas, dá os papéis de tab/tabpanel (e
+ * aria-selected/tabindex, que só valem com o papel), abre
  * a do aparelho (Android no Android; iPhone no iPhone e no computador) e
  * esconde o título repetido.
  */
@@ -366,8 +367,8 @@ function passosDoCupom(o: OfertaConfig): Record<"ios" | "android", string[]> {
 function blocoPassosCupom(o: OfertaConfig): string {
   const passos = passosDoCupom(o);
   const abas = PLATAFORMAS_CUPOM.map(
-    (pl, i) =>
-      `<button type="button" class="cp-aba" id="cp-aba-${pl.id}" data-aba="${pl.id}" aria-controls="cp-painel-${pl.id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${pl.aba}</button>`,
+    (pl) =>
+      `<button type="button" class="cp-aba" id="cp-aba-${pl.id}" data-aba="${pl.id}" aria-controls="cp-painel-${pl.id}">${pl.aba}</button>`,
   ).join("");
   const paineis = PLATAFORMAS_CUPOM.map(
     (pl) =>

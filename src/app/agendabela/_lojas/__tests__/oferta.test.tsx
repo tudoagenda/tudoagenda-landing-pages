@@ -565,7 +565,7 @@ describe('Oferta Agenda Bela: "Como usar o cupom"', () => {
   const passos = (plat: string) =>
     [...bloco.querySelectorAll(`#cp-painel-${plat} .cp-passos li`)].map(texto);
 
-  it("vem logo depois do bloco de preço, fora da primeira tela", () => {
+  it("vem logo depois do bloco de preço (que já fica fora da primeira tela)", () => {
     expect(bloco.previousElementSibling?.id).toBe("preco");
     expect(texto(doc.getElementById("cp-titulo"))).toBe("Como usar o cupom");
     expect(doc.getElementById("cp-titulo")?.getAttribute("data-sec")).toBe("cupom");
@@ -604,11 +604,12 @@ describe('Oferta Agenda Bela: "Como usar o cupom"', () => {
       [...abas.querySelectorAll("button")].map((b) => [
         texto(b),
         b.getAttribute("aria-controls"),
-        b.getAttribute("aria-selected"),
+        // Sem o papel de aba, aria-selected e tabindex não valem: só o runtime põe.
+        b.hasAttribute("aria-selected") || b.hasAttribute("tabindex"),
       ]),
     ).toEqual([
-      ["iPhone", "cp-painel-ios", "true"],
-      ["Android", "cp-painel-android", "false"],
+      ["iPhone", "cp-painel-ios", false],
+      ["Android", "cp-painel-android", false],
     ]);
     // A lista sem marcador continua lista para o leitor de tela.
     for (const ol of bloco.querySelectorAll("ol")) expect(ol.getAttribute("role")).toBe("list");

@@ -442,7 +442,6 @@ function ligarCupom(opts, lp, undo) {
   });
 }
 
-/** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */
 /**
  * "Como usar o cupom" (oferta): duas abas, iPhone e Android, no padrão de
  * abas do WAI-ARIA (setas, Home e End; só a aba aberta entra no Tab). Abre
@@ -486,7 +485,7 @@ function ligarAbasCupom(opts, lp, undo, os) {
     }
     abrir(n, foco);
     const plat = abas[n].getAttribute("data-aba");
-    if (medidas[plat]) return;
+    if (!ROTULO_DO_EVENTO[plat] || medidas[plat]) return;
     medidas[plat] = true;
     try {
       opts.track({
@@ -504,8 +503,8 @@ function ligarAbasCupom(opts, lp, undo, os) {
     bloco.removeAttribute("data-abas");
     abas.forEach(function (aba, i) {
       aba.removeAttribute("role");
-      aba.setAttribute("aria-selected", i === 0 ? "true" : "false");
-      aba.tabIndex = i === 0 ? 0 : -1;
+      aba.removeAttribute("aria-selected");
+      aba.removeAttribute("tabindex");
       paineis[i].hidden = false;
       paineis[i].removeAttribute("role");
       paineis[i].removeAttribute("aria-labelledby");
@@ -548,6 +547,7 @@ function ligarAbasCupom(opts, lp, undo, os) {
   bloco.setAttribute("data-abas", "");
 }
 
+/** CTA fixo do celular, demonstração do hero, abas, chips, tema Black Friday e oferta. */
 function animar(lp, undo, os) {
   const $ = function (id) {
     return document.getElementById(id);
