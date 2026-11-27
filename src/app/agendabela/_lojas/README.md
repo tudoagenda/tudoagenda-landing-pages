@@ -34,7 +34,9 @@ sem JavaScript → dois selos).
 Todo evento sai por `pushAgendaBelaLojasEvent(slug, …)` com
 `landing_type: "campaign"` e o `landing_slug` da rota. Eventos: `lp_view`,
 `store_click` e `cta_click` (na oferta, também o toque no cupom:
-`cta_location` `cupom_copiar_hero` e `cupom_copiar_preco`). A medição é ligada antes da animação e não cai com ela. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
+`cta_location` `cupom_copiar_hero` e `cupom_copiar_preco`, e a troca de aba
+no "Como usar o cupom": `cupom_aba_iphone` e `cupom_aba_android`, uma vez por
+aba por carga; a aba que abre sozinha não conta). A medição é ligada antes da animação e não cai com ela. Nunca use `pushAgendaBelaMainEvent` aqui: o teste
 `__tests__/rotas.test.tsx` falha se um evento sair com o slug de outra página.
 
 ### Engajamento: `section_view` e `faq_open`
@@ -46,7 +48,7 @@ os cliques seguem medidos. Testes em `__tests__/engajamento.test.ts`.
 
 | Evento | Parâmetros | Quando sai |
 |---|---|---|
-| `section_view` | `section` (`preco` ou `faq`), `device_os`, `in_app_browser` | Uma vez por seção por carga de página, quando 75% do título marcado com `data-sec` está na tela, sem contar os 15% de baixo (onde a seção só encosta e onde fica o CTA fixo do celular). O observador tem dois limiares (75% e 100%): se a leitura do primeiro vier um pouco abaixo, a do título inteiro confirma. Sem `IntersectionObserver`, não sai. |
+| `section_view` | `section` (`preco`, `faq` e, só na oferta, `cupom`), `device_os`, `in_app_browser` | Uma vez por seção por carga de página, quando 75% do título marcado com `data-sec` está na tela, sem contar os 15% de baixo (onde a seção só encosta e onde fica o CTA fixo do celular). O observador tem dois limiares (75% e 100%): se a leitura do primeiro vier um pouco abaixo, a do título inteiro confirma. Sem `IntersectionObserver`, não sai. |
 | `faq_open` | `faq_id`, `device_os`, `in_app_browser` | Quando a pessoa abre uma pergunta (evento `toggle` do `<details>`). Fechar não mede. Uma vez por pergunta por carga de página. |
 
 - **O que conta como "viu o preço"** (`data-sec="preco"` em `markup.ts`): o
@@ -110,6 +112,18 @@ cobrança pela web.
   `cta_click` só. Sem JavaScript, ou enquanto o runtime não ligou a
   cópia (`data-cupom-on`), o CSS mostra o código em texto, selecionável, sem o
   aviso de copiar.
+- **Como usar o cupom** (`blocoPassosCupom` em `markup.ts`,
+  `ligarAbasCupom` em `runtime.js`, bloco 6 de `oferta.css`): logo depois do
+  bloco de preço, o passo a passo do iPhone (tela da Apple) e do Android
+  (campo do app), começando por atualizar o app (o link "Tenho um cupom" só
+  existe a partir da 1.11.0). O texto diz "a tela de assinatura" sem nomear
+  menu: no app ela aparece no passo do cartão, ao montar a conta, e quando a
+  conta fica sem assinatura; em Ajustes → Assinatura, durante o teste, abre o
+  cartão de gerenciar, sem o cupom. Abas no padrão WAI-ARIA (setas, Home,
+  End), abertas pelo aparelho (`data-os`: Android no Android, iPhone no resto).
+  Sem JavaScript, as duas listas aparecem com título. O título do bloco
+  (`#cp-titulo`) é o `section_view` `cupom`. Nada no bloco fala do teste nem
+  do preço do Google Play (`oferta.test.tsx` trava).
 - **Antes de ligar tráfego**: a versão do app com "Tenho um cupom" (1.11.0)
   publicada nas duas lojas e o cupom configurado em App Store Connect, Play
   Console e RevenueCat. Antes disso a página manda digitar um código que não

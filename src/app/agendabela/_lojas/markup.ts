@@ -326,6 +326,63 @@ function blocoOferta(o: OfertaConfig): string {
 </div></div></section>`;
 }
 
+/**
+ * "Como usar o cupom": passo a passo por loja, logo depois do bloco de preço
+ * (pedido do Miguel, 27/11/2026). O cupom é só o desconto: nada aqui fala do
+ * teste (oferta.test.tsx trava). O caminho até a tela de assinatura muda com
+ * o estado da conta no app (montando a conta, depois do teste), então o texto
+ * não nomeia menu.
+ *
+ * Sem JavaScript, as duas listas aparecem, cada uma com o seu título. O
+ * runtime (ligarAbasCupom) mostra as abas, dá os papéis de tab/tabpanel, abre
+ * a do aparelho (Android no Android; iPhone no iPhone e no computador) e
+ * esconde o título repetido.
+ */
+const PLATAFORMAS_CUPOM = [
+  { id: "ios", aba: "iPhone", titulo: "No iPhone" },
+  { id: "android", aba: "Android", titulo: "No Android" },
+] as const;
+
+function passosDoCupom(o: OfertaConfig): Record<"ios" | "android", string[]> {
+  const codigo = `<b class="cp-cod">${o.cupom}</b>`;
+  return {
+    ios: [
+      "Atualize o Agenda Bela na App&nbsp;Store.",
+      "No app, abra a tela de assinatura.",
+      "Toque em “Tenho um cupom”.",
+      `Na tela da Apple, digite ${codigo} e confirme.`,
+      "Confira o resumo da Apple e confirme com Face ID ou senha.",
+    ],
+    android: [
+      "Atualize o Agenda Bela no Google&nbsp;Play.",
+      "No app, abra a tela de assinatura.",
+      `Toque em “Tenho um cupom”, digite ${codigo} e toque em “Aplicar”.`,
+      `Confira “Cupom ${o.cupom} aplicado” e o preço de ${reais(o.precoPromoCentavos)} por mês.`,
+      "Toque para assinar.",
+    ],
+  };
+}
+
+function blocoPassosCupom(o: OfertaConfig): string {
+  const passos = passosDoCupom(o);
+  const abas = PLATAFORMAS_CUPOM.map(
+    (pl, i) =>
+      `<button type="button" class="cp-aba" id="cp-aba-${pl.id}" data-aba="${pl.id}" aria-controls="cp-painel-${pl.id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${pl.aba}</button>`,
+  ).join("");
+  const paineis = PLATAFORMAS_CUPOM.map(
+    (pl) =>
+      `<div class="cp-painel" id="cp-painel-${pl.id}" data-plat="${pl.id}"><h3 class="cp-plat">${pl.titulo}</h3><ol class="cp-passos" role="list">${passos[pl.id]
+        .map((passo) => `<li><span>${passo}</span></li>`)
+        .join("")}</ol></div>`,
+  ).join("");
+  return `<section class="cp" id="como-usar-cupom" aria-labelledby="cp-titulo"><div class="wrap"><div class="cp-card">
+  <span class="mono">Passo a passo</span>
+  <h2 id="cp-titulo" data-sec="cupom">Como usar o cupom</h2>
+  <div class="cp-abas" id="cp-abas" aria-label="Escolha o seu celular" hidden>${abas}</div>
+  ${paineis}
+</div></div></section>`;
+}
+
 /** Legendas dos 6 passos da demonstração na oferta (as mesmas de CAPS_OFERTA em runtime.js). */
 const PASSOS_OFERTA = [
   "A Camila marca sozinha, pelo seu link.",
@@ -434,7 +491,7 @@ ${blocoMicro(p)}`}
   </div>
 </header>
 
-${bf ? BLOCO_PRECO : o ? blocoOferta(o) : ""}
+${bf ? BLOCO_PRECO : o ? blocoOferta(o) + "\n\n" + blocoPassosCupom(o) : ""}
 
 <section class="sec how" aria-labelledby="como-titulo"><div class="wrap">
   <div class="sec-head rv"><span class="mono">Sem complicação</span><h2 class="t" id="como-titulo" style="max-width:18ch">Em poucos minutos a Bela já está trabalhando para você.</h2></div>

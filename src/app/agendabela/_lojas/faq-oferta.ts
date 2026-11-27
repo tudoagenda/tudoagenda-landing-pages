@@ -63,11 +63,13 @@ export function buildOfertaFaq(oferta: OfertaConfig): OfertaFaqItem[] {
     {
       id: "cupom_onde_colocar",
       pergunta: "Onde eu coloco o cupom?",
-      respostaHtml: porAparelho(
-        ondeDigita("uma tela da Apple"),
-        ondeDigita("um campo no próprio app"),
-        `No app, na tela de assinatura, toque em “Tenho um cupom” e digite ${cupom} antes de confirmar.`,
-      ),
+      respostaHtml:
+        porAparelho(
+          ondeDigita("uma tela da Apple"),
+          ondeDigita("um campo no próprio app"),
+          `No app, na tela de assinatura, toque em “Tenho um cupom” e digite ${cupom} antes de confirmar.`,
+        ) +
+        ` O passo a passo do iPhone e do Android está em <a href="#como-usar-cupom">Como usar o cupom</a>.`,
     },
     {
       id: "cupom_ja_assinou",

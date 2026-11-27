@@ -282,6 +282,7 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
       "faixa",
       "topo",
       "preco",
+      "como-usar-cupom",
       "sec how",
       "diferenciais",
       "price-sec",
@@ -556,6 +557,75 @@ describe("Oferta Agenda Bela: estrutura da página", () => {
         img.getAttribute("src"),
       ),
     ).toEqual(["/qr-oferta.svg", "/qr-oferta.svg", "/qr-oferta.svg"]);
+  });
+});
+
+describe('Oferta Agenda Bela: "Como usar o cupom"', () => {
+  const bloco = doc.getElementById("como-usar-cupom")!;
+  const passos = (plat: string) =>
+    [...bloco.querySelectorAll(`#cp-painel-${plat} .cp-passos li`)].map(texto);
+
+  it("vem logo depois do bloco de preço, fora da primeira tela", () => {
+    expect(bloco.previousElementSibling?.id).toBe("preco");
+    expect(texto(doc.getElementById("cp-titulo"))).toBe("Como usar o cupom");
+    expect(doc.getElementById("cp-titulo")?.getAttribute("data-sec")).toBe("cupom");
+  });
+
+  it("iPhone: atualizar, tela de assinatura, “Tenho um cupom”, tela da Apple e confirmar", () => {
+    expect(passos("ios")).toEqual([
+      "Atualize o Agenda Bela na App Store.",
+      "No app, abra a tela de assinatura.",
+      "Toque em “Tenho um cupom”.",
+      "Na tela da Apple, digite BELA50 e confirme.",
+      "Confira o resumo da Apple e confirme com Face ID ou senha.",
+    ]);
+  });
+
+  it("Android: atualizar, tela de assinatura, aplicar o cupom no app, conferir o preço e assinar", () => {
+    expect(passos("android")).toEqual([
+      "Atualize o Agenda Bela no Google Play.",
+      "No app, abra a tela de assinatura.",
+      "Toque em “Tenho um cupom”, digite BELA50 e toque em “Aplicar”.",
+      "Confira “Cupom BELA50 aplicado” e o preço de R$ 29,95 por mês.",
+      "Toque para assinar.",
+    ]);
+  });
+
+  it("sem JavaScript as duas listas ficam à vista, cada uma com o seu título; as abas ficam escondidas", () => {
+    const paineis = [...bloco.querySelectorAll(".cp-painel")];
+    expect(paineis.map((p) => p.getAttribute("data-plat"))).toEqual(["ios", "android"]);
+    for (const p of paineis) expect(p.hasAttribute("hidden")).toBe(false);
+    expect(paineis.map((p) => texto(p.querySelector("h3")))).toEqual(["No iPhone", "No Android"]);
+    // As listas não dependem de data-dev (que esconde por aparelho).
+    expect(bloco.querySelector("[data-dev]")).toBeNull();
+    const abas = doc.getElementById("cp-abas")!;
+    expect(abas.hasAttribute("hidden")).toBe(true);
+    expect(
+      [...abas.querySelectorAll("button")].map((b) => [
+        texto(b),
+        b.getAttribute("aria-controls"),
+        b.getAttribute("aria-selected"),
+      ]),
+    ).toEqual([
+      ["iPhone", "cp-painel-ios", "true"],
+      ["Android", "cp-painel-android", "false"],
+    ]);
+    // A lista sem marcador continua lista para o leitor de tela.
+    for (const ol of bloco.querySelectorAll("ol")) expect(ol.getAttribute("role")).toBe("list");
+  });
+
+  it("o bloco fala só do desconto: nada de teste, de 7 dias nem do preço do Google Play", () => {
+    const tudo = `${texto(bloco)} ${bloco.innerHTML}`;
+    expect(tudo).not.toMatch(/7\s*(&nbsp;|\u00a0)?\s*dias/i);
+    expect(tudo).not.toMatch(/test[ae]|gr[áa]tis/i);
+    expect(tudo).not.toMatch(/59,99/);
+  });
+
+  it("a pergunta “Onde eu coloco o cupom?” aponta para o bloco", () => {
+    const resposta = [...doc.querySelectorAll(".faq details")].find(
+      (d) => texto(d.querySelector("summary")) === "Onde eu coloco o cupom?",
+    );
+    expect(resposta?.querySelector('a[href="#como-usar-cupom"]')).not.toBeNull();
   });
 });
 
